@@ -135,7 +135,7 @@
                 mem: 45,
                 addModalOpen: false,
                 settingsOpen: false,
-                newShortcut: { name: '', url: '', iconName: '' },
+                newShortcut: { name: '', url: '', iconName: '', iconUrl: '' },
                 settings: {
                     widgets: { system: true, tasks: true },
                     bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600',
@@ -181,6 +181,7 @@
                 },
                 getIcon(item) {
                     if (item.svg) return item.svg;
+                    if (item.iconUrl) return `<img src="${item.iconUrl}" />`;
                     return `<img src="${getIconUrl(item.iconName)}" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'" />`;
                 },
                 updateTime() {
@@ -190,14 +191,15 @@
                     this.date = n.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
                 },
                 addShortcut() {
-                    if (!this.newShortcut.name || !this.newShortcut.iconName) return;
+                    if (!this.newShortcut.name || (!this.newShortcut.iconName && !this.newShortcut.iconUrl)) return;
                     this.activeShortcuts.push({ 
                         name: this.newShortcut.name, 
                         iconName: this.newShortcut.iconName, 
+                        iconUrl: this.newShortcut.iconUrl,
                         url: this.newShortcut.url || '#', 
                         color: '#2563eb' 
                     });
-                    this.newShortcut = { name: '', url: '', iconName: '' };
+                    this.newShortcut = { name: '', url: '', iconName: '', iconUrl: '' };
                     this.addModalOpen = false;
                 },
                 removeShortcut(index) {
@@ -352,10 +354,21 @@
                     <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2">Target URL</label>
                     <input x-model="newShortcut.url" type="text" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
-                <div>
-                    <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2">SelfH.st Icon Name</label>
-                    <input x-model="newShortcut.iconName" type="text" placeholder="e.g. home-assistant" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-                    <p class="text-[9px] text-blue-400 mt-2 italic">Matches icons from walkxcode/dashboard-icons</p>
+                
+                <div class="grid grid-cols-1 gap-4 pt-2">
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2">SelfH.st Icon Name</label>
+                        <input x-model="newShortcut.iconName" type="text" placeholder="e.g. home-assistant" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                    </div>
+                    <div class="relative flex items-center py-2">
+                        <div class="flex-grow border-t border-white/10"></div>
+                        <span class="flex-shrink mx-4 text-[9px] font-black text-white/20 uppercase tracking-widest">OR</span>
+                        <div class="flex-grow border-t border-white/10"></div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2">Custom Icon Image URL</label>
+                        <input x-model="newShortcut.iconUrl" type="text" placeholder="https://site.com/icon.png" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                    </div>
                 </div>
             </div>
             <div class="flex gap-4 mt-10">
