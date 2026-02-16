@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus Dash | Terminal Pro</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Firebase Compat SDKs -->
+    <!-- Firebase Global SDKs -->
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
@@ -34,7 +35,6 @@
     <div class="bg-overlay" :style="'background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(' + settings.bg + '); filter: blur(' + settings.blur + 'px)'"></div>
 
     <div class="relative z-10 min-h-screen flex flex-col">
-        <!-- Header -->
         <header class="p-6 flex justify-between items-center max-w-7xl mx-auto w-full">
             <div class="flex items-center gap-4 text-left">
                 <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl">
@@ -46,14 +46,17 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <span x-show="syncing" class="text-[9px] uppercase tracking-widest text-blue-400 font-bold animate-pulse">Synchronizing...</span>
+                <div x-show="syncing" class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
+                    <span class="text-[9px] uppercase tracking-widest text-blue-400 font-bold">Syncing</span>
+                </div>
                 <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 shadow-lg">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
             </div>
         </header>
 
-        <!-- Clock -->
+        <!-- Dynamic Clock -->
         <section class="flex-grow flex flex-col items-center justify-center py-4 text-center">
             <h2 x-text="time" class="text-[7rem] md:text-[10rem] font-extrabold tracking-tighter leading-none drop-shadow-2xl tabular-nums uppercase">00:00 AM</h2>
             <p x-text="date" class="text-white/30 uppercase tracking-[0.5em] font-bold text-xs mt-2"></p>
@@ -64,14 +67,14 @@
             </div>
         </section>
 
-        <!-- Main Content -->
+        <!-- Grid Workspace -->
         <section class="max-w-7xl mx-auto w-full px-6 pb-12">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <!-- Tabbed Grid -->
+                <!-- Links Tabbed Grid -->
                 <div class="lg:col-span-8 nexus-card p-8 md:p-10 flex flex-col">
                     <div class="flex items-center gap-8 mb-10 border-b border-white/5">
-                        <button @click="activeTab = 'links'" :class="activeTab === 'links' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em]">Links</button>
-                        <button @click="activeTab = 'server'" :class="activeTab === 'server' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em]">Server Links</button>
+                        <button @click="activeTab = 'links'" :class="activeTab === 'links' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Links</button>
+                        <button @click="activeTab = 'server'" :class="activeTab === 'server' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Server Links</button>
                     </div>
 
                     <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-6">
@@ -81,10 +84,14 @@
                                     <img :src="getIcon(link)" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'">
                                 </a>
                                 <span x-text="link.name" class="text-[9px] font-black uppercase text-white/30 tracking-widest truncate w-full text-center px-1"></span>
-                                <button @click="removeShortcut(index)" class="absolute -top-2 -right-2 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 shadow-xl"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                                <button @click="removeShortcut(index)" class="absolute -top-2 -right-2 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 shadow-xl">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                                </button>
                             </div>
                         </template>
-                        <button @click="addModalOpen = true" class="icon-box border-dashed border-2 border-white/10 text-white/20 hover:text-white hover:border-blue-500 transition-all"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
+                        <button @click="addModalOpen = true" class="icon-box border-dashed border-2 border-white/10 text-white/20 hover:text-white hover:border-blue-500">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                        </button>
                     </div>
                 </div>
 
@@ -108,7 +115,9 @@
                         <div class="space-y-3 flex-grow overflow-y-auto max-h-[160px] pr-2">
                             <template x-for="(t, i) in tasks">
                                 <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
-                                    <div @click="t.done = !t.done; persist()" class="w-5 h-5 rounded-lg border-2 border-white/10 flex items-center justify-center cursor-pointer transition-colors" :class="t.done ? 'bg-blue-600 border-blue-500' : ''"><svg x-show="t.done" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg></div>
+                                    <div @click="t.done = !t.done; persist()" class="w-5 h-5 rounded-lg border-2 border-white/10 flex items-center justify-center cursor-pointer transition-colors" :class="t.done ? 'bg-blue-600 border-blue-500' : ''">
+                                        <svg x-show="t.done" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg>
+                                    </div>
                                     <span x-text="t.text" class="text-sm font-medium" :class="t.done ? 'text-white/20 line-through' : ''"></span>
                                 </div>
                             </template>
@@ -120,37 +129,36 @@
         </section>
     </div>
 
-    <!-- Inject Modal -->
+    <!-- Modals -->
     <div x-show="addModalOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md">
         <div @click="addModalOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl text-left">
             <h2 class="text-3xl font-black uppercase tracking-tighter mb-2">Inject Module</h2>
             <div class="space-y-4">
                 <input x-model="newItem.name" type="text" placeholder="Label" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none">
-                <input x-model="newItem.url" type="text" placeholder="URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none">
-                <input x-model="newItem.icon" type="text" placeholder="Icon link" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none">
+                <input x-model="newItem.url" type="text" placeholder="URL (https://...)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none">
+                <input x-model="newItem.icon" type="text" placeholder="Icon link or SelfH.st name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none">
             </div>
-            <button @click="addNewItem()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase hover:bg-blue-500 transition-all">Finalize Injection</button>
+            <button @click="addNewItem()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 shadow-xl transition-all">Finalize Injection</button>
         </div>
     </div>
 
-    <!-- Settings Modal -->
     <div x-show="settingsOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md text-left">
         <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl">
             <h2 class="text-2xl font-black uppercase tracking-tighter mb-8">System config</h2>
             <div class="space-y-8">
-                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Glass Aura Blur Density</p>
-                <input type="range" min="0" max="40" x-model="settings.blur" @input="persist()" class="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer"></div>
-                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Manual Wallpaper URL</p>
+                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Aura Blur Intensity</p>
+                <input type="range" min="0" max="40" x-model="settings.blur" @input="persist()" class="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500"></div>
+                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Manual Wallpaper URL</p>
                 <input x-model="settings.bg" @input="persist()" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none"></div>
             </div>
-            <button @click="settingsOpen = false" class="w-full mt-10 py-5 bg-blue-600 rounded-[1rem] font-black uppercase tracking-widest text-sm hover:bg-blue-500 shadow-xl transition-all">Confirm Changes</button>
+            <button @click="settingsOpen = false" class="w-full mt-10 py-5 bg-blue-600 rounded-[1.5rem] font-black uppercase tracking-widest text-sm hover:bg-blue-500 transition-colors shadow-xl">Confirm Changes</button>
         </div>
     </div>
 
     <script>
-        // --- FIREBASE CONFIG ---
+        // --- 1. FIREBASE CONFIG ---
         const config = {
             apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
             authDomain: "nexusdash-5731e.firebaseapp.com",
@@ -163,44 +171,48 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        // --- 2. DEFAULTS ---
+        const DEFAULT_LINKS = [
+            { name: 'EOS Form', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-application-100.png', url: 'https://forms.office.com/pages/responsepage.aspx?id=Zh-exeJVn0SAfe_1FF9ZixnyQxfHe_9EkCPctjghjHBUM002U1hLUUJTSVhMTU5MNE5XR1g0S0ZENi4u&route=shorturl' },
+            { name: 'Vanguard', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/Icon-57%402x.png', url: 'https://vanguard.emsanyware.com/' },
+            { name: 'ESO Suite', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/eso.png', url: 'https://scheduling.esosuite.net/Default.aspx?DB=priorityambulance' },
+            { name: 'Helo Sync', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/EMS_Helo-removebg-preview.png', url: 'https://andersoncounty911_sc.transport.net/#/login' },
+            { name: 'DOT Cam', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-wall-mount-camera-100.png', url: 'https://work.sndjy.us/camera' },
+            { name: 'Radio', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/headset.png', url: '#' },
+            { name: 'Map dist', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-map-pinpoint-100.png', url: 'https://work.sndjy.us/map.html' },
+            { name: 'Daily WS', icon: 'https://icons.duckduckgo.com/ip3/drive.google.com.ico', url: 'https://docs.google.com/spreadsheets/d/1H6C59UoF_g1QHSutXQCqBUUhfW4r2rLoNaTe0ZRQYSw/edit?usp=sharing' },
+            { name: 'Coroner', icon: 'https://raw.githubusercontent.com/sndjy1986/_traichu/refs/heads/main/icons/Priority.png', url: 'https://drive.google.com/file/d/1Lq3m5KIhkwP7zQZu9RTKlXRO18BPhx1A/view?usp=drive_link' },
+            { name: 'AnMed Map', icon: 'https://icons.duckduckgo.com/ip3/anmed.org.ico', url: 'https://anmed.org/sites/default/files/2024-08/anmed-north-campus-map-v5.pdf' },
+            { name: 'G. Voice', icon: 'https://icons.duckduckgo.com/ip3/voice.google.com.ico', url: 'http://www.google.com/voice' },
+            { name: 'Posts', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-address-100.png', url: 'https://www.google.com/maps/d/u/0/edit?mid=14QXoBd6ojQUTrFpxyksjX9PcbsiiUZk&usp=sharing' },
+            { name: 'Lead Email', icon: 'https://raw.githubusercontent.com/sndjy1986/_traichu/refs/heads/main/icons/filebrowser.png', url: 'http://work.sndjy.us/leadform' },
+            { name: 'PRO-QA', icon: 'https://icons.duckduckgo.com/ip3/emergencydispatch.org.ico', url: 'https://learn.emergencydispatch.org/academy/my_learning/dashboard' },
+            { name: 'Truck Form', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/2be043653580663a0484a8ae2bdaf5bd276538d7/FILE.svg', url: 'https://forms.microsoft.com/r/YcaLSLR43Y' },
+            { name: 'Outages', icon: 'https://icons.duckduckgo.com/ip3/poweroutage.us.ico', url: 'https://poweroutage.us/area/county/532' },
+            { name: 'QRV Roster', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/notepad.png', url: 'https://drive.google.com/file/d/1CdFma_A-xTt2KhbJY6yMS9o5PHF8pm9f/view?usp=drive_link' }
+        ];
+
+        const DEFAULT_SERVERS = [
+            { name: 'Termix2', icon: 'terminal', url: 'https://Termix2.sndjy.us' },
+            { name: 'Warden', icon: 'bitwarden', url: 'https://Warden.sndjy.us' },
+            { name: 'Joplin', icon: 'joplin', url: 'https://Joplin.sndjy.us' },
+            { name: 'Calendar', icon: 'google-calendar', url: 'https://Calendar.sndjy.us' }
+        ];
+
+        // --- 3. APP HANDLER ---
         function nexusHandler() {
             return {
                 time: '', date: '',
                 activeTab: 'links',
-                storageMode: 'Initializing...',
+                storageMode: 'Protocol Linking...',
                 syncing: false,
                 isCloudReady: false,
                 settingsOpen: false, addModalOpen: false,
                 newItem: { name: '', url: '', icon: '' },
                 events: [],
-                
-                // DEFAULTS
-                links: [
-                    { name: 'EOS Form', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-application-100.png', url: 'https://forms.office.com/pages/responsepage.aspx?id=Zh-exeJVn0SAfe_1FF9ZixnyQxfHe_9EkCPctjghjHBUM002U1hLUUJTSVhMTU5MNE5XR1g0S0ZENi4u&route=shorturl' },
-                    { name: 'Vanguard', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/Icon-57%402x.png', url: 'https://vanguard.emsanyware.com/' },
-                    { name: 'ESO Suite', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/eso.png', url: 'https://scheduling.esosuite.net/Default.aspx?DB=priorityambulance' },
-                    { name: 'Helo Sync', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/EMS_Helo-removebg-preview.png', url: 'https://andersoncounty911_sc.transport.net/#/login' },
-                    { name: 'DOT Cam', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-wall-mount-camera-100.png', url: 'https://work.sndjy.us/camera' },
-                    { name: 'Radio', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/headset.png', url: '#' },
-                    { name: 'Map dist', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-map-pinpoint-100.png', url: 'https://work.sndjy.us/map.html' },
-                    { name: 'Daily WS', icon: 'https://icons.duckduckgo.com/ip3/drive.google.com.ico', url: 'https://docs.google.com/spreadsheets/d/1H6C59UoF_g1QHSutXQCqBUUhfW4r2rLoNaTe0ZRQYSw/edit?usp=sharing' },
-                    { name: 'Coroner', icon: 'https://raw.githubusercontent.com/sndjy1986/_traichu/refs/heads/main/icons/Priority.png', url: 'https://drive.google.com/file/d/1Lq3m5KIhkwP7zQZu9RTKlXRO18BPhx1A/view?usp=drive_link' },
-                    { name: 'AnMed Map', icon: 'https://icons.duckduckgo.com/ip3/anmed.org.ico', url: 'https://anmed.org/sites/default/files/2024-08/anmed-north-campus-map-v5.pdf' },
-                    { name: 'G. Voice', icon: 'https://icons.duckduckgo.com/ip3/voice.google.com.ico', url: 'http://www.google.com/voice' },
-                    { name: 'Posts', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-address-100.png', url: 'https://www.google.com/maps/d/u/0/edit?mid=14QXoBd6ojQUTrFpxyksjX9PcbsiiUZk&usp=sharing' },
-                    { name: 'Lead Email', icon: 'https://raw.githubusercontent.com/sndjy1986/_traichu/refs/heads/main/icons/filebrowser.png', url: 'http://work.sndjy.us/leadform' },
-                    { name: 'PRO-QA', icon: 'https://icons.duckduckgo.com/ip3/emergencydispatch.org.ico', url: 'https://learn.emergencydispatch.org/academy/my_learning/dashboard' },
-                    { name: 'Truck Form', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/2be043653580663a0484a8ae2bdaf5bd276538d7/FILE.svg', url: 'https://forms.microsoft.com/r/YcaLSLR43Y' },
-                    { name: 'Outages', icon: 'https://icons.duckduckgo.com/ip3/poweroutage.us.ico', url: 'https://poweroutage.us/area/county/532' },
-                    { name: 'QRV Roster', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/notepad.png', url: 'https://drive.google.com/file/d/1CdFma_A-xTt2KhbJY6yMS9o5PHF8pm9f/view?usp=drive_link' }
-                ],
-                serverLinks: [
-                    { name: 'Termix2', icon: 'terminal', url: 'https://Termix2.sndjy.us' },
-                    { name: 'Warden', icon: 'bitwarden', url: 'https://Warden.sndjy.us' },
-                    { name: 'Joplin', icon: 'joplin', url: 'https://Joplin.sndjy.us' },
-                    { name: 'Calendar', icon: 'google-calendar', url: 'https://Calendar.sndjy.us' }
-                ],
-                tasks: [{ text: 'Universal sync ready', done: true }],
+                links: [...DEFAULT_LINKS],
+                serverLinks: [...DEFAULT_SERVERS],
+                tasks: [{ text: 'System Initialized', done: true }],
                 settings: { bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', blur: 0 },
 
                 async boot() {
@@ -208,28 +220,31 @@
                     setInterval(() => this.updateClock(), 1000);
                     this.fetchEvents();
 
-                    // AUTH HANDSHAKE WITH 5 SECOND TIMEOUT
-                    const authPromise = auth.signInAnonymously();
-                    const timeout = new Promise((_, reject) => setTimeout(() => reject('Timeout'), 5000));
-
+                    console.log("Nexus: Starting Handshake...");
                     try {
-                        const cred = await Promise.race([authPromise, timeout]);
-                        this.storageMode = 'Nexus Cloud Link';
+                        const cred = await auth.signInAnonymously();
+                        console.log("Nexus: Auth Success, UID:", cred.user.uid);
                         
-                        // Path: /artifacts/nexusdash/users/[uid]/data/current
-                        const docRef = db.collection('artifacts').doc('nexusdash').collection('users').doc(cred.user.uid).collection('data').doc('current');
+                        // Strict Path Compliance
+                        const docRef = db.collection('artifacts').doc('nexusdash').collection('users').doc(cred.user.uid).collection('settings').doc('current');
+                        
                         const snap = await docRef.get();
-                        
                         if (snap.exists) {
                             const d = snap.data();
                             this.links = d.links || this.links;
                             this.serverLinks = d.serverLinks || this.serverLinks;
                             this.tasks = d.tasks || this.tasks;
                             this.settings = d.settings || this.settings;
+                            console.log("Nexus: Cloud data loaded successfully.");
+                        } else {
+                            console.log("Nexus: No cloud data found. Using defaults.");
                         }
+                        
+                        this.storageMode = 'Nexus Cloud Active';
                         this.isCloudReady = true;
                     } catch (e) {
-                        this.storageMode = 'Local Session Mode';
+                        console.error("Nexus: Handshake Failed!", e);
+                        this.storageMode = 'Local Mode (Cloud Blocked)';
                         this.isCloudReady = true; 
                     }
                 },
@@ -248,9 +263,12 @@
 
                 async persist() {
                     if (!this.isCloudReady || !auth.currentUser) return;
+                    
                     this.syncing = true;
+                    console.log("Nexus: Uploading configuration...");
+                    
                     try {
-                        const docRef = db.collection('artifacts').doc('nexusdash').collection('users').doc(auth.currentUser.uid).collection('data').doc('current');
+                        const docRef = db.collection('artifacts').doc('nexusdash').collection('users').doc(auth.currentUser.uid).collection('settings').doc('current');
                         await docRef.set({
                             links: JSON.parse(JSON.stringify(this.links)),
                             serverLinks: JSON.parse(JSON.stringify(this.serverLinks)),
@@ -258,15 +276,19 @@
                             settings: JSON.parse(JSON.stringify(this.settings)),
                             updatedAt: Date.now()
                         });
-                        setTimeout(() => this.syncing = false, 800);
-                    } catch (e) { this.syncing = false; }
+                        console.log("Nexus: Protocol stored.");
+                        setTimeout(() => this.syncing = false, 600);
+                    } catch (e) {
+                        console.error("Nexus: Storage Write Failure!", e);
+                        this.syncing = false;
+                    }
                 },
 
                 async fetchEvents() {
                     try {
                         const res = await fetch('https://calendar.sndjy.us/api/events');
                         if (res.ok) this.events = await res.json();
-                        else this.events = [{ title: 'Calendar Initialized', time: 'Protocol Standby' }];
+                        else this.events = [{ title: 'Calendar Standby', time: 'Protocol Online' }];
                     } catch (e) {
                         this.events = [{ title: 'Syncing Work Calendar...', time: 'Pending' }];
                     }
