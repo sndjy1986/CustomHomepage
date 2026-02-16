@@ -4,27 +4,296 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus Dash | Interactive</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        
         [x-cloak] { display: none !important; }
-        :root { --neon-blue: #00f2ff; --neon-purple: #bc13fe; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020617; color: #f8fafc; overflow-x: hidden; margin: 0; }
-        .bg-animate { background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #020617 100%); position: fixed; inset: 0; z-index: -1; }
-        .bg-overlay { position: fixed; inset: 0; z-index: -1; background-size: cover; background-position: center; transition: background-image 0.8s ease-in-out, filter 0.3s ease; }
-        .blob { position: absolute; width: 500px; height: 500px; background: linear-gradient(to right, var(--neon-blue), var(--neon-purple)); filter: blur(120px); border-radius: 50%; opacity: 0.15; animation: move 20s infinite alternate; }
-        @keyframes move { from { transform: translate(-10%, -10%) scale(1); } to { transform: translate(20%, 20%) scale(1.2); } }
-        .nexus-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 2rem; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .nexus-card:hover { border-color: rgba(0, 242, 255, 0.4); transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); }
-        .icon-box { position: relative; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; border-radius: 1.25rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: all 0.3s ease; overflow: hidden; }
-        .icon-box img { width: 40px; height: 40px; object-fit: contain; transition: transform 0.3s ease; }
-        .icon-box:hover { background: rgba(255,255,255,0.1); border-color: var(--neon-blue); }
-        .icon-box:hover img, .icon-box:hover svg { transform: scale(1.1) rotate(5deg); filter: drop-shadow(0 0 8px var(--neon-blue)); }
+
+        :root {
+            --neon-blue: #00f2ff;
+            --neon-purple: #bc13fe;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #020617;
+            color: #f8fafc;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        .bg-animate {
+            background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #020617 100%);
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+        }
+
+        .bg-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.8s ease-in-out, filter 0.3s ease;
+        }
+
+        .blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+            filter: blur(120px);
+            border-radius: 50%;
+            opacity: 0.15;
+            animation: move 20s infinite alternate;
+        }
+
+        @keyframes move {
+            from { transform: translate(-10%, -10%) scale(1); }
+            to { transform: translate(20%, 20%) scale(1.2); }
+        }
+
+        .nexus-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .nexus-card:hover {
+            border-color: rgba(0, 242, 255, 0.4);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .icon-box {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1.25rem;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .icon-box img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .icon-box:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--neon-blue);
+        }
+
+        .icon-box:hover img, .icon-box:hover svg {
+            transform: scale(1.1) rotate(5deg);
+            filter: drop-shadow(0 0 8px var(--neon-blue));
+        }
+
         .gear-rotate { animation: rotate 4s linear infinite; }
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
+
+    <!-- App Logic Module -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Constants and Helpers
+        const getIconUrl = (name) => {
+            if (!name) return '';
+            const slug = name.toLowerCase().trim().replace(/\s+/g, '-');
+            return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${slug}.svg`;
+        };
+
+        const staticSvgs = {
+            github: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37(0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>`,
+            plus: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`
+        };
+
+        // Determine context for Firebase
+        let db, auth, appId, storageMode;
+        try {
+            const configStr = typeof window.__firebase_config !== 'undefined' ? window.__firebase_config : null;
+            if (configStr) {
+                const firebaseApp = initializeApp(JSON.parse(configStr));
+                auth = getAuth(firebaseApp);
+                db = getFirestore(firebaseApp);
+                appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'nexus-dashboard';
+                storageMode = 'cloud';
+            } else { 
+                storageMode = 'local'; 
+            }
+        } catch (e) { storageMode = 'local'; }
+
+        // Register with Alpine explicitly
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('nexus', () => ({
+                time: '00:00 AM',
+                date: 'System Start',
+                cpu: 0,
+                mem: 0,
+                addModalOpen: false,
+                settingsOpen: false,
+                storageMode: storageMode,
+                cloudStatus: storageMode === 'cloud' ? 'connecting' : 'local-only',
+                newShortcut: { name: '', url: '', iconName: '', iconUrl: '' },
+                staticSvgs: staticSvgs,
+                user: null,
+                settings: { 
+                    widgets: { system: true, tasks: true }, 
+                    bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', 
+                    blur: 0 
+                },
+                bgPresets: [
+                    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600',
+                    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80&w=1600',
+                    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1600',
+                    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1600',
+                    'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?auto=format&fit=crop&q=80&w=1600'
+                ],
+                activeShortcuts: [
+                    { name: 'Home Assistant', iconName: 'home-assistant', url: '#', color: '#03a9f4' },
+                    { name: 'Plex', iconName: 'plex', url: '#', color: '#e5a00d' },
+                    { name: 'GitHub', svg: staticSvgs.github, url: 'https://github.com', color: '#6e5494' }
+                ],
+                tasks: [
+                    { text: 'Finalize Setup', done: true },
+                    { text: 'Add shortcuts', done: false }
+                ],
+
+                async init() {
+                    this.updateTime();
+                    setInterval(() => this.updateTime(), 1000);
+                    setInterval(() => {
+                        this.cpu = Math.floor(Math.random() * 35 + 5);
+                        this.mem = Math.floor(Math.random() * 20 + 40);
+                    }, 3000);
+
+                    if (this.storageMode === 'cloud') {
+                        const initAuth = async () => {
+                            const token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : null;
+                            if (token) {
+                                await signInWithCustomToken(auth, token);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                        };
+                        onAuthStateChanged(auth, async (u) => {
+                            if (u) {
+                                this.user = u;
+                                this.cloudStatus = 'syncing';
+                                try {
+                                    const docRef = doc(db, 'artifacts', appId, 'users', u.uid, 'config', 'current');
+                                    const docSnap = await getDoc(docRef);
+                                    if (docSnap.exists()) {
+                                        const data = docSnap.data();
+                                        this.activeShortcuts = data.activeShortcuts || this.activeShortcuts;
+                                        this.tasks = data.tasks || this.tasks;
+                                        this.settings = { ...this.settings, ...data.settings };
+                                        this.cloudStatus = 'synced';
+                                    } else {
+                                        await this.save();
+                                    }
+                                } catch (error) { this.cloudStatus = 'error'; }
+                            }
+                        });
+                        await initAuth();
+                    } else {
+                        const saved = localStorage.getItem('nexus_v4_final');
+                        if (saved) {
+                            try {
+                                const d = JSON.parse(saved);
+                                this.activeShortcuts = d.activeShortcuts || this.activeShortcuts;
+                                this.tasks = d.tasks || this.tasks;
+                                this.settings = { ...this.settings, ...d.settings };
+                            } catch (e) {}
+                        }
+                    }
+
+                    this.$watch('activeShortcuts', () => this.save());
+                    this.$watch('tasks', () => this.save());
+                    this.$watch('settings', () => this.save());
+                },
+
+                getIcon(item) {
+                    if (item.svg) return item.svg;
+                    if (item.iconUrl) return `<img src="${item.iconUrl}" />`;
+                    return `<img src="${getIconUrl(item.iconName)}" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'" />`;
+                },
+
+                updateTime() {
+                    const n = new Date();
+                    this.time = n.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+                    this.date = n.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+                },
+
+                addShortcut() {
+                    if (!this.newShortcut.name || (!this.newShortcut.iconName && !this.newShortcut.iconUrl)) return;
+                    this.activeShortcuts.push({ 
+                        name: this.newShortcut.name, 
+                        iconName: this.newShortcut.iconName, 
+                        iconUrl: this.newShortcut.iconUrl,
+                        url: this.newShortcut.url || '#', 
+                        color: '#2563eb' 
+                    });
+                    this.newShortcut = { name: '', url: '', iconName: '', iconUrl: '' };
+                    this.addModalOpen = false;
+                },
+
+                removeShortcut(index) {
+                    this.activeShortcuts.splice(index, 1);
+                },
+
+                addTask(e) {
+                    if (!e.target.value.trim()) return;
+                    this.tasks.push({ text: e.target.value, done: false });
+                    e.target.value = '';
+                },
+
+                async save() {
+                    if (this.storageMode === 'cloud' && this.user) {
+                        this.cloudStatus = 'syncing';
+                        try {
+                            const docRef = doc(db, 'artifacts', appId, 'users', this.user.uid, 'config', 'current');
+                            await setDoc(docRef, {
+                                activeShortcuts: JSON.parse(JSON.stringify(this.activeShortcuts)),
+                                tasks: JSON.parse(JSON.stringify(this.tasks)),
+                                settings: JSON.parse(JSON.stringify(this.settings)),
+                                updatedAt: Date.now()
+                            });
+                            this.cloudStatus = 'synced';
+                        } catch (e) { this.cloudStatus = 'error'; }
+                    } else {
+                        localStorage.setItem('nexus_v4_final', JSON.stringify({
+                            activeShortcuts: this.activeShortcuts,
+                            tasks: this.tasks,
+                            settings: this.settings
+                        }));
+                    }
+                }
+            }));
+        });
+    </script>
+    <!-- Alpine.js -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body x-data="nexus" x-cloak>
 
@@ -33,7 +302,7 @@
     </div>
     
     <!-- Background Layer -->
-    <div class="bg-overlay" x-show="settings" :style="'background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(' + settings.bg + '); filter: blur(' + settings.blur + 'px)'"></div>
+    <div class="bg-overlay" :style="'background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(' + (settings?.bg || '') + '); filter: blur(' + (settings?.blur || 0) + 'px)'"></div>
 
     <div class="relative z-10 min-h-screen flex flex-col">
         <!-- Header -->
@@ -44,7 +313,7 @@
                 </div>
                 <div>
                     <h1 class="font-extrabold text-2xl tracking-tighter uppercase">Nexus<span class="text-blue-500">Dash</span></h1>
-                    <p class="text-[10px] uppercase tracking-[0.3em] text-white/40 font-bold" x-text="storageMode === 'cloud' ? 'Cloud Sync Online' : 'Local Workspace'"></p>
+                    <p class="text-[10px] uppercase tracking-[0.3em] text-white/40 font-bold" x-text="storageMode === 'cloud' ? 'Cloud Sync Active' : 'Local Workspace'"></p>
                 </div>
             </div>
 
@@ -59,7 +328,7 @@
         <section class="flex-grow flex flex-col items-center justify-center py-8 px-6 text-center">
             <div class="relative">
                 <div class="absolute -inset-20 bg-blue-500/10 blur-[100px] rounded-full"></div>
-                <h2 x-text="time" class="text-[8rem] md:text-[11rem] font-extrabold tracking-tighter leading-none drop-shadow-2xl uppercase">00:00</h2>
+                <h2 x-text="time" class="text-[8rem] md:text-[11rem] font-extrabold tracking-tighter leading-none drop-shadow-2xl uppercase">00:00 AM</h2>
                 <div class="flex items-center justify-center gap-4 mt-2">
                     <span class="w-12 h-[2px] bg-blue-500/50"></span>
                     <p x-text="date" class="text-white/40 uppercase tracking-[0.5em] font-bold text-xs"></p>
@@ -70,8 +339,8 @@
             <!-- Global Search Bar -->
             <div class="w-full max-w-2xl mt-12 px-4">
                 <form action="https://google.com/search" method="GET" class="relative">
-                    <input type="text" name="q" placeholder="Central Search..." class="w-full bg-white/5 border border-white/10 rounded-[2rem] py-6 pl-10 pr-20 text-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all placeholder:text-white/20 shadow-inner">
-                    <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20">
+                    <input type="text" name="q" placeholder="Global protocol search..." class="w-full bg-white/5 border border-white/10 rounded-[2rem] py-6 pl-10 pr-20 text-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all placeholder:text-white/20 shadow-inner">
+                    <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center hover:bg-blue-500 transition-colors shadow-lg">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                     </button>
                 </form>
@@ -82,9 +351,9 @@
         <section class="max-w-7xl mx-auto w-full px-8 pb-12">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 
-                <!-- Application Grid -->
+                <!-- Shortcuts Area -->
                 <div class="lg:col-span-8 nexus-card p-10">
-                    <div class="flex items-center justify-between mb-10">
+                    <div class="flex items-center justify-between mb-10 text-left">
                         <h3 class="text-xs font-black uppercase tracking-[0.3em] text-white/30">Application Grid</h3>
                     </div>
                     <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-8">
@@ -107,10 +376,10 @@
 
                 <!-- Side Widgets -->
                 <div class="lg:col-span-4 flex flex-col gap-8">
-                    <!-- Engine Module -->
-                    <template x-if="settings && settings.widgets.system">
-                        <div class="nexus-card p-8 flex flex-col gap-6">
-                            <h4 class="text-[10px] font-black uppercase text-blue-400 tracking-widest">Engine Module</h4>
+                    <!-- Monitor -->
+                    <template x-if="settings?.widgets.system">
+                        <div class="nexus-card p-8 flex flex-col gap-6 text-left">
+                            <h4 class="text-[10px] font-black uppercase text-blue-400 tracking-widest">Engine stats</h4>
                             <div class="space-y-4">
                                 <div>
                                     <div class="flex justify-between text-[10px] mb-2 font-bold uppercase"><span>CPU</span><span x-text="cpu + '%'"></span></div>
@@ -124,9 +393,9 @@
                         </div>
                     </template>
 
-                    <!-- To Do List -->
-                    <template x-if="settings && settings.widgets.tasks">
-                        <div class="nexus-card p-8 flex-1 flex flex-col gap-6">
+                    <!-- To Do List Widget -->
+                    <template x-if="settings?.widgets.tasks">
+                        <div class="nexus-card p-8 flex-1 flex flex-col gap-6 text-left">
                             <h4 class="text-[10px] font-black uppercase text-blue-400 tracking-widest uppercase">To Do List</h4>
                             <div class="space-y-3 flex-grow overflow-y-auto max-h-[220px] pr-2">
                                 <template x-for="(t, i) in tasks" :key="i">
@@ -138,7 +407,7 @@
                                     </div>
                                 </template>
                             </div>
-                            <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task" class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none focus:border-blue-500 placeholder:text-white/20">
+                            <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task Protocol..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none focus:border-blue-500 placeholder:text-white/20">
                         </div>
                     </template>
                 </div>
@@ -146,37 +415,37 @@
         </section>
     </div>
 
-    <!-- Modals -->
-    <div x-show="addModalOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6">
-        <div @click="addModalOpen = false" class="absolute inset-0 bg-black/95 backdrop-blur-2xl"></div>
+    <!-- Inject Modal -->
+    <div x-show="addModalOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md">
+        <div @click="addModalOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl">
             <h2 class="text-3xl font-black uppercase tracking-tighter mb-6 text-left">Inject Module</h2>
             <div class="space-y-4 text-left">
                 <div>
-                    <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2">Label</label>
+                    <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Label</label>
                     <input x-model="newShortcut.name" type="text" placeholder="e.g. Plex" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
                 <div>
-                    <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2">URL</label>
+                    <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">URL</label>
                     <input x-model="newShortcut.url" type="text" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
                 <div>
-                    <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2">SelfH.st Icon Name</label>
-                    <input x-model="newShortcut.iconName" type="text" placeholder="plex, home-assistant, etc..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                    <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">SelfH.st Icon Name</label>
+                    <input x-model="newShortcut.iconName" type="text" placeholder="home-assistant, plex, cloud..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
-                <div class="relative flex items-center py-2"><div class="flex-grow border-t border-white/10"></div><span class="mx-4 text-[9px] font-black text-white/20">OR</span><div class="flex-grow border-t border-white/10"></div></div>
+                <div class="relative flex items-center py-2"><div class="flex-grow border-t border-white/10"></div><span class="mx-4 text-[9px] font-black text-white/20 uppercase">OR</span><div class="flex-grow border-t border-white/10"></div></div>
                 <div>
-                    <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2">Custom Image URL</label>
-                    <input x-model="newShortcut.iconUrl" type="text" placeholder="https://domain.com/icon.png" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                    <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Custom Icon Image URL</label>
+                    <input x-model="newShortcut.iconUrl" type="text" placeholder="https://domain.com/my-icon.png" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
             </div>
-            <button @click="addShortcut()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 transition-all shadow-lg">Finalize Injection</button>
+            <button @click="addShortcut()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 shadow-xl transition-all">Finalize Injection</button>
         </div>
     </div>
 
-    <!-- Configuration Modal -->
-    <div x-show="settingsOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6">
-        <div @click="settingsOpen = false" class="absolute inset-0 bg-black/95 backdrop-blur-2xl"></div>
+    <!-- Settings Modal -->
+    <div x-show="settingsOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md">
+        <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl">
             <div class="flex justify-between items-start mb-8">
                 <h2 class="text-2xl font-black uppercase tracking-tighter">System config</h2>
@@ -187,13 +456,16 @@
             </div>
 
             <div class="space-y-8 text-left" x-show="settings">
+                <!-- Blur Slider -->
                 <div>
-                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Glass Blur Intensity</p>
+                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Glass Aura Blur Density</p>
                     <input type="range" min="0" max="40" x-model="settings.blur" class="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500">
                 </div>
+
+                <!-- Skin Presets -->
                 <div>
-                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Environment Skins</p>
-                    <div class="grid grid-cols-5 gap-2">
+                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Environment Skins</p>
+                    <div class="grid grid-cols-5 gap-2 px-1">
                         <template x-for="bg in bgPresets">
                             <button @click="settings.bg = bg" :class="settings.bg === bg ? 'ring-2 ring-blue-500 scale-95' : 'opacity-50 hover:opacity-100'" class="aspect-square rounded-lg overflow-hidden transition-all">
                                 <img :src="bg" class="w-full h-full object-cover">
@@ -201,150 +473,25 @@
                         </template>
                     </div>
                 </div>
+
+                <!-- Manual Skins -->
                 <div>
-                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Core Modules</p>
-                    <div class="grid grid-cols-2 gap-3">
+                    <label class="text-[9px] font-black uppercase text-white/20 tracking-widest block mb-2 px-1">Manual Wallpaper URL</label>
+                    <input x-model="settings.bg" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-blue-500/50">
+                </div>
+
+                <!-- Core Modules -->
+                <div>
+                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Core Modules</p>
+                    <div class="grid grid-cols-2 gap-3 px-1">
                         <button @click="settings.widgets.system = !settings.widgets.system" :class="settings.widgets.system ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">Engine</button>
-                        <button @click="settings.widgets.tasks = !settings.widgets.tasks" :class="settings.widgets.tasks ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">Tasks</button>
+                        <button @click="settings.widgets.tasks = !settings.widgets.tasks" :class="settings.widgets.tasks ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">To Do</button>
                     </div>
                 </div>
             </div>
-            <button @click="settingsOpen = false" class="w-full mt-10 py-5 bg-blue-600 rounded-[1.5rem] font-black uppercase tracking-widest text-sm hover:bg-blue-500 shadow-xl">Finalize & Sync</button>
+            <button @click="settingsOpen = false" class="w-full mt-10 py-5 bg-blue-600 rounded-[1.5rem] font-black uppercase tracking-widest text-sm hover:bg-blue-500 transition-colors shadow-xl">Finalize & Synchronize</button>
         </div>
     </div>
-
-    <!-- App Logic & Firebase (Refactored to single script module) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const getIconUrl = (name) => {
-            if (!name) return '';
-            const slug = name.toLowerCase().trim().replace(/\s+/g, '-');
-            return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${slug}.svg`;
-        };
-
-        const staticSvgs = {
-            github: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37(0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>`,
-            plus: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`
-        };
-
-        let db, auth, appId, storageMode;
-        try {
-            const configStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
-            if (configStr) {
-                const firebaseApp = initializeApp(JSON.parse(configStr));
-                auth = getAuth(firebaseApp);
-                db = getFirestore(firebaseApp);
-                appId = typeof __app_id !== 'undefined' ? __app_id : 'nexus-dashboard';
-                storageMode = 'cloud';
-            } else { storageMode = 'local'; }
-        } catch (e) { storageMode = 'local'; }
-
-        // Define the data object
-        const createNexus = () => ({
-            time: '00:00',
-            date: 'System Start',
-            cpu: 0,
-            mem: 0,
-            addModalOpen: false,
-            settingsOpen: false,
-            storageMode: storageMode,
-            cloudStatus: storageMode === 'cloud' ? 'connecting' : 'local-only',
-            newShortcut: { name: '', url: '', iconName: '', iconUrl: '' },
-            staticSvgs: staticSvgs,
-            settings: { widgets: { system: true, tasks: true }, bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', blur: 0 },
-            bgPresets: [
-                'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600',
-                'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80&w=1600',
-                'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1600',
-                'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1600',
-                'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?auto=format&fit=crop&q=80&w=1600'
-            ],
-            activeShortcuts: [
-                { name: 'Home Assistant', iconName: 'home-assistant', url: '#', color: '#03a9f4' },
-                { name: 'Plex', iconName: 'plex', url: '#', color: '#e5a00d' },
-                { name: 'GitHub', svg: staticSvgs.github, url: 'https://github.com', color: '#6e5494' }
-            ],
-            tasks: [{ text: 'Finalize Setup', done: true }, { text: 'Add shortcuts', done: false }],
-            user: null,
-
-            async init() {
-                this.updateTime();
-                setInterval(() => this.updateTime(), 1000);
-                setInterval(() => { this.cpu = Math.floor(Math.random() * 35 + 5); this.mem = Math.floor(Math.random() * 20 + 40); }, 3000);
-
-                if (this.storageMode === 'cloud') {
-                    const initAuth = async () => {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { await signInWithCustomToken(auth, __initial_auth_token); } 
-                        else { await signInAnonymously(auth); }
-                    };
-                    onAuthStateChanged(auth, async (user) => {
-                        if (user) {
-                            this.user = user;
-                            this.cloudStatus = 'syncing';
-                            try {
-                                const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'current');
-                                const docSnap = await getDoc(docRef);
-                                if (docSnap.exists()) {
-                                    const data = docSnap.data();
-                                    this.activeShortcuts = data.activeShortcuts || this.activeShortcuts;
-                                    this.tasks = data.tasks || this.tasks;
-                                    this.settings = { ...this.settings, ...data.settings };
-                                    this.cloudStatus = 'synced';
-                                } else { await this.save(); }
-                            } catch (error) { this.cloudStatus = 'error'; }
-                        }
-                    });
-                    await initAuth();
-                } else {
-                    const saved = localStorage.getItem('nexus_v4_final');
-                    if (saved) { try { const d = JSON.parse(saved); this.activeShortcuts = d.activeShortcuts || this.activeShortcuts; this.tasks = d.tasks || this.tasks; this.settings = { ...this.settings, ...d.settings }; } catch (e) {} }
-                }
-
-                this.$watch('activeShortcuts', () => this.save());
-                this.$watch('tasks', () => this.save());
-                this.$watch('settings', () => this.save());
-            },
-            getIcon(item) {
-                if (item.svg) return item.svg;
-                if (item.iconUrl) return `<img src="${item.iconUrl}" />`;
-                return `<img src="${getIconUrl(item.iconName)}" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'" />`;
-            },
-            updateTime() {
-                const n = new Date();
-                this.time = n.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-                this.date = n.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
-            },
-            addShortcut() {
-                if (!this.newShortcut.name || (!this.newShortcut.iconName && !this.newShortcut.iconUrl)) return;
-                this.activeShortcuts.push({ name: this.newShortcut.name, iconName: this.newShortcut.iconName, iconUrl: this.newShortcut.iconUrl, url: this.newShortcut.url || '#', color: '#2563eb' });
-                this.newShortcut = { name: '', url: '', iconName: '', iconUrl: '' };
-                this.addModalOpen = false;
-            },
-            removeShortcut(index) { this.activeShortcuts.splice(index, 1); },
-            addTask(e) { if (!e.target.value.trim()) return; this.tasks.push({ text: e.target.value, done: false }); e.target.value = ''; },
-            async save() {
-                if (this.storageMode === 'cloud' && this.user) {
-                    this.cloudStatus = 'syncing';
-                    try {
-                        const docRef = doc(db, 'artifacts', appId, 'users', this.user.uid, 'config', 'current');
-                        await setDoc(docRef, { activeShortcuts: JSON.parse(JSON.stringify(this.activeShortcuts)), tasks: JSON.parse(JSON.stringify(this.tasks)), settings: JSON.parse(JSON.stringify(this.settings)), updatedAt: Date.now() });
-                        this.cloudStatus = 'synced';
-                    } catch (e) { this.cloudStatus = 'error'; }
-                } else {
-                    localStorage.setItem('nexus_v4_final', JSON.stringify({ activeShortcuts: this.activeShortcuts, tasks: this.tasks, settings: this.settings }));
-                }
-            }
-        });
-
-        // Ensure registration is global
-        window.nexus = createNexus;
-
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('nexus', window.nexus);
-        });
-    </script>
 </body>
 </html>
+
