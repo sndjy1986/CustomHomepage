@@ -3,217 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Dash | Terminal Pro</title>
+    <title>Nexus Dash | Universal Sync</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Firebase Compat SDK (Most Stable for Previews) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
         [x-cloak] { display: none !important; }
         :root { --neon-blue: #00f2ff; --neon-purple: #bc13fe; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020617; color: #f8fafc; overflow-x: hidden; margin: 0; }
-        
         .bg-animate { background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #020617 100%); position: fixed; inset: 0; z-index: -1; }
         .bg-overlay { position: fixed; inset: 0; z-index: -1; background-size: cover; background-position: center; transition: background-image 0.8s ease, filter 0.3s ease; }
-        
-        .nexus-card { 
-            background: rgba(15, 23, 42, 0.6); 
-            backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            border-radius: 2rem; 
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-        }
-        .nexus-card:hover { border-color: rgba(0, 242, 255, 0.4); transform: translateY(-4px); }
-
-        .icon-box { 
-            width: 72px; height: 72px; 
-            display: flex; align-items: center; justify-content: center; 
-            border-radius: 1.25rem; 
-            background: rgba(255,255,255,0.03); 
-            border: 1px solid rgba(255,255,255,0.05); 
-            transition: all 0.3s ease; 
-            position: relative;
-        }
-        .icon-box img { width: 44px; height: 44px; object-fit: contain; transition: transform 0.3s ease; }
-        .icon-box:hover img { transform: scale(1.15); filter: drop-shadow(0 0 10px var(--neon-blue)); }
-
-        .gear-rotate { animation: rotate 5s linear infinite; }
+        .nexus-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 2rem; transition: all 0.3s ease; }
+        .icon-box { width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; border-radius: 1.25rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); transition: all 0.2s ease; position: relative; }
+        .icon-box img { width: 44px; height: 44px; object-fit: contain; }
+        .icon-box:hover { border-color: var(--neon-blue); transform: translateY(-3px); background: rgba(255,255,255,0.08); }
+        .gear-rotate { animation: rotate 8s linear infinite; }
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        
-        input[type="range"] { accent-color: #3b82f6; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 
     <script>
-        // --- Shared Application State ---
-        window.nexusState = {
-            activeShortcuts: [
-                { name: 'EOS Form', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-application-100.png', url: 'https://forms.office.com/pages/responsepage.aspx?id=Zh-exeJVn0SAfe_1FF9ZixnyQxfHe_9EkCPctjghjHBUM002U1hLUUJTSVhMTU5MNE5XR1g0S0ZENi4u&route=shorturl' },
-                { name: 'Vanguard', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/Icon-57%402x.png', url: 'https://vanguard.emsanyware.com/' },
-                { name: 'ESO Suite', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/eso.png', url: 'https://scheduling.esosuite.net/Default.aspx?DB=priorityambulance' },
-                { name: 'Helo Sync', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/EMS_Helo-removebg-preview.png', url: 'https://andersoncounty911_sc.transport.net/#/login' },
-                { name: 'DOT Cam', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-wall-mount-camera-100.png', url: 'https://work.sndjy.us/camera' },
-                { name: 'Radio', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/headset.png', url: '#' },
-                { name: 'Map dist', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-map-pinpoint-100.png', url: 'https://work.sndjy.us/map.html' },
-                { name: 'Daily WS', iconUrl: 'https://icons.duckduckgo.com/ip3/drive.google.com.ico', url: 'https://docs.google.com/spreadsheets/d/1H6C59UoF_g1QHSutXQCqBUUhfW4r2rLoNaTe0ZRQYSw/edit?usp=sharing' },
-                { name: 'Coroner', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/_traichu/refs/heads/main/icons/Priority.png', url: 'https://drive.google.com/file/d/1Lq3m5KIhkwP7zQZu9RTKlXRO18BPhx1A/view?usp=drive_link' },
-                { name: 'AnMed Map', iconUrl: 'https://icons.duckduckgo.com/ip3/anmed.org.ico', url: 'https://anmed.org/sites/default/files/2024-08/anmed-north-campus-map-v5.pdf' },
-                { name: 'G. Voice', iconUrl: 'https://icons.duckduckgo.com/ip3/voice.google.com.ico', url: 'http://www.google.com/voice' },
-                { name: 'Posts', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-address-100.png', url: 'https://www.google.com/maps/d/u/0/edit?mid=14QXoBd6ojQUTrFpxyksjX9PcbsiiUZk&usp=sharing' },
-                { name: 'Lead Email', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/_traichu/refs/heads/main/icons/filebrowser.png', url: 'http://work.sndjy.us/leadform' },
-                { name: 'PRO-QA', iconUrl: 'https://icons.duckduckgo.com/ip3/emergencydispatch.org.ico', url: 'https://learn.emergencydispatch.org/academy/my_learning/dashboard' },
-                { name: 'Truck Form', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/2be043653580663a0484a8ae2bdaf5bd276538d7/FILE.svg', url: 'https://forms.microsoft.com/r/YcaLSLR43Y' },
-                { name: 'Outages', iconUrl: 'https://icons.duckduckgo.com/ip3/poweroutage.us.ico', url: 'https://poweroutage.us/area/county/532' },
-                { name: 'QRV Roster', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/notepad.png', url: 'https://drive.google.com/file/d/1CdFma_A-xTt2KhbJY6yMS9o5PHF8pm9f/view?usp=drive_link' }
-            ],
-            serverShortcuts: [
-                { name: 'Termix2', iconName: 'terminal', url: 'https://Termix2.sndjy.us' },
-                { name: 'Warden', iconName: 'bitwarden', url: 'https://Warden.sndjy.us' },
-                { name: 'Joplin', iconName: 'joplin', url: 'https://Joplin.sndjy.us' },
-                { name: 'Calendar', iconName: 'google-calendar', url: 'https://Calendar.sndjy.us' }
-            ],
-            tasks: [{ text: 'Sync server terminals', done: false }, { text: 'Audit encryption logs', done: false }],
-            settings: { 
-                widgets: { system: true, tasks: true, calendar: true }, 
-                bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', 
-                blur: 0 
-            }
-        };
-
-        function nexusApp() {
-            return {
-                time: '00:00 AM',
-                date: 'Initializing...',
-                cpu: 0,
-                mem: 0,
-                storageMode: 'local',
-                cloudStatus: 'connecting',
-                addModalOpen: false,
-                settingsOpen: false,
-                gridPage: 'links', 
-                newShortcut: { name: '', url: '', iconName: '', iconUrl: '' },
-                upcomingEvents: [],
-                calendarLoading: true,
-                
-                get activeShortcuts() { return window.nexusState.activeShortcuts },
-                set activeShortcuts(v) { window.nexusState.activeShortcuts = v },
-                get serverShortcuts() { return window.nexusState.serverShortcuts },
-                set serverShortcuts(v) { window.nexusState.serverShortcuts = v },
-                get tasks() { return window.nexusState.tasks },
-                set tasks(v) { window.nexusState.tasks = v },
-                get settings() { return window.nexusState.settings },
-                set settings(v) { window.nexusState.settings = v },
-
-                bgPresets: [
-                    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600',
-                    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80&w=1600',
-                    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1600',
-                    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1600',
-                    'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?auto=format&fit=crop&q=80&w=1600'
-                ],
-
-                init() {
-                    this.updateTime();
-                    setInterval(() => this.updateTime(), 1000);
-                    setInterval(() => {
-                        this.cpu = Math.floor(Math.random() * 20 + 5);
-                        this.mem = Math.floor(Math.random() * 15 + 40);
-                    }, 3000);
-
-                    const cache = localStorage.getItem('nexus_v4_cache');
-                    if (cache) {
-                        const d = JSON.parse(cache);
-                        this.activeShortcuts = d.activeShortcuts || this.activeShortcuts;
-                        this.serverShortcuts = d.serverShortcuts || this.serverShortcuts;
-                        this.tasks = d.tasks || this.tasks;
-                        this.settings = d.settings || this.settings;
-                    }
-
-                    this.fetchEvents();
-                    setInterval(() => this.fetchEvents(), 300000); // Refresh every 5 mins
-
-                    this.$watch('activeShortcuts', () => this.persist());
-                    this.$watch('serverShortcuts', () => this.persist());
-                    this.$watch('tasks', () => this.persist());
-                    this.$watch('settings', () => this.persist());
-
-                    window.dispatchEvent(new CustomEvent('nexus-ready'));
-                },
-
-                async fetchEvents() {
-                    this.calendarLoading = true;
-                    try {
-                        // Assumption: API provides JSON array of events [{title: string, time: string}]
-                        const response = await fetch('https://calendar.sndjy.us/api/events');
-                        if (response.ok) {
-                            this.upcomingEvents = await response.json();
-                        } else {
-                            // Mock data if API is not yet live or CORS blocked
-                            this.upcomingEvents = [
-                                { title: 'Shift Protocol Start', time: '08:00 AM' },
-                                { title: 'System Maintenance', time: '02:00 PM' }
-                            ];
-                        }
-                    } catch (e) {
-                        this.upcomingEvents = [
-                            { title: 'Connection to Calendar Pending', time: '--:--' }
-                        ];
-                    } finally {
-                        this.calendarLoading = false;
-                    }
-                },
-
-                updateTime() {
-                    const n = new Date();
-                    this.time = n.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-                    this.date = n.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
-                },
-
-                getIcon(item) {
-                    if (item.iconUrl) return `<img src="${item.iconUrl}" />`;
-                    const slug = (item.iconName || 'default').toLowerCase().trim().replace(/\s+/g, '-');
-                    return `<img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${slug}.svg" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'" />`;
-                },
-
-                addShortcut() {
-                    if (!this.newShortcut.name) return;
-                    const item = { ...this.newShortcut, url: this.newShortcut.url || '#' };
-                    if (this.gridPage === 'server') this.serverShortcuts.push(item);
-                    else this.activeShortcuts.push(item);
-                    this.newShortcut = { name: '', url: '', iconName: '', iconUrl: '' };
-                    this.addModalOpen = false;
-                    this.persist();
-                },
-
-                removeShortcut(idx) {
-                    if (this.gridPage === 'server') this.serverShortcuts.splice(idx, 1);
-                    else this.activeShortcuts.splice(idx, 1);
-                    this.persist();
-                },
-
-                addTask(e) {
-                    if (!e.target.value.trim()) return;
-                    this.tasks.push({ text: e.target.value, done: false });
-                    e.target.value = '';
-                    this.persist();
-                },
-
-                persist() {
-                    const data = { activeShortcuts: this.activeShortcuts, serverShortcuts: this.serverShortcuts, tasks: this.tasks, settings: this.settings };
-                    localStorage.setItem('nexus_v4_cache', JSON.stringify(data));
-                    window.dispatchEvent(new CustomEvent('nexus-sync', { detail: data }));
-                }
-            };
-        }
-    </script>
-
-    <!-- Firebase Connection Bridge -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+        // --- 1. Firebase Initialization (Using your keys) ---
         const firebaseConfig = {
             apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
             authDomain: "nexusdash-5731e.firebaseapp.com",
@@ -222,175 +39,177 @@
             messagingSenderId: "758016854578",
             appId: "1:758016854578:web:18c6d8f8181b1134caca2b"
         };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const DB_PATH = "nexus-v4-main";
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const APP_ID = "nexus-v4-main";
-
-        window.addEventListener('nexus-ready', async () => {
-            const el = document.querySelector('[x-data]');
-            if (!el) return;
-            const ui = Alpine.$data(el);
-
-            try {
-                const cred = await signInAnonymously(auth);
-                ui.storageMode = 'cloud';
-                ui.cloudStatus = 'syncing';
-
-                const docRef = doc(db, 'artifacts', APP_ID, 'users', cred.user.uid, 'data', 'config');
-                const snap = await getDoc(docRef);
+        // --- 2. Dashboard Logic ---
+        function nexusApp() {
+            return {
+                time: '', date: '',
+                activeTab: 'links',
+                storageMode: 'Connecting...',
+                syncStatus: 'idle',
+                settingsOpen: false, addModalOpen: false,
+                user: null,
+                newItem: { name: '', url: '', icon: '' },
                 
-                if (snap.exists()) {
-                    const cloud = snap.data();
-                    window.nexusState.activeShortcuts = cloud.activeShortcuts || window.nexusState.activeShortcuts;
-                    window.nexusState.serverShortcuts = cloud.serverShortcuts || window.nexusState.serverShortcuts;
-                    window.nexusState.tasks = cloud.tasks || window.nexusState.tasks;
-                    window.nexusState.settings = cloud.settings || window.nexusState.settings;
-                    ui.cloudStatus = 'synced';
-                } else {
-                    await setDoc(docRef, { ...window.nexusState, updatedAt: Date.now() });
-                    ui.cloudStatus = 'synced';
+                // Defaults
+                links: [
+                    { name: 'EOS Form', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-application-100.png', url: 'https://forms.office.com/pages/responsepage.aspx?id=Zh-exeJVn0SAfe_1FF9ZixnyQxfHe_9EkCPctjghjHBUM002U1hLUUJTSVhMTU5MNE5XR1g0S0ZENi4u&route=shorturl' },
+                    { name: 'Vanguard', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/Icon-57%402x.png', url: 'https://vanguard.emsanyware.com/' },
+                    { name: 'ESO Suite', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/eso.png', url: 'https://scheduling.esosuite.net/Default.aspx?DB=priorityambulance' },
+                    { name: 'Helo Sync', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/EMS_Helo-removebg-preview.png', url: 'https://andersoncounty911_sc.transport.net/#/login' },
+                    { name: 'Daily WS', icon: 'https://icons.duckduckgo.com/ip3/drive.google.com.ico', url: 'https://docs.google.com/spreadsheets/d/1H6C59UoF_g1QHSutXQCqBUUhfW4r2rLoNaTe0ZRQYSw/edit?usp=sharing' }
+                ],
+                serverLinks: [
+                    { name: 'Termix2', icon: 'terminal', url: 'https://Termix2.sndjy.us' },
+                    { name: 'Warden', icon: 'bitwarden', url: 'https://Warden.sndjy.us' },
+                    { name: 'Joplin', icon: 'joplin', url: 'https://Joplin.sndjy.us' },
+                    { name: 'Calendar', icon: 'google-calendar', url: 'https://Calendar.sndjy.us' }
+                ],
+                tasks: [{ text: 'Check ESO Schedule', done: false }],
+                settings: { bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', blur: 0 },
+
+                async init() {
+                    this.updateClock();
+                    setInterval(() => this.updateClock(), 1000);
+                    
+                    // Auth & Sync
+                    auth.signInAnonymously().catch(e => console.error("Auth failed", e));
+                    auth.onAuthStateChanged(async (user) => {
+                        if (user) {
+                            this.user = user;
+                            this.storageMode = 'Cloud Active';
+                            // Fetch from Firestore
+                            const docRef = db.collection('artifacts').doc(DB_PATH).collection('users').doc(user.uid).collection('data').doc('config');
+                            const snap = await docRef.get();
+                            if (snap.exists) {
+                                const d = snap.data();
+                                this.links = d.links || this.links;
+                                this.serverLinks = d.serverLinks || this.serverLinks;
+                                this.tasks = d.tasks || this.tasks;
+                                this.settings = d.settings || this.settings;
+                            }
+                        }
+                    });
+                },
+
+                updateClock() {
+                    const now = new Date();
+                    this.time = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+                    this.date = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+                },
+
+                getIcon(link) {
+                    if (link.icon.startsWith('http')) return link.icon;
+                    const slug = link.icon.toLowerCase().trim().replace(/\s+/g, '-');
+                    return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${slug}.svg`;
+                },
+
+                async save() {
+                    if (!this.user) return;
+                    this.syncStatus = 'saving';
+                    const docRef = db.collection('artifacts').doc(DB_PATH).collection('users').doc(this.user.uid).collection('data').doc('config');
+                    await docRef.set({
+                        links: this.links,
+                        serverLinks: this.serverLinks,
+                        tasks: this.tasks,
+                        settings: this.settings,
+                        updatedAt: Date.now()
+                    });
+                    this.syncStatus = 'synced';
+                },
+
+                addNewLink() {
+                    if (!this.newItem.name) return;
+                    const target = this.activeTab === 'links' ? this.links : this.serverLinks;
+                    target.push({ ...this.newItem });
+                    this.newItem = { name: '', url: '', icon: '' };
+                    this.addModalOpen = false;
+                    this.save();
+                },
+
+                removeLink(idx) {
+                    const target = this.activeTab === 'links' ? this.links : this.serverLinks;
+                    target.splice(idx, 1);
+                    this.save();
+                },
+
+                addTask(e) {
+                    if (!e.target.value.trim()) return;
+                    this.tasks.push({ text: e.target.value, done: false });
+                    e.target.value = '';
+                    this.save();
                 }
-            } catch (e) { ui.cloudStatus = 'error'; }
-        });
-
-        window.addEventListener('nexus-sync', async (e) => {
-            if (!auth.currentUser) return;
-            try {
-                const docRef = doc(db, 'artifacts', APP_ID, 'users', auth.currentUser.uid, 'data', 'config');
-                await setDoc(docRef, { ...e.detail, updatedAt: Date.now() });
-            } catch (err) {}
-        });
+            }
+        }
     </script>
-
-    <!-- Alpine.js Engine -->
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body x-data="nexusApp()" x-cloak>
 
-    <div class="bg-animate">
-        <div class="blob" style="top: 10%; left: 10%;"></div>
-        <div class="blob" style="bottom: 10%; right: 10%; background: linear-gradient(to right, #6366f1, #a855f7); opacity: 0.1;"></div>
-    </div>
-    
+    <div class="bg-animate"></div>
     <div class="bg-overlay" :style="'background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(' + settings.bg + '); filter: blur(' + settings.blur + 'px)'"></div>
 
     <div class="relative z-10 min-h-screen flex flex-col">
         <!-- Header -->
         <header class="p-8 flex justify-between items-center max-w-7xl mx-auto w-full">
-            <div class="flex items-center gap-4 group text-left">
-                <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.4)] group-hover:rotate-12 transition-transform">
+            <div class="flex items-center gap-4 text-left">
+                <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
                     <svg class="gear-rotate" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
                 </div>
                 <div>
                     <h1 class="font-extrabold text-2xl tracking-tighter uppercase leading-none">Nexus<span class="text-blue-500">Dash</span></h1>
-                    <p class="text-[9px] uppercase tracking-[0.3em] text-white/40 font-bold mt-1" x-text="storageMode === 'cloud' ? 'Firebase Sync: Online' : 'Local Workspace'"></p>
+                    <p class="text-[9px] uppercase tracking-[0.3em] text-white/40 font-bold mt-1" x-text="'Storage: ' + storageMode"></p>
                 </div>
             </div>
             <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 transition-colors shadow-lg">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1-2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
         </header>
 
-        <!-- Dynamic Clock -->
-        <section class="flex-grow flex flex-col items-center justify-center py-4 px-6 text-center">
-            <div class="relative">
-                <div class="absolute -inset-20 bg-blue-500/10 blur-[100px] rounded-full"></div>
-                <h2 x-text="time" class="text-[7.5rem] md:text-[10rem] font-extrabold tracking-tighter leading-none drop-shadow-2xl">00:00 AM</h2>
-                <div class="flex items-center justify-center gap-4 mt-2">
-                    <span class="w-12 h-[2px] bg-blue-500/50"></span>
-                    <p x-text="date" class="text-white/40 uppercase tracking-[0.5em] font-bold text-xs"></p>
-                    <span class="w-12 h-[2px] bg-blue-500/50"></span>
-                </div>
-            </div>
-            <div class="w-full max-w-2xl mt-8 px-4">
-                <form action="https://google.com/search" method="GET" class="relative">
-                    <input type="text" name="q" placeholder="Global Search Protocol..." class="w-full bg-white/5 border border-white/10 rounded-[2rem] py-6 pl-10 pr-20 text-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:text-white/20 shadow-inner text-center">
-                    <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center hover:bg-blue-500 shadow-lg">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    </button>
-                </form>
-            </div>
+        <section class="flex-grow flex flex-col items-center justify-center py-4 text-center">
+            <h2 x-text="time" class="text-[7rem] md:text-[10rem] font-extrabold tracking-tighter leading-none drop-shadow-2xl uppercase">00:00 AM</h2>
+            <p x-text="date" class="text-white/40 uppercase tracking-[0.5em] font-bold text-xs mt-2"></p>
         </section>
 
-        <!-- Main Content Area -->
         <section class="max-w-7xl mx-auto w-full px-8 pb-12">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <!-- Pageable Grid -->
-                <div class="lg:col-span-8 nexus-card p-8 md:p-10 flex flex-col h-full">
+                <div class="lg:col-span-8 nexus-card p-10">
                     <div class="flex items-center gap-8 mb-10 border-b border-white/5">
-                        <button @click="gridPage = 'links'" 
-                                :class="gridPage === 'links' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/30 pb-4'" 
-                                class="text-xs font-black uppercase tracking-[0.3em] transition-all">Links</button>
-                        <button @click="gridPage = 'server'" 
-                                :class="gridPage === 'server' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/30 pb-4'" 
-                                class="text-xs font-black uppercase tracking-[0.3em] transition-all">Server Links</button>
+                        <button @click="activeTab = 'links'" :class="activeTab === 'links' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em]">Links</button>
+                        <button @click="activeTab = 'server'" :class="activeTab === 'server' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em]">Server Links</button>
                     </div>
 
                     <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-6">
-                        <template x-for="(icon, index) in (gridPage === 'links' ? activeShortcuts : serverShortcuts)" :key="index">
+                        <template x-for="(link, index) in (activeTab === 'links' ? links : serverLinks)" :key="index">
                             <div class="flex flex-col items-center gap-3 group relative">
-                                <a :href="icon.url" target="_blank" class="icon-box" :style="'border-bottom: 3px solid ' + (icon.color || '#00f2ff')">
-                                    <span x-html="getIcon(icon)"></span>
+                                <a :href="link.url" target="_blank" class="icon-box" :style="'border-bottom: 2px solid #00f2ff'">
+                                    <img :src="getIcon(link)" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'">
                                 </a>
-                                <span x-text="icon.name" class="text-[9px] font-black uppercase text-white/30 tracking-widest opacity-0 group-hover:opacity-100 transition-opacity truncate w-full text-center px-1"></span>
-                                <button @click="removeShortcut(index)" class="absolute -top-2 -right-2 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 shadow-xl">
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M18 6 6 18M6 6l12 12"/></svg>
-                                </button>
+                                <span x-text="link.name" class="text-[9px] font-black uppercase text-white/30 tracking-widest truncate w-full text-center px-1"></span>
+                                <button @click="removeLink(index)" class="absolute -top-2 -right-2 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 shadow-xl"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
                             </div>
                         </template>
-                        <button @click="addModalOpen = true" class="icon-box border-dashed border-2 border-white/10 text-white/20 hover:text-white hover:border-blue-500">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-                        </button>
+                        <button @click="addModalOpen = true" class="icon-box border-dashed border-2 border-white/10 text-white/20 hover:text-white hover:border-blue-500"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
                     </div>
                 </div>
 
-                <!-- Sidebar -->
-                <div class="lg:col-span-4 flex flex-col gap-8 text-left h-full">
-                    <!-- Data-Driven Upcoming Events Widget -->
-                    <template x-if="settings.widgets.calendar">
-                        <div class="nexus-card p-8 flex flex-col gap-6">
-                            <div class="flex justify-between items-center">
-                                <h4 class="text-[10px] font-black uppercase text-purple-400 tracking-widest">Upcoming Events</h4>
-                                <div class="flex gap-2">
-                                    <template x-if="calendarLoading">
-                                        <svg class="animate-spin text-white/20" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                                    </template>
-                                    <button @click="fetchEvents()" class="text-white/20 hover:text-white"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8M21 3v5h-5"/></svg></button>
+                <div class="lg:col-span-4 flex flex-col gap-8 text-left">
+                    <div class="nexus-card p-8 flex-1 flex flex-col gap-6">
+                        <h4 class="text-[10px] font-black uppercase text-blue-400 tracking-widest">To Do List</h4>
+                        <div class="space-y-3 flex-grow overflow-y-auto max-h-[220px] pr-2">
+                            <template x-for="(t, i) in tasks" :key="i">
+                                <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                                    <div @click="t.done = !t.done; save()" class="w-5 h-5 rounded-lg border-2 border-white/10 flex items-center justify-center cursor-pointer transition-colors" :class="t.done ? 'bg-blue-600 border-blue-500' : ''"><svg x-show="t.done" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg></div>
+                                    <span x-text="t.text" class="text-sm font-medium" :class="t.done ? 'text-white/20 line-through' : ''"></span>
                                 </div>
-                            </div>
-                            
-                            <div class="space-y-4">
-                                <template x-for="event in upcomingEvents">
-                                    <div class="border-l-2 border-purple-500/50 pl-4 py-1">
-                                        <p x-text="event.title" class="text-sm font-bold text-white/90 leading-tight"></p>
-                                        <p x-text="event.time" class="text-[10px] text-white/40 uppercase tracking-widest mt-1 font-bold"></p>
-                                    </div>
-                                </template>
-                                <template x-if="upcomingEvents.length === 0">
-                                    <p class="text-[10px] text-white/20 italic">No protocols scheduled.</p>
-                                </template>
-                            </div>
+                            </template>
                         </div>
-                    </template>
-
-                    <template x-if="settings.widgets.tasks">
-                        <div class="nexus-card p-8 flex-1 flex flex-col gap-6 min-h-[250px]">
-                            <h4 class="text-[10px] font-black uppercase text-blue-400 tracking-widest uppercase">To Do List</h4>
-                            <div class="space-y-3 flex-grow overflow-y-auto max-h-[160px] pr-2">
-                                <template x-for="(t, i) in tasks" :key="i">
-                                    <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
-                                        <div @click="t.done = !t.done" class="w-5 h-5 rounded-lg border-2 border-white/10 flex items-center justify-center cursor-pointer transition-colors" :class="t.done ? 'bg-blue-600 border-blue-500' : 'hover:border-blue-500'">
-                                            <svg x-show="t.done" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg>
-                                        </div>
-                                        <span x-text="t.text" class="text-sm font-medium transition-all truncate" :class="t.done ? 'text-white/20 line-through' : 'text-white/80'"></span>
-                                    </div>
-                                </template>
-                            </div>
-                            <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task Protocol..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none focus:border-blue-500 placeholder:text-white/20 w-full">
-                        </div>
-                    </template>
+                        <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Protocol..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full">
+                    </div>
                 </div>
             </div>
         </section>
@@ -400,43 +219,27 @@
     <div x-show="addModalOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md">
         <div @click="addModalOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl text-left">
-            <h2 class="text-3xl font-black uppercase tracking-tighter mb-2">Inject Module</h2>
-            <p class="text-[10px] text-white/30 uppercase tracking-widest mb-6" x-text="'Targeting: ' + gridPage + ' page'"></p>
+            <h2 class="text-3xl font-black uppercase tracking-tighter mb-6">Inject Module</h2>
             <div class="space-y-4">
-                <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Label</label>
-                <input x-model="newShortcut.name" type="text" placeholder="e.g. Plex" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none"></div>
-                <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Target URL</label>
-                <input x-model="newShortcut.url" type="text" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none"></div>
-                <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">SelfH.st / Manual URL</label>
-                <input x-model="newShortcut.iconUrl" type="text" placeholder="plex or https://site.com/icon.png" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none"></div>
+                <input x-model="newItem.name" type="text" placeholder="Label" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none">
+                <input x-model="newItem.url" type="text" placeholder="URL (https://...)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none">
+                <input x-model="newItem.icon" type="text" placeholder="Icon Name or Image URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none">
             </div>
-            <button @click="addShortcut()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 shadow-xl transition-all">Finalize Injection</button>
+            <button @click="addNewLink()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 shadow-xl transition-all">Finalize Injection</button>
         </div>
     </div>
 
     <div x-show="settingsOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md text-left">
         <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl">
-            <div class="flex justify-between items-start mb-8 text-left">
-                <h2 class="text-2xl font-black uppercase tracking-tighter">System config</h2>
-                <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-                    <div :class="{'bg-yellow-500': cloudStatus === 'syncing', 'bg-green-500': cloudStatus === 'synced', 'bg-red-500': cloudStatus === 'error', 'bg-blue-500': cloudStatus === 'local-only'}" class="w-2 h-2 rounded-full"></div>
-                    <span class="text-[8px] font-black uppercase text-white/40 tracking-widest" x-text="cloudStatus"></span>
-                </div>
-            </div>
+            <h2 class="text-2xl font-black uppercase tracking-tighter mb-8">System config</h2>
             <div class="space-y-8">
-                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Glass Aura Blur Density</p>
-                <input type="range" min="0" max="40" x-model="settings.blur" class="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer"></div>
-                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Environment Skins</p>
-                <div class="grid grid-cols-5 gap-2 px-1"><template x-for="bg in bgPresets"><button @click="settings.bg = bg" :class="settings.bg === bg ? 'ring-2 ring-blue-500 scale-95' : 'opacity-50 hover:opacity-100'" class="aspect-square rounded-lg overflow-hidden transition-all"><img :src="bg" class="w-full h-full object-cover"></button></template></div></div>
-                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Modules</p>
-                <div class="grid grid-cols-3 gap-2 px-1">
-                    <button @click="settings.widgets.system = !settings.widgets.system" :class="settings.widgets.system ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">Engine</button>
-                    <button @click="settings.widgets.tasks = !settings.widgets.tasks" :class="settings.widgets.tasks ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">To Do</button>
-                    <button @click="settings.widgets.calendar = !settings.widgets.calendar" :class="settings.widgets.calendar ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">Events</button>
-                </div></div>
+                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Aura Blur Intensity</p>
+                <input type="range" min="0" max="40" x-model="settings.blur" @input="save()" class="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500"></div>
+                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Manual Skin URL</p>
+                <input x-model="settings.bg" @input="save()" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none"></div>
             </div>
-            <button @click="settingsOpen = false" class="w-full mt-10 py-5 bg-blue-600 rounded-[1.5rem] font-black uppercase tracking-widest text-sm hover:bg-blue-500 shadow-xl transition-all">Finalize & Sync</button>
+            <button @click="settingsOpen = false" class="w-full mt-10 py-5 bg-blue-600 rounded-[1.5rem] font-black uppercase tracking-widest text-sm hover:bg-blue-500 transition-colors shadow-xl">Confirm Changes</button>
         </div>
     </div>
 </body>
