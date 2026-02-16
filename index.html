@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Dash | Cloud Enabled</title>
+    <title>Nexus Dash | Cloud Active</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
@@ -19,22 +19,34 @@
         .nexus-card:hover { border-color: rgba(0, 242, 255, 0.4); transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); }
         .icon-box { position: relative; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; border-radius: 1.25rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: all 0.3s ease; overflow: hidden; }
         .icon-box img { width: 42px; height: 42px; object-fit: contain; }
+        .icon-box:hover img { transform: scale(1.1); filter: drop-shadow(0 0 8px var(--neon-blue)); }
         .gear-rotate { animation: rotate 4s linear infinite; }
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 
     <script>
-        // --- STEP 1: Define Global App Logic ---
-        // We define this globally so Alpine.js can see it immediately on boot.
-        window.nexus = function() {
+        // --- 1. Define UI State First to prevent ReferenceErrors ---
+        window.getIconUrl = (name) => {
+            if (!name) return '';
+            const slug = name.toLowerCase().trim().replace(/\s+/g, '-');
+            return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${slug}.svg`;
+        };
+
+        window.nexusData = {
+            plus: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>`
+        };
+
+        function nexus() {
             return {
                 time: '00:00 AM',
-                date: 'System Initializing...',
+                date: 'Establishing Connection...',
                 cpu: 0,
                 mem: 0,
                 addModalOpen: false,
                 settingsOpen: false,
-                storageMode: 'local', // Modules will update this
+                storageMode: 'connecting...',
                 cloudStatus: 'connecting',
                 newShortcut: { name: '', url: '', iconName: '', iconUrl: '' },
                 settings: { 
@@ -53,18 +65,18 @@
                     { name: 'Plex', iconName: 'plex', url: '#' },
                     { name: 'Home Assistant', iconName: 'home-assistant', url: '#' }
                 ],
-                tasks: [{ text: 'Configure Nexus Dashboard', done: true }],
-
+                tasks: [{ text: 'Link Firebase Storage', done: false }],
+                
                 init() {
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
                     setInterval(() => {
-                        this.cpu = Math.floor(Math.random() * 25 + 5);
+                        this.cpu = Math.floor(Math.random() * 20 + 5);
                         this.mem = Math.floor(Math.random() * 15 + 40);
                     }, 3000);
 
-                    // Local hydration
-                    const saved = localStorage.getItem('nexus_v4_prod');
+                    // Load local data as a placeholder while cloud connects
+                    const saved = localStorage.getItem('nexus_v4_final');
                     if (saved) {
                         try {
                             const d = JSON.parse(saved);
@@ -74,13 +86,11 @@
                         } catch (e) {}
                     }
 
-                    // Watch for changes to trigger sync
-                    this.$watch('activeShortcuts', () => this.triggerSync());
-                    this.$watch('tasks', () => this.triggerSync());
-                    this.$watch('settings', () => this.triggerSync());
+                    this.$watch('activeShortcuts', () => this.save());
+                    this.$watch('tasks', () => this.save());
+                    this.$watch('settings', () => this.save());
                     
-                    // Announce to Cloud Bridge
-                    window.dispatchEvent(new CustomEvent('nexus-ready'));
+                    window.dispatchEvent(new CustomEvent('nexus-boot'));
                 },
 
                 updateTime() {
@@ -91,8 +101,7 @@
 
                 getIcon(item) {
                     if (item.iconUrl) return `<img src="${item.iconUrl}" />`;
-                    const slug = item.iconName.toLowerCase().trim().replace(/\s+/g, '-');
-                    return `<img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${slug}.svg" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'" />`;
+                    return `<img src="${window.getIconUrl(item.iconName)}" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'" />`;
                 },
 
                 addShortcut() {
@@ -103,91 +112,77 @@
                 },
 
                 removeShortcut(idx) { this.activeShortcuts.splice(idx, 1); },
-                
                 addTask(e) { 
                     if (!e.target.value.trim()) return;
                     this.tasks.push({ text: e.target.value, done: false });
                     e.target.value = '';
                 },
 
-                triggerSync() {
-                    // Save to local disk immediately
-                    localStorage.setItem('nexus_v4_prod', JSON.stringify({
+                save() {
+                    localStorage.setItem('nexus_v4_final', JSON.stringify({
                         activeShortcuts: this.activeShortcuts,
                         tasks: this.tasks,
                         settings: this.settings
                     }));
-                    // Send to Cloud Bridge
-                    window.dispatchEvent(new CustomEvent('nexus-save', { 
-                        detail: { 
-                            activeShortcuts: JSON.parse(JSON.stringify(this.activeShortcuts)), 
-                            tasks: JSON.parse(JSON.stringify(this.tasks)), 
-                            settings: JSON.parse(JSON.stringify(this.settings)) 
-                        } 
+                    window.dispatchEvent(new CustomEvent('nexus-push', { 
+                        detail: { activeShortcuts: this.activeShortcuts, tasks: this.tasks, settings: this.settings } 
                     }));
                 }
             };
-        };
+        }
     </script>
 
-    <!-- --- STEP 2: The Cloud Bridge (Firebase) --- -->
+    <!-- --- Firebase Cloud Module (Using your specific keys) --- -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        let db, auth, appId, cloudEnabled = false;
+        // YOUR CREDENTIALS INTEGRATED
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
+            authDomain: "nexusdash-5731e.firebaseapp.com",
+            projectId: "nexusdash-5731e",
+            storageBucket: "nexusdash-5731e.firebasestorage.app",
+            messagingSenderId: "758016854578",
+            appId: "1:758016854578:web:18c6d8f8181b1134caca2b"
+        };
 
-        try {
-            const configStr = typeof window.__firebase_config !== 'undefined' ? window.__firebase_config : null;
-            if (configStr) {
-                const firebaseApp = initializeApp(JSON.parse(configStr));
-                auth = getAuth(firebaseApp);
-                db = getFirestore(firebaseApp);
-                appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'nexus-dashboard';
-                cloudEnabled = true;
-            }
-        } catch (e) { console.error("Cloud Setup Error", e); }
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const dbId = "nexus-v4-main";
 
-        // Logic to connect Alpine data to Firebase
-        window.addEventListener('nexus-ready', async () => {
+        window.addEventListener('nexus-boot', async () => {
             const el = document.querySelector('[x-data]');
             if (!el || !el.__x) return;
             const data = el.__x.$data;
 
-            if (cloudEnabled) {
-                data.storageMode = 'cloud';
-                const token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : null;
-                if (token) { await signInWithCustomToken(auth, token); } 
-                else { await signInAnonymously(auth); }
+            await signInAnonymously(auth);
 
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        data.cloudStatus = 'syncing';
-                        try {
-                            const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'current');
-                            const docSnap = await getDoc(docRef);
-                            if (docSnap.exists()) {
-                                const cloudData = docSnap.data();
-                                // Silently update Alpine state with cloud data
-                                data.activeShortcuts = cloudData.activeShortcuts || data.activeShortcuts;
-                                data.tasks = cloudData.tasks || data.tasks;
-                                data.settings = cloudData.settings || data.settings;
-                                data.cloudStatus = 'synced';
-                            }
-                        } catch (err) { data.cloudStatus = 'error'; }
-                    }
-                });
-            } else {
-                data.cloudStatus = 'local-only';
-            }
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    data.storageMode = 'cloud';
+                    data.cloudStatus = 'syncing';
+                    try {
+                        const docRef = doc(db, 'artifacts', dbId, 'users', user.uid, 'config', 'current');
+                        const docSnap = await getDoc(docRef);
+                        if (docSnap.exists()) {
+                            const cloudData = docSnap.data();
+                            data.activeShortcuts = cloudData.activeShortcuts;
+                            data.tasks = cloudData.tasks;
+                            data.settings = cloudData.settings;
+                            data.cloudStatus = 'synced';
+                        }
+                    } catch (err) { data.cloudStatus = 'error'; }
+                }
+            });
         });
 
-        // Event listener for saving to cloud
-        window.addEventListener('nexus-save', async (e) => {
-            if (!cloudEnabled || !auth?.currentUser) return;
+        window.addEventListener('nexus-push', async (e) => {
+            if (!auth.currentUser) return;
             try {
-                const docRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'config', 'current');
+                const docRef = doc(db, 'artifacts', dbId, 'users', auth.currentUser.uid, 'config', 'current');
                 await setDoc(docRef, { ...e.detail, updatedAt: Date.now() });
             } catch (err) {}
         });
@@ -202,19 +197,18 @@
         <div class="blob"></div>
     </div>
     
-    <!-- Background Layer -->
     <div class="bg-overlay" :style="'background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(' + (settings?.bg || '') + '); filter: blur(' + (settings?.blur || 0) + 'px)'"></div>
 
     <div class="relative z-10 min-h-screen flex flex-col">
         <!-- Header -->
         <header class="p-8 flex justify-between items-center max-w-7xl mx-auto w-full">
-            <div class="flex items-center gap-4 group">
+            <div class="flex items-center gap-4 group text-left">
                 <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.5)] group-hover:rotate-12 transition-transform">
                     <svg class="gear-rotate" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
                 </div>
                 <div>
                     <h1 class="font-extrabold text-2xl tracking-tighter uppercase">Nexus<span class="text-blue-500">Dash</span></h1>
-                    <p class="text-[10px] uppercase tracking-[0.3em] text-white/40 font-bold" x-text="storageMode === 'cloud' ? 'Cloud Sync Active' : 'Offline Archive'"></p>
+                    <p class="text-[10px] uppercase tracking-[0.3em] text-white/40 font-bold" x-text="storageMode === 'cloud' ? 'Firebase Sync: Online' : 'Local Archive Mode'"></p>
                 </div>
             </div>
             <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 transition-colors shadow-lg">
@@ -222,7 +216,7 @@
             </button>
         </header>
 
-        <!-- Dynamic Clock -->
+        <!-- Big Center Clock -->
         <section class="flex-grow flex flex-col items-center justify-center py-8 px-6 text-center">
             <div class="relative">
                 <div class="absolute -inset-20 bg-blue-500/10 blur-[100px] rounded-full"></div>
@@ -233,9 +227,9 @@
                     <span class="w-12 h-[2px] bg-blue-500/50"></span>
                 </div>
             </div>
-            <div class="w-full max-w-2xl mt-12 px-4 text-center">
+            <div class="w-full max-w-2xl mt-12 px-4">
                 <form action="https://google.com/search" method="GET" class="relative">
-                    <input type="text" name="q" placeholder="Global Protocol Search..." class="w-full bg-white/5 border border-white/10 rounded-[2rem] py-6 pl-10 pr-20 text-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all placeholder:text-white/20 shadow-inner">
+                    <input type="text" name="q" placeholder="Central Search Protocol..." class="w-full bg-white/5 border border-white/10 rounded-[2rem] py-6 pl-10 pr-20 text-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all placeholder:text-white/20 shadow-inner">
                     <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center hover:bg-blue-500 shadow-lg">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                     </button>
@@ -243,10 +237,10 @@
             </div>
         </section>
 
-        <!-- Interactive Content -->
+        <!-- Main Content Area -->
         <section class="max-w-7xl mx-auto w-full px-8 pb-12">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <!-- Icon Grid -->
+                <!-- Grid area -->
                 <div class="lg:col-span-8 nexus-card p-10">
                     <div class="flex items-center justify-between mb-10 text-left">
                         <h3 class="text-xs font-black uppercase tracking-[0.3em] text-white/30">Application Grid</h3>
@@ -264,14 +258,13 @@
                             </div>
                         </template>
                         <button @click="addModalOpen = true" class="icon-box border-dashed border-2 border-white/10 text-white/20 hover:text-white hover:border-blue-500 transition-colors">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                            <span x-html="window.nexusData.plus"></span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Side Widgets -->
                 <div class="lg:col-span-4 flex flex-col gap-8">
-                    <!-- Monitor -->
                     <template x-if="settings?.widgets.system">
                         <div class="nexus-card p-8 flex flex-col gap-6 text-left">
                             <h4 class="text-[10px] font-black uppercase text-blue-400 tracking-widest">Engine stats</h4>
@@ -288,7 +281,6 @@
                         </div>
                     </template>
 
-                    <!-- To Do List -->
                     <template x-if="settings?.widgets.tasks">
                         <div class="nexus-card p-8 flex-1 flex flex-col gap-6 text-left">
                             <h4 class="text-[10px] font-black uppercase text-blue-400 tracking-widest uppercase">To Do List</h4>
@@ -302,7 +294,7 @@
                                     </div>
                                 </template>
                             </div>
-                            <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task Protocol..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none focus:border-blue-500 placeholder:text-white/20">
+                            <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none focus:border-blue-500 placeholder:text-white/20">
                         </div>
                     </template>
                 </div>
@@ -311,70 +303,43 @@
     </div>
 
     <!-- Modals -->
-    <!-- Inject Module Modal -->
     <div x-show="addModalOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md">
         <div @click="addModalOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl">
             <h2 class="text-3xl font-black uppercase tracking-tighter mb-6 text-left">Inject Module</h2>
             <div class="space-y-4 text-left">
-                <div>
-                    <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Label</label>
-                    <input x-model="newShortcut.name" type="text" placeholder="e.g. Plex" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-                </div>
-                <div>
-                    <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">URL</label>
-                    <input x-model="newShortcut.url" type="text" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-                </div>
-                <div>
-                    <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">SelfH.st Icon Name</label>
-                    <input x-model="newShortcut.iconName" type="text" placeholder="plex, home-assistant, nextcloud..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-                </div>
+                <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Label</label>
+                <input x-model="newShortcut.name" type="text" placeholder="e.g. Plex" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
+                <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Target URL</label>
+                <input x-model="newShortcut.url" type="text" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
+                <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">SelfH.st Icon Name</label>
+                <input x-model="newShortcut.iconName" type="text" placeholder="plex, nextcloud, home-assistant..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
                 <div class="relative flex items-center py-2"><div class="flex-grow border-t border-white/10"></div><span class="mx-4 text-[9px] font-black text-white/20 uppercase">OR</span><div class="flex-grow border-t border-white/10"></div></div>
-                <div>
-                    <label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Manual Icon Link</label>
-                    <input x-model="newShortcut.iconUrl" type="text" placeholder="https://site.com/icon.png" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-                </div>
+                <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Manual Icon Link</label>
+                <input x-model="newShortcut.iconUrl" type="text" placeholder="https://site.com/icon.png" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
             </div>
-            <button @click="addShortcut()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 transition-all shadow-lg">Finalize Injection</button>
+            <button @click="addShortcut()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 shadow-xl transition-all">Finalize Injection</button>
         </div>
     </div>
 
-    <!-- Settings Modal -->
     <div x-show="settingsOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md">
         <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
-        <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl">
-            <div class="flex justify-between items-start mb-8 text-left">
-                <h2 class="text-2xl font-black uppercase tracking-tighter">System config</h2>
-                <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-                    <div :class="{'bg-yellow-500': cloudStatus === 'syncing', 'bg-green-500': cloudStatus === 'synced', 'bg-red-500': cloudStatus === 'error', 'bg-blue-500': cloudStatus === 'local-only'}" class="w-2 h-2 rounded-full"></div>
-                    <span class="text-[8px] font-black uppercase text-white/40 tracking-widest" x-text="cloudStatus"></span>
-                </div>
+        <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl text-left">
+            <div class="flex justify-between items-start mb-8"><h2 class="text-2xl font-black uppercase tracking-tighter">System config</h2>
+            <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+            <div :class="{'bg-yellow-500': cloudStatus === 'syncing', 'bg-green-500': cloudStatus === 'synced', 'bg-red-500': cloudStatus === 'error', 'bg-blue-500': cloudStatus === 'local-only'}" class="w-2 h-2 rounded-full"></div>
+            <span class="text-[8px] font-black uppercase text-white/40 tracking-widest" x-text="cloudStatus"></span></div></div>
+            <div class="space-y-8">
+                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Aura Blur Intensity</p>
+                <input type="range" min="0" max="40" x-model="settings.blur" class="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500"></div>
+                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Environment Skins</p>
+                <div class="grid grid-cols-5 gap-2"><template x-for="bg in bgPresets"><button @click="settings.bg = bg" :class="settings.bg === bg ? 'ring-2 ring-blue-500 scale-95' : 'opacity-50 hover:opacity-100'" class="aspect-square rounded-lg overflow-hidden transition-all"><img :src="bg" class="w-full h-full object-cover"></button></template></div></div>
+                <div><label class="text-[9px] font-black uppercase text-white/20 tracking-widest block mb-2 px-1">Manual Wallpaper URL</label>
+                <input x-model="settings.bg" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-blue-500/50"></div>
+                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Modules</p>
+                <div class="grid grid-cols-2 gap-3"><button @click="settings.widgets.system = !settings.widgets.system" :class="settings.widgets.system ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg">Engine</button><button @click="settings.widgets.tasks = !settings.widgets.tasks" :class="settings.widgets.tasks ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg">To Do</button></div></div>
             </div>
-
-            <div class="space-y-8 text-left" x-show="settings">
-                <div>
-                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Aura Blur Density</p>
-                    <input type="range" min="0" max="40" x-model="settings.blur" class="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500">
-                </div>
-                <div>
-                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Environment Skins</p>
-                    <div class="grid grid-cols-5 gap-2">
-                        <template x-for="bg in bgPresets">
-                            <button @click="settings.bg = bg" :class="settings.bg === bg ? 'ring-2 ring-blue-500 scale-95' : 'opacity-50 hover:opacity-100'" class="aspect-square rounded-lg overflow-hidden transition-all">
-                                <img :src="bg" class="w-full h-full object-cover">
-                            </button>
-                        </template>
-                    </div>
-                </div>
-                <div>
-                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Active Modules</p>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button @click="settings.widgets.system = !settings.widgets.system" :class="settings.widgets.system ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg">Engine</button>
-                        <button @click="settings.widgets.tasks = !settings.widgets.tasks" :class="settings.widgets.tasks ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg">To Do</button>
-                    </div>
-                </div>
-            </div>
-            <button @click="settingsOpen = false" class="w-full mt-10 py-5 bg-blue-600 rounded-[1.5rem] font-black uppercase tracking-widest text-sm hover:bg-blue-500 transition-colors shadow-xl">Finalize & Sync</button>
+            <button @click="settingsOpen = false" class="w-full mt-10 py-5 bg-blue-600 rounded-[1.5rem] font-black uppercase tracking-widest text-sm hover:bg-blue-500 shadow-xl transition-all">Finalize & Synchronize</button>
         </div>
     </div>
 </body>
