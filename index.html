@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Dash | Cloud Active</title>
+    <title>Nexus Dash | Cloud Stable</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
@@ -26,51 +27,42 @@
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Your specific Firebase credentials
-        const firebaseConfig = {
-            apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
-            authDomain: "nexusdash-5731e.firebaseapp.com",
-            projectId: "nexusdash-5731e",
-            storageBucket: "nexusdash-5731e.firebasestorage.app",
-            messagingSenderId: "758016854578",
-            appId: "1:758016854578:web:18c6d8f8181b1134caca2b"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const APP_ID = "nexus-dash-v4";
-
-        // Define the Alpine Component within the Module to ensure scope
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('nexus', () => ({
+    <script>
+        /**
+         * 1. CRITICAL: Define the component function GLOBALLY
+         * This prevents the "nexus is not defined" error.
+         */
+        window.nexus = function() {
+            return {
                 time: '00:00 AM',
-                date: 'Initializing...',
+                date: 'System Booting...',
                 cpu: 0,
                 mem: 0,
-                storageMode: 'local',
-                cloudStatus: 'connecting',
                 addModalOpen: false,
                 settingsOpen: false,
+                storageMode: 'Connecting...',
+                cloudStatus: 'connecting',
                 newShortcut: { name: '', url: '', iconName: '', iconUrl: '' },
                 settings: { 
                     widgets: { system: true, tasks: true }, 
                     bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', 
                     blur: 0 
                 },
-                activeShortcuts: [
-                    { name: 'Plex', iconName: 'plex', url: '#' },
-                    { name: 'Home Assistant', iconName: 'home-assistant', url: '#' }
+                bgPresets: [
+                    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600',
+                    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80&w=1600',
+                    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1600',
+                    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1600',
+                    'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?auto=format&fit=crop&q=80&w=1600'
                 ],
-                tasks: [{ text: 'Cloud Link Established', done: true }],
-                user: null,
+                activeShortcuts: [
+                    { name: 'Home Assistant', iconName: 'home-assistant', url: '#' },
+                    { name: 'Plex', iconName: 'plex', url: '#' }
+                ],
+                tasks: [{ text: 'Dashboard active', done: true }],
+                userUid: null,
 
-                async init() {
+                init() {
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
                     setInterval(() => {
@@ -78,49 +70,29 @@
                         this.mem = Math.floor(Math.random() * 15 + 40);
                     }, 3000);
 
-                    // Step 1: Anonymous Login
-                    try {
-                        const cred = await signInAnonymously(auth);
-                        this.user = cred.user;
-                        this.storageMode = 'cloud';
-                        this.cloudStatus = 'syncing';
-
-                        // Step 2: Fetch Cloud Data (Following Rule 1 Path)
-                        const docRef = doc(db, 'artifacts', APP_ID, 'users', this.user.uid, 'data', 'config');
-                        const docSnap = await getDoc(docRef);
-                        
-                        if (docSnap.exists()) {
-                            const cloudData = docSnap.data();
-                            this.activeShortcuts = cloudData.activeShortcuts || this.activeShortcuts;
-                            this.tasks = cloudData.tasks || this.tasks;
-                            this.settings = cloudData.settings || this.settings;
-                            this.cloudStatus = 'synced';
-                        } else {
-                            // First time user, save initial state
-                            await this.saveCloud();
-                            this.cloudStatus = 'synced';
-                        }
-                    } catch (e) {
-                        console.error("Firebase connection failed", e);
-                        this.cloudStatus = 'error';
-                        // Fallback to local
-                        const saved = localStorage.getItem('nexus_backup');
-                        if (saved) {
+                    // Load local backup first
+                    const saved = localStorage.getItem('nexus_cache');
+                    if (saved) {
+                        try {
                             const d = JSON.parse(saved);
                             this.activeShortcuts = d.activeShortcuts;
                             this.tasks = d.tasks;
                             this.settings = d.settings;
-                        }
+                        } catch (e) {}
                     }
 
-                    // Watch for state changes to trigger saves
-                    this.$watch('activeShortcuts', () => this.saveCloud());
-                    this.$watch('tasks', () => this.saveCloud());
-                    this.$watch('settings', () => this.saveCloud());
+                    // Tell the Firebase script we are ready
+                    window.dispatchEvent(new CustomEvent('nexus-ready'));
+
+                    // Watch for state changes to save
+                    this.$watch('activeShortcuts', () => this.triggerSync());
+                    this.$watch('tasks', () => this.triggerSync());
+                    this.$watch('settings', () => this.triggerSync());
                 },
 
                 updateTime() {
                     const n = new Date();
+                    // 12-hour AM/PM format
                     this.time = n.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
                     this.date = n.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
                 },
@@ -139,46 +111,89 @@
                 },
 
                 removeShortcut(idx) { this.activeShortcuts.splice(idx, 1); },
-                
-                addTask(e) { 
+                addTask(e) {
                     if (!e.target.value.trim()) return;
                     this.tasks.push({ text: e.target.value, done: false });
                     e.target.value = '';
                 },
 
-                async saveCloud() {
+                triggerSync() {
                     const payload = {
                         activeShortcuts: JSON.parse(JSON.stringify(this.activeShortcuts)),
                         tasks: JSON.parse(JSON.stringify(this.tasks)),
-                        settings: JSON.parse(JSON.stringify(this.settings)),
-                        updatedAt: Date.now()
+                        settings: JSON.parse(JSON.stringify(this.settings))
                     };
-                    
-                    // Backup to Local Storage
-                    localStorage.setItem('nexus_backup', JSON.stringify(payload));
-
-                    // Push to Firebase if user is logged in
-                    if (this.user) {
-                        try {
-                            const docRef = doc(db, 'artifacts', APP_ID, 'users', this.user.uid, 'data', 'config');
-                            await setDoc(docRef, payload);
-                        } catch (err) { console.error("Cloud push failed", err); }
-                    }
+                    localStorage.setItem('nexus_cache', JSON.stringify(payload));
+                    window.dispatchEvent(new CustomEvent('nexus-push', { detail: payload }));
                 }
-            }));
+            };
+        };
+    </script>
+
+    <!-- 2. Firebase Connection Bridge -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
+            authDomain: "nexusdash-5731e.firebaseapp.com",
+            projectId: "nexusdash-5731e",
+            storageBucket: "nexusdash-5731e.firebasestorage.app",
+            messagingSenderId: "758016854578",
+            appId: "1:758016854578:web:18c6d8f8181b1134caca2b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const APP_ID = "nexus-v4-main";
+
+        window.addEventListener('nexus-ready', async () => {
+            const data = document.querySelector('[x-data]').__x.$data;
+            
+            try {
+                const cred = await signInAnonymously(auth);
+                data.userUid = cred.user.uid;
+                data.storageMode = 'cloud';
+                data.cloudStatus = 'syncing';
+
+                // Pull data from correct path (Rule 1)
+                const docRef = doc(db, 'artifacts', APP_ID, 'users', cred.user.uid, 'data', 'config');
+                const snap = await getDoc(docRef);
+                
+                if (snap.exists()) {
+                    const c = snap.data();
+                    data.activeShortcuts = c.activeShortcuts;
+                    data.tasks = c.tasks;
+                    data.settings = c.settings;
+                    data.cloudStatus = 'synced';
+                }
+            } catch (e) {
+                data.cloudStatus = 'error';
+            }
+        });
+
+        window.addEventListener('nexus-push', async (e) => {
+            if (!auth.currentUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', APP_ID, 'users', auth.currentUser.uid, 'data', 'config');
+                await setDoc(docRef, { ...e.detail, updatedAt: Date.now() });
+            } catch (err) {}
         });
     </script>
 
-    <!-- Load Alpine last -->
+    <!-- 3. Alpine.js (Loaded last to ensure global functions are found) -->
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body x-data="nexus" x-cloak>
+<body x-data="nexus()" x-cloak>
 
     <div class="bg-animate">
         <div class="blob"></div>
     </div>
     
-    <div class="bg-overlay" :style="'background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(' + settings.bg + '); filter: blur(' + settings.blur + 'px)'"></div>
+    <div class="bg-overlay" :style="'background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(' + (settings?.bg || '') + '); filter: blur(' + (settings?.blur || 0) + 'px)'"></div>
 
     <div class="relative z-10 min-h-screen flex flex-col">
         <!-- Header -->
@@ -189,7 +204,7 @@
                 </div>
                 <div>
                     <h1 class="font-extrabold text-2xl tracking-tighter uppercase leading-none">Nexus<span class="text-blue-500">Dash</span></h1>
-                    <p class="text-[9px] uppercase tracking-[0.3em] text-white/40 font-bold mt-1" x-text="storageMode === 'cloud' ? 'Firebase Sync Enabled' : 'Offline Mode'"></p>
+                    <p class="text-[9px] uppercase tracking-[0.3em] text-white/40 font-bold mt-1" x-text="storageMode === 'cloud' ? 'Cloud Link: Established' : 'Archive Mode: Local'"></p>
                 </div>
             </div>
             <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 transition-colors shadow-lg">
@@ -218,10 +233,10 @@
             </div>
         </section>
 
-        <!-- Content Grid -->
+        <!-- Main Content -->
         <section class="max-w-7xl mx-auto w-full px-8 pb-12">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <!-- Shortcuts -->
+                <!-- Shortcuts Grid -->
                 <div class="lg:col-span-8 nexus-card p-10">
                     <div class="flex items-center justify-between mb-10 text-left">
                         <h3 class="text-xs font-black uppercase tracking-[0.3em] text-white/30">Application Grid</h3>
@@ -244,9 +259,9 @@
                     </div>
                 </div>
 
-                <!-- Side Widgets -->
+                <!-- Widgets Sidebar -->
                 <div class="lg:col-span-4 flex flex-col gap-8">
-                    <template x-if="settings.widgets.system">
+                    <template x-if="settings?.widgets.system">
                         <div class="nexus-card p-8 flex flex-col gap-6 text-left">
                             <h4 class="text-[10px] font-black uppercase text-blue-400 tracking-widest">Engine stats</h4>
                             <div class="space-y-4">
@@ -262,7 +277,7 @@
                         </div>
                     </template>
 
-                    <template x-if="settings.widgets.tasks">
+                    <template x-if="settings?.widgets.tasks">
                         <div class="nexus-card p-8 flex-1 flex flex-col gap-6 text-left">
                             <h4 class="text-[10px] font-black uppercase text-blue-400 tracking-widest uppercase">To Do List</h4>
                             <div class="space-y-3 flex-grow overflow-y-auto max-h-[220px] pr-2">
@@ -275,7 +290,7 @@
                                     </div>
                                 </template>
                             </div>
-                            <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task Protocol..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none focus:border-blue-500 placeholder:text-white/20">
+                            <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none focus:border-blue-500 placeholder:text-white/20">
                         </div>
                     </template>
                 </div>
@@ -283,26 +298,27 @@
         </section>
     </div>
 
-    <!-- Modals -->
+    <!-- Inject Modal -->
     <div x-show="addModalOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md">
         <div @click="addModalOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl">
             <h2 class="text-3xl font-black uppercase tracking-tighter mb-6 text-left">Inject Module</h2>
             <div class="space-y-4 text-left">
                 <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Label</label>
-                <input x-model="newShortcut.name" type="text" placeholder="e.g. Plex" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
+                <input x-model="newShortcut.name" type="text" placeholder="e.g. HomeAssistant" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none"></div>
                 <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Target URL</label>
-                <input x-model="newShortcut.url" type="text" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
+                <input x-model="newShortcut.url" type="text" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none"></div>
                 <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">SelfH.st Icon Name</label>
-                <input x-model="newShortcut.iconName" type="text" placeholder="plex, nextcloud, home-assistant..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
+                <input x-model="newShortcut.iconName" type="text" placeholder="plex, home-assistant, nextcloud..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none"></div>
                 <div class="relative flex items-center py-2"><div class="flex-grow border-t border-white/10"></div><span class="mx-4 text-[9px] font-black text-white/20 uppercase">OR</span><div class="flex-grow border-t border-white/10"></div></div>
                 <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Manual Icon Link</label>
-                <input x-model="newShortcut.iconUrl" type="text" placeholder="https://site.com/icon.png" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"></div>
+                <input x-model="newShortcut.iconUrl" type="text" placeholder="https://site.com/icon.png" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none"></div>
             </div>
             <button @click="addShortcut()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 shadow-xl transition-all">Finalize Injection</button>
         </div>
     </div>
 
+    <!-- Settings Modal -->
     <div x-show="settingsOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md">
         <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl text-left">
@@ -311,14 +327,16 @@
             <div :class="{'bg-yellow-500': cloudStatus === 'syncing', 'bg-green-500': cloudStatus === 'synced', 'bg-red-500': cloudStatus === 'error', 'bg-blue-500': cloudStatus === 'local-only'}" class="w-2 h-2 rounded-full"></div>
             <span class="text-[8px] font-black uppercase text-white/40 tracking-widest" x-text="cloudStatus"></span></div></div>
             <div class="space-y-8">
-                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Glass Aura Blur Density</p>
+                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Aura Blur Intensity</p>
                 <input type="range" min="0" max="40" x-model="settings.blur" class="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500"></div>
                 <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Environment Skins</p>
                 <div class="grid grid-cols-5 gap-2 px-1"><template x-for="bg in bgPresets"><button @click="settings.bg = bg" :class="settings.bg === bg ? 'ring-2 ring-blue-500 scale-95' : 'opacity-50 hover:opacity-100'" class="aspect-square rounded-lg overflow-hidden transition-all"><img :src="bg" class="w-full h-full object-cover"></button></template></div></div>
-                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Modules</p>
+                <div><label class="text-[9px] font-black uppercase text-white/20 tracking-widest block mb-2 px-1">Manual Wallpaper URL</label>
+                <input x-model="settings.bg" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-blue-500/50"></div>
+                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Active Modules</p>
                 <div class="grid grid-cols-2 gap-3 px-1"><button @click="settings.widgets.system = !settings.widgets.system" :class="settings.widgets.system ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg">Engine</button><button @click="settings.widgets.tasks = !settings.widgets.tasks" :class="settings.widgets.tasks ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg">To Do</button></div></div>
             </div>
-            <button @click="settingsOpen = false" class="w-full mt-10 py-5 bg-blue-600 rounded-[1.5rem] font-black uppercase tracking-widest text-sm hover:bg-blue-500 shadow-xl transition-all">Finalize & Sync</button>
+            <button @click="settingsOpen = false" class="w-full mt-10 py-5 bg-blue-600 rounded-[1.5rem] font-black uppercase tracking-widest text-sm hover:bg-blue-500 transition-colors shadow-xl">Finalize & Synchronize</button>
         </div>
     </div>
 </body>
