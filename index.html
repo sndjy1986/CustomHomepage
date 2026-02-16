@@ -54,6 +54,7 @@
                 { name: 'ESO Suite', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/eso.png', url: 'https://scheduling.esosuite.net/Default.aspx?DB=priorityambulance' },
                 { name: 'Helo Sync', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/EMS_Helo-removebg-preview.png', url: 'https://andersoncounty911_sc.transport.net/#/login' },
                 { name: 'DOT Cam', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-wall-mount-camera-100.png', url: 'https://work.sndjy.us/camera' },
+                { name: 'Radio', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/headset.png', url: '#' },
                 { name: 'Map dist', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-map-pinpoint-100.png', url: 'https://work.sndjy.us/map.html' },
                 { name: 'Daily WS', iconUrl: 'https://icons.duckduckgo.com/ip3/drive.google.com.ico', url: 'https://docs.google.com/spreadsheets/d/1H6C59UoF_g1QHSutXQCqBUUhfW4r2rLoNaTe0ZRQYSw/edit?usp=sharing' },
                 { name: 'Coroner', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/_traichu/refs/heads/main/icons/Priority.png', url: 'https://drive.google.com/file/d/1Lq3m5KIhkwP7zQZu9RTKlXRO18BPhx1A/view?usp=drive_link' },
@@ -66,6 +67,10 @@
                 { name: 'Outages', iconUrl: 'https://icons.duckduckgo.com/ip3/poweroutage.us.ico', url: 'https://poweroutage.us/area/county/532' },
                 { name: 'QRV Roster', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/notepad.png', url: 'https://drive.google.com/file/d/1CdFma_A-xTt2KhbJY6yMS9o5PHF8pm9f/view?usp=drive_link' }
             ],
+            serverShortcuts: [
+                { name: 'Main Server', iconName: 'server', url: '#' },
+                { name: 'Database', iconName: 'database', url: '#' }
+            ],
             tasks: [{ text: 'Check ESO Schedule', done: false }, { text: 'Complete EOS Form', done: false }],
             settings: { 
                 widgets: { system: true, tasks: true }, 
@@ -77,17 +82,20 @@
         function nexusApp() {
             return {
                 time: '00:00 AM',
-                date: 'Booting...',
+                date: 'System Initialization...',
                 cpu: 0,
                 mem: 0,
                 storageMode: 'local',
                 cloudStatus: 'connecting',
                 addModalOpen: false,
                 settingsOpen: false,
+                gridPage: 'links', // 'links' or 'server'
                 newShortcut: { name: '', url: '', iconName: '', iconUrl: '' },
                 
                 get activeShortcuts() { return window.nexusState.activeShortcuts },
                 set activeShortcuts(v) { window.nexusState.activeShortcuts = v },
+                get serverShortcuts() { return window.nexusState.serverShortcuts },
+                set serverShortcuts(v) { window.nexusState.serverShortcuts = v },
                 get tasks() { return window.nexusState.tasks },
                 set tasks(v) { window.nexusState.tasks = v },
                 get settings() { return window.nexusState.settings },
@@ -97,6 +105,7 @@
                     'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600',
                     'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80&w=1600',
                     'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1600',
+                    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1600',
                     'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?auto=format&fit=crop&q=80&w=1600'
                 ],
 
@@ -112,11 +121,13 @@
                     if (cache) {
                         const d = JSON.parse(cache);
                         this.activeShortcuts = d.activeShortcuts || this.activeShortcuts;
+                        this.serverShortcuts = d.serverShortcuts || this.serverShortcuts;
                         this.tasks = d.tasks || this.tasks;
                         this.settings = d.settings || this.settings;
                     }
 
                     this.$watch('activeShortcuts', () => this.persist());
+                    this.$watch('serverShortcuts', () => this.persist());
                     this.$watch('tasks', () => this.persist());
                     this.$watch('settings', () => this.persist());
 
@@ -137,13 +148,28 @@
 
                 addShortcut() {
                     if (!this.newShortcut.name) return;
-                    this.activeShortcuts.push({ ...this.newShortcut, url: this.newShortcut.url || '#' });
+                    const item = { ...this.newShortcut, url: this.newShortcut.url || '#' };
+                    
+                    if (this.gridPage === 'server') {
+                        this.serverShortcuts.push(item);
+                    } else {
+                        this.activeShortcuts.push(item);
+                    }
+                    
                     this.newShortcut = { name: '', url: '', iconName: '', iconUrl: '' };
                     this.addModalOpen = false;
                     this.persist();
                 },
 
-                removeShortcut(idx) { this.activeShortcuts.splice(idx, 1); this.persist(); },
+                removeShortcut(idx) {
+                    if (this.gridPage === 'server') {
+                        this.serverShortcuts.splice(idx, 1);
+                    } else {
+                        this.activeShortcuts.splice(idx, 1);
+                    }
+                    this.persist();
+                },
+
                 addTask(e) {
                     if (!e.target.value.trim()) return;
                     this.tasks.push({ text: e.target.value, done: false });
@@ -152,7 +178,12 @@
                 },
 
                 persist() {
-                    const data = { activeShortcuts: this.activeShortcuts, tasks: this.tasks, settings: this.settings };
+                    const data = { 
+                        activeShortcuts: this.activeShortcuts, 
+                        serverShortcuts: this.serverShortcuts,
+                        tasks: this.tasks, 
+                        settings: this.settings 
+                    };
                     localStorage.setItem('nexus_v4_cache', JSON.stringify(data));
                     window.dispatchEvent(new CustomEvent('nexus-sync', { detail: data }));
                 }
@@ -195,9 +226,10 @@
                 
                 if (snap.exists()) {
                     const cloud = snap.data();
-                    window.nexusState.activeShortcuts = cloud.activeShortcuts;
-                    window.nexusState.tasks = cloud.tasks;
-                    window.nexusState.settings = cloud.settings;
+                    window.nexusState.activeShortcuts = cloud.activeShortcuts || window.nexusState.activeShortcuts;
+                    window.nexusState.serverShortcuts = cloud.serverShortcuts || window.nexusState.serverShortcuts;
+                    window.nexusState.tasks = cloud.tasks || window.nexusState.tasks;
+                    window.nexusState.settings = cloud.settings || window.nexusState.settings;
                     ui.cloudStatus = 'synced';
                 } else {
                     await setDoc(docRef, { ...window.nexusState, updatedAt: Date.now() });
@@ -228,6 +260,7 @@
     <div class="bg-overlay" :style="'background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(' + settings.bg + '); filter: blur(' + settings.blur + 'px)'"></div>
 
     <div class="relative z-10 min-h-screen flex flex-col">
+        <!-- Header -->
         <header class="p-8 flex justify-between items-center max-w-7xl mx-auto w-full">
             <div class="flex items-center gap-4 group text-left">
                 <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.4)] group-hover:rotate-12 transition-transform">
@@ -243,10 +276,11 @@
             </button>
         </header>
 
+        <!-- Dynamic Clock -->
         <section class="flex-grow flex flex-col items-center justify-center py-8 px-6 text-center">
             <div class="relative">
                 <div class="absolute -inset-20 bg-blue-500/10 blur-[100px] rounded-full"></div>
-                <h2 x-text="time" class="text-[7rem] md:text-[10rem] font-extrabold tracking-tighter leading-none drop-shadow-2xl">00:00 AM</h2>
+                <h2 x-text="time" class="text-[7.5rem] md:text-[10rem] font-extrabold tracking-tighter leading-none drop-shadow-2xl">00:00 AM</h2>
                 <div class="flex items-center justify-center gap-4 mt-2">
                     <span class="w-12 h-[2px] bg-blue-500/50"></span>
                     <p x-text="date" class="text-white/40 uppercase tracking-[0.5em] font-bold text-xs"></p>
@@ -263,14 +297,28 @@
             </div>
         </section>
 
+        <!-- Main Content Area -->
         <section class="max-w-7xl mx-auto w-full px-8 pb-12">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <div class="lg:col-span-8 nexus-card p-10">
-                    <div class="flex items-center justify-between mb-10 text-left">
-                        <h3 class="text-xs font-black uppercase tracking-[0.3em] text-white/30">Application Grid</h3>
+                <!-- Pageable Grid -->
+                <div class="lg:col-span-8 nexus-card p-8 md:p-10 flex flex-col">
+                    <!-- Grid Navigation -->
+                    <div class="flex items-center gap-8 mb-10 border-b border-white/5">
+                        <button @click="gridPage = 'links'" 
+                                :class="gridPage === 'links' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/30 pb-4'" 
+                                class="text-xs font-black uppercase tracking-[0.3em] transition-all">
+                            Links
+                        </button>
+                        <button @click="gridPage = 'server'" 
+                                :class="gridPage === 'server' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/30 pb-4'" 
+                                class="text-xs font-black uppercase tracking-[0.3em] transition-all">
+                            Server Links
+                        </button>
                     </div>
-                    <div class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-6">
-                        <template x-for="(icon, index) in activeShortcuts" :key="index">
+
+                    <!-- Dynamic Grid Content -->
+                    <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-6">
+                        <template x-for="(icon, index) in (gridPage === 'links' ? activeShortcuts : serverShortcuts)" :key="index">
                             <div class="flex flex-col items-center gap-3 group relative">
                                 <a :href="icon.url" target="_blank" class="icon-box" :style="'border-bottom: 3px solid ' + (icon.color || '#00f2ff')">
                                     <span x-html="getIcon(icon)"></span>
@@ -287,6 +335,7 @@
                     </div>
                 </div>
 
+                <!-- Sidebar -->
                 <div class="lg:col-span-4 flex flex-col gap-8 text-left">
                     <template x-if="settings.widgets.system">
                         <div class="nexus-card p-8 flex flex-col gap-6">
@@ -303,6 +352,7 @@
                             </div>
                         </div>
                     </template>
+
                     <template x-if="settings.widgets.tasks">
                         <div class="nexus-card p-8 flex-1 flex flex-col gap-6">
                             <h4 class="text-[10px] font-black uppercase text-blue-400 tracking-widest uppercase">To Do List</h4>
@@ -316,7 +366,7 @@
                                     </div>
                                 </template>
                             </div>
-                            <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none focus:border-blue-500 placeholder:text-white/20">
+                            <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task Protocol..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none focus:border-blue-500 placeholder:text-white/20">
                         </div>
                     </template>
                 </div>
@@ -325,36 +375,43 @@
     </div>
 
     <!-- Modals -->
+    <!-- Inject Modal -->
     <div x-show="addModalOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md">
         <div @click="addModalOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl text-left">
-            <h2 class="text-3xl font-black uppercase tracking-tighter mb-6">Inject Module</h2>
+            <h2 class="text-3xl font-black uppercase tracking-tighter mb-2">Inject Module</h2>
+            <p class="text-[10px] text-white/30 uppercase tracking-widest mb-6" x-text="'Targeting: ' + gridPage + ' page'"></p>
+            
             <div class="space-y-4">
                 <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Label</label>
                 <input x-model="newShortcut.name" type="text" placeholder="e.g. Plex" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none"></div>
                 <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Target URL</label>
                 <input x-model="newShortcut.url" type="text" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none"></div>
-                <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">Manual Icon URL</label>
-                <input x-model="newShortcut.iconUrl" type="text" placeholder="https://site.com/icon.png" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none"></div>
+                <div><label class="text-[10px] font-black uppercase text-white/30 tracking-widest block mb-2 px-1">SelfH.st / Manual URL</label>
+                <input x-model="newShortcut.iconUrl" type="text" placeholder="plex or https://site.com/icon.png" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none"></div>
             </div>
             <button @click="addShortcut()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 shadow-xl">Finalize Injection</button>
         </div>
     </div>
 
+    <!-- Settings Modal -->
     <div x-show="settingsOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md text-left">
         <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl">
-            <div class="flex justify-between items-start mb-8 text-left"><h2 class="text-2xl font-black uppercase tracking-tighter">System config</h2>
-            <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-            <div :class="{'bg-yellow-500': cloudStatus === 'syncing', 'bg-green-500': cloudStatus === 'synced', 'bg-red-500': cloudStatus === 'error', 'bg-blue-500': cloudStatus === 'local-only'}" class="w-2 h-2 rounded-full"></div>
-            <span class="text-[8px] font-black uppercase text-white/40 tracking-widest" x-text="cloudStatus"></span></div></div>
+            <div class="flex justify-between items-start mb-8 text-left">
+                <h2 class="text-2xl font-black uppercase tracking-tighter">System config</h2>
+                <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+                    <div :class="{'bg-yellow-500': cloudStatus === 'syncing', 'bg-green-500': cloudStatus === 'synced', 'bg-red-500': cloudStatus === 'error', 'bg-blue-500': cloudStatus === 'local-only'}" class="w-2 h-2 rounded-full"></div>
+                    <span class="text-[8px] font-black uppercase text-white/40 tracking-widest" x-text="cloudStatus"></span>
+                </div>
+            </div>
             <div class="space-y-8">
-                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Aura Blur Intensity</p>
+                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Glass Aura Blur Density</p>
                 <input type="range" min="0" max="40" x-model="settings.blur" class="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer"></div>
-                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Environment Skins</p>
-                <div class="grid grid-cols-5 gap-2"><template x-for="bg in bgPresets"><button @click="settings.bg = bg" :class="settings.bg === bg ? 'ring-2 ring-blue-500 scale-95' : 'opacity-50 hover:opacity-100'" class="aspect-square rounded-lg overflow-hidden transition-all"><img :src="bg" class="w-full h-full object-cover"></button></template></div></div>
-                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Modules</p>
-                <div class="grid grid-cols-2 gap-3"><button @click="settings.widgets.system = !settings.widgets.system" :class="settings.widgets.system ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg">Engine</button><button @click="settings.widgets.tasks = !settings.widgets.tasks" :class="settings.widgets.tasks ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg">To Do</button></div></div>
+                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Environment Skins</p>
+                <div class="grid grid-cols-5 gap-2 px-1"><template x-for="bg in bgPresets"><button @click="settings.bg = bg" :class="settings.bg === bg ? 'ring-2 ring-blue-500 scale-95' : 'opacity-50 hover:opacity-100'" class="aspect-square rounded-lg overflow-hidden transition-all"><img :src="bg" class="w-full h-full object-cover"></button></template></div></div>
+                <div><p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 px-1">Modules</p>
+                <div class="grid grid-cols-2 gap-3 px-1"><button @click="settings.widgets.system = !settings.widgets.system" :class="settings.widgets.system ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg">Engine</button><button @click="settings.widgets.tasks = !settings.widgets.tasks" :class="settings.widgets.tasks ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/30'" class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg">To Do</button></div></div>
             </div>
             <button @click="settingsOpen = false" class="w-full mt-10 py-5 bg-blue-600 rounded-[1.5rem] font-black uppercase tracking-widest text-sm hover:bg-blue-500 shadow-xl transition-all">Finalize & Sync</button>
         </div>
