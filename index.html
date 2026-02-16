@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Dash | Work Terminal</title>
+    <title>Nexus Dash | Terminal Pro</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -68,8 +68,10 @@
                 { name: 'QRV Roster', iconUrl: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/notepad.png', url: 'https://drive.google.com/file/d/1CdFma_A-xTt2KhbJY6yMS9o5PHF8pm9f/view?usp=drive_link' }
             ],
             serverShortcuts: [
-                { name: 'Main Server', iconName: 'server', url: '#' },
-                { name: 'Database', iconName: 'database', url: '#' }
+                { name: 'Termix2', iconName: 'terminal', url: 'https://Termix2.sndjy.us' },
+                { name: 'Warden', iconName: 'bitwarden', url: 'https://Warden.sndjy.us' },
+                { name: 'Joplin', iconName: 'joplin', url: 'https://Joplin.sndjy.us' },
+                { name: 'Calendar', iconName: 'google-calendar', url: 'https://Calendar.sndjy.us' }
             ],
             tasks: [{ text: 'Check ESO Schedule', done: false }, { text: 'Complete EOS Form', done: false }],
             settings: { 
@@ -271,7 +273,7 @@
                     <p class="text-[9px] uppercase tracking-[0.3em] text-white/40 font-bold mt-1" x-text="storageMode === 'cloud' ? 'Firebase Sync: Online' : 'Local Archive Only'"></p>
                 </div>
             </div>
-            <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 transition-colors">
+            <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 transition-colors shadow-lg">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
         </header>
