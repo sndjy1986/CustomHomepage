@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus Dash | Terminal Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
@@ -19,10 +17,10 @@
         .bg-animate { background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #020617 100%); position: fixed; inset: 0; z-index: -1; }
         .bg-overlay { position: fixed; inset: 0; z-index: -1; background-size: cover; background-position: center; transition: background-image 0.8s ease, filter 0.3s ease; }
         .nexus-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1.5rem; transition: all 0.3s ease; }
-        .icon-box { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: 1rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); transition: all 0.2s ease; cursor: pointer; }
+        .icon-box { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: 1rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); transition: all 0.2s ease; cursor: pointer; position: relative; }
         .icon-box img { width: 34px; height: 34px; object-fit: contain; }
         .icon-box:hover { border-color: var(--neon-blue); transform: translateY(-3px); background: rgba(255,255,255,0.08); }
-        .gear-rotate { animation: rotate 15s linear infinite; }
+        .gear-rotate { animation: rotate 20s linear infinite; }
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
@@ -36,7 +34,7 @@
     <div class="relative z-10 min-h-screen flex flex-col">
         <!-- Header -->
         <header class="p-6 flex justify-between items-center max-w-7xl mx-auto w-full text-left">
-            <div class="flex items-center gap-4 text-left">
+            <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl">
                     <svg class="gear-rotate" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
                 </div>
@@ -58,18 +56,18 @@
             <p x-text="date" class="text-white/30 uppercase tracking-[0.5em] font-bold text-xs mt-4"></p>
             <div class="w-full max-w-2xl mt-12">
                 <form action="https://google.com/search" method="GET">
-                    <input type="text" name="q" placeholder="Global Protocol Search..." class="w-full bg-white/5 border border-white/10 rounded-[2rem] py-5 px-10 text-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-center placeholder:text-white/10">
+                    <input type="text" name="q" placeholder="Central Search Protocol..." class="w-full bg-white/5 border border-white/10 rounded-[2rem] py-5 px-10 text-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-center placeholder:text-white/10">
                 </form>
             </div>
         </section>
 
         <section class="max-w-7xl mx-auto w-full px-6 pb-12">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <!-- Grid Area -->
-                <div class="lg:col-span-8 nexus-card p-10 flex flex-col min-h-[400px]">
+                <!-- Links Tabbed Grid -->
+                <div class="lg:col-span-8 nexus-card p-8 md:p-10 flex flex-col min-h-[400px]">
                     <div class="flex items-center gap-8 mb-10 border-b border-white/5">
-                        <button @click="activeTab = 'links'" :class="activeTab === 'links' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em]">Links</button>
-                        <button @click="activeTab = 'server'" :class="activeTab === 'server' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em]">Server Links</button>
+                        <button @click="activeTab = 'links'" :class="activeTab === 'links' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Links</button>
+                        <button @click="activeTab = 'server'" :class="activeTab === 'server' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Server Links</button>
                     </div>
 
                     <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
@@ -118,7 +116,7 @@
                                 </div>
                             </template>
                         </div>
-                        <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Protocol..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full">
+                        <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full">
                     </div>
                 </div>
             </div>
@@ -129,31 +127,31 @@
     <div x-show="settingsOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
         <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-lg relative z-10 p-8 border-white/5 shadow-2xl max-h-[90vh] overflow-y-auto text-left text-white">
-            <h2 class="text-2xl font-black uppercase tracking-tighter mb-8 text-white">System Configuration</h2>
+            <h2 class="text-2xl font-black uppercase tracking-tighter mb-8 text-white">System Console</h2>
             
             <div class="space-y-6">
-                <!-- Sync -->
+                <!-- Sync Key -->
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4 font-bold">Cloud Sync (Nexus Key)</p>
+                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Cloud Sync (Nexus Key)</p>
                     <div class="flex gap-2">
-                        <input x-model="syncId" type="text" placeholder="e.g. work-dash" class="flex-grow bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white">
+                        <input x-model="syncId" type="text" placeholder="e.g. sndjy-dash" class="flex-grow bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white">
                         <button @click="setSyncKey()" class="px-4 py-2 bg-blue-600 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-500 transition-all">Update</button>
                     </div>
                 </div>
 
-                <!-- API Access -->
+                <!-- API Control -->
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
                     <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4 font-bold">Protocol API Bridge</p>
                     <div class="space-y-3">
-                        <div>
-                            <label class="text-[8px] uppercase text-white/40 mb-1 block">Cloudflare Worker URL</label>
-                            <input x-model="settings.scriptable.endpoint" @input="persist()" placeholder="https://...workers.dev/events" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white">
-                        </div>
-                        <div>
-                            <label class="text-[8px] uppercase text-white/40 mb-1 block">DASHBOARD_API_KEY (x-api-key)</label>
-                            <input x-model="settings.scriptable.authKey" @input="persist()" type="password" placeholder="Auth Secret" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white">
-                        </div>
+                        <input x-model="settings.scriptable.endpoint" @input="persist()" placeholder="https://...workers.dev/events" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white">
+                        <input x-model="settings.scriptable.authKey" @input="persist()" type="password" placeholder="DASHBOARD_API_KEY (x-api-key)" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white">
                     </div>
+                </div>
+
+                <!-- JSON Debugger Area -->
+                <div class="p-4 bg-black/40 rounded-xl border border-white/5">
+                    <p class="text-[8px] font-bold uppercase text-white/30 mb-2">JSON Protocol Feed (Debug)</p>
+                    <pre class="text-[9px] text-green-500 overflow-x-auto h-[100px] font-mono" x-text="JSON.stringify(lastRawData, null, 2)"></pre>
                 </div>
 
                 <div class="px-1 pt-2">
@@ -161,6 +159,7 @@
                     <input type="range" min="0" max="40" x-model="settings.blur" @input="persist()" class="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500">
                 </div>
             </div>
+            
             <button @click="settingsOpen = false" class="w-full mt-10 py-4 bg-blue-600 rounded-xl font-black uppercase text-xs shadow-xl transition-all hover:bg-blue-500">Close terminal</button>
         </div>
     </div>
@@ -173,7 +172,7 @@
             <div class="space-y-4">
                 <input x-model="newItem.name" placeholder="Label" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
                 <input x-model="newItem.url" placeholder="URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
-                <input x-model="newItem.icon" placeholder="Icon Name or URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                <input x-model="newItem.icon" placeholder="Icon Link" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
             </div>
             <button @click="addItem()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase hover:bg-blue-500 transition-all">Finalize Injection</button>
         </div>
@@ -196,8 +195,9 @@
             return {
                 time: '', date: '', activeTab: 'links',
                 syncId: localStorage.getItem('nexus_sync_key') || '',
-                syncStatus: 'Offline Mode', apiStatus: 'Connecting...',
+                syncStatus: 'Offline', apiStatus: 'Awaiting handshake...',
                 settingsOpen: false, addModalOpen: false, syncing: false, fetchingEvents: false, isCloudReady: false,
+                lastRawData: { status: "Idle" },
                 links: [
                     { name: 'EOS Form', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-application-100.png', url: 'https://forms.office.com/pages/responsepage.aspx?id=Zh-exeJVn0SAfe_1FF9ZixnyQxfHe_9EkCPctjghjHBUM002U1hLUUJTSVhMTU5MNE5XR1g0S0ZENi4u&route=shorturl' },
                     { name: 'Vanguard', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/Icon-57%402x.png', url: 'https://vanguard.emsanyware.com/' },
@@ -209,15 +209,14 @@
                 serverLinks: [
                     { name: 'Termix2', icon: 'terminal', url: 'https://Termix2.sndjy.us' },
                     { name: 'Warden', icon: 'bitwarden', url: 'https://Warden.sndjy.us' },
-                    { name: 'Joplin', icon: 'joplin', url: 'https://Joplin.sndjy.us' },
                     { name: 'Calendar', icon: 'google-calendar', url: 'https://Calendar.sndjy.us' }
                 ],
-                tasks: [{ text: 'System terminal active', done: true }],
+                tasks: [{ text: 'Terminal Boot Sequence Complete', done: true }],
                 events: [],
                 settings: { bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', blur: 0, scriptable: { endpoint: '', authKey: '', title: 'Nexus Protocol' }},
                 newItem: { name: '', url: '', icon: '' },
 
-                async boot() {
+                boot() {
                     setInterval(() => {
                         const now = new Date();
                         this.time = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
@@ -241,10 +240,10 @@
                             this.tasks = d.tasks || this.tasks;
                             this.settings = d.settings || this.settings;
                             this.syncStatus = 'Nexus Linked';
-                        }
+                        } else { this.syncStatus = 'New Key Handshake'; }
                         this.isCloudReady = true;
                         this.fetchEvents();
-                    } catch (e) { this.syncStatus = 'Local Session'; this.isCloudReady = true; this.fetchEvents(); }
+                    } catch (e) { this.syncStatus = 'Sync Error'; this.isCloudReady = true; this.fetchEvents(); }
                 },
 
                 async persist() {
@@ -263,14 +262,15 @@
                 },
 
                 async fetchEvents() {
-                    if (!this.settings.scriptable.endpoint) { this.apiStatus = 'API URL not defined.'; return; }
+                    if (!this.settings.scriptable.endpoint) { this.apiStatus = 'Endpoint not configured.'; return; }
                     this.fetchingEvents = true;
-                    this.apiStatus = 'Pinging...';
+                    this.apiStatus = 'Connecting to Worker...';
                     
                     try {
+                        // Open the time window to 48 hours
                         const now = new Date();
                         const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-                        const end = start + (7 * 24 * 60 * 60 * 1000); // 7 day window
+                        const end = start + (48 * 60 * 60 * 1000);
 
                         const url = new URL(this.settings.scriptable.endpoint);
                         url.searchParams.set('start', start);
@@ -282,26 +282,24 @@
                         }
 
                         const res = await fetch(url.toString(), { headers });
+                        const data = await res.json();
+                        this.lastRawData = data; // Put raw data in debug panel
                         
                         if (res.status === 401) {
-                            this.apiStatus = 'Error 401: Unauthorized. Check DASHBOARD_API_KEY in Cloudflare and the dashboard settings.';
+                            this.apiStatus = '401 Unauthorized. Set x-api-key in Settings.';
                             this.events = [];
                         } else if (res.ok) {
-                            const data = await res.json();
-                            const list = data.events || data;
-                            this.events = Array.isArray(list) ? list.slice(0, 5).map(e => ({
+                            const list = data.events || [];
+                            this.events = list.slice(0, 5).map(e => ({
                                 title: e.title || 'Untitled',
-                                time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Today'
-                            })) : [];
-                            this.apiStatus = 'API Protocol Active';
-                        } else {
-                            this.apiStatus = `Error ${res.status}. Check Logs.`;
-                        }
-                    } catch (e) {
-                        this.apiStatus = 'CORS Error. Ensure "handleCors" helper is correct in Worker.';
-                    } finally {
-                        this.fetchingEvents = false;
-                    }
+                                time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Active'
+                            }));
+                            this.apiStatus = this.events.length > 0 ? 'Protocol Online' : 'No protocols in window.';
+                        } else { this.apiStatus = `API Error ${res.status}. Check Debug Panel.`; }
+                    } catch (e) { 
+                        this.apiStatus = 'CORS/Connection Error. Verify handleCors in Worker.'; 
+                        this.lastRawData = { error: e.message };
+                    } finally { this.fetchingEvents = false; }
                 },
 
                 getIcon(item) {
