@@ -49,8 +49,8 @@
         }
 
         .icon-box { 
-            width: 54px; 
-            height: 54px; 
+            width: 52px; 
+            height: 52px; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
@@ -63,22 +63,23 @@
         }
 
         .icon-box img { 
-            width: 26px; 
-            height: 26px; 
+            width: 24px; 
+            height: 24px; 
             object-fit: contain; 
             filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
             transition: all 0.3s ease;
         }
 
         .icon-box:hover { 
-            transform: translateY(-4px) scale(1.05); 
+            transform: translateY(-4px) scale(1.08); 
             background: rgba(255,255,255,0.1); 
-            box-shadow: 0 0 30px -5px var(--accent-glow);
+            box-shadow: 0 0 35px -5px var(--accent-glow);
             border-color: var(--accent-glow);
         }
 
         .icon-box:hover img {
             filter: drop-shadow(0 0 10px var(--accent-glow));
+            transform: scale(1.1);
         }
 
         .gear-rotate { animation: rotate 20s linear infinite; }
@@ -113,7 +114,7 @@
             z-index: 1000;
             min-width: 180px;
             background: rgba(15, 23, 42, 0.98);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 12px;
             box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.8);
@@ -136,7 +137,7 @@
         }
 
         .context-menu button:hover {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.1);
             color: var(--accent-glow);
         }
     </style>
@@ -154,12 +155,12 @@
          @click.stop>
         <button @click="triggerEdit()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Edit Config
+            Edit Module
         </button>
         <div class="h-px bg-white/10 my-1 mx-2"></div>
         <button @click="removeShortcut(contextMenu.index)" class="text-red-400 hover:text-red-300">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
-            Terminate
+            Delete
         </button>
     </div>
 
@@ -173,14 +174,14 @@
                 <div>
                     <h1 class="font-extrabold text-2xl tracking-tighter uppercase leading-none" x-text="settings.dashName || 'NexusDash'"></h1>
                     <div class="flex items-center gap-2 mt-1">
-                        <p class="text-[9px] uppercase tracking-[0.3em] font-bold text-white/30" x-text="cloudReady ? 'Network Linked' : 'Local Standby'"></p>
+                        <p class="text-[9px] uppercase tracking-[0.3em] font-bold text-white/30" x-text="cloudReady ? 'Network Handshake: ACTIVE' : 'Local Standby'"></p>
                     </div>
                 </div>
             </div>
             <div class="flex items-center gap-3">
                 <div x-show="syncing" class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping"></div>
                 <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 shadow-lg transition-all">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1-2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
             </div>
         </header>
@@ -197,17 +198,17 @@
                 </div>
             </section>
 
-            <!-- Layout Grid -->
+            <!-- Main Interface Grid -->
             <section class="max-w-7xl mx-auto w-full px-6 pb-12">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <!-- Links Area -->
+                    <!-- Links Module -->
                     <div class="lg:col-span-8 nexus-card p-8 md:p-10 flex flex-col min-h-[400px]">
                         <div class="flex items-center gap-8 mb-10 border-b border-white/5">
                             <button @click="activeTab = 'links'" :class="activeTab === 'links' ? 'accent-text border-b-2 accent-border pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Links</button>
                             <button @click="activeTab = 'server'" :class="activeTab === 'server' ? 'accent-text border-b-2 accent-border pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Server Links</button>
                         </div>
 
-                        <!-- Grid Spacing -->
+                        <!-- Closer Grid Spacing -->
                         <div class="grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-11 gap-x-2 gap-y-6">
                             <template x-for="(link, index) in (activeTab === 'links' ? links : serverLinks)" :key="index">
                                 <div class="flex flex-col items-center gap-2 group relative text-center" 
@@ -222,7 +223,7 @@
                         </div>
                     </div>
 
-                    <!-- Sidebar -->
+                    <!-- Side Protocol Stack -->
                     <div class="lg:col-span-4 flex flex-col gap-8 text-left">
                         <!-- Calendar Events -->
                         <div class="nexus-card p-8 min-h-[220px]">
@@ -232,7 +233,7 @@
                                     <svg :class="fetchingEvents ? 'animate-spin' : ''" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8M21 3v5h-5"/></svg>
                                 </button>
                             </div>
-                            <div class="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                            <div class="space-y-4 max-h-[260px] overflow-y-auto pr-2">
                                 <template x-for="ev in events">
                                     <div class="border-l-2 accent-border pl-4 py-1 hover:bg-white/5 transition-colors rounded-r-lg">
                                         <p x-text="ev.title" class="text-sm font-bold text-white/90 leading-tight"></p>
@@ -244,33 +245,36 @@
                                     </div>
                                 </template>
                                 <template x-if="events.length === 0">
-                                    <div class="text-[10px] text-white/20 leading-relaxed italic" x-text="fetchingEvents ? 'Querying registry...' : 'Registry clear.'"></div>
+                                    <div class="text-[10px] text-white/20 leading-relaxed italic" x-text="fetchingEvents ? 'Querying registry...' : 'Registry idle.'"></div>
                                 </template>
                             </div>
                         </div>
 
-                        <!-- To Do List (Todoist) -->
+                        <!-- To Do List (Todoist Integration) -->
                         <div class="nexus-card p-8 flex-1 flex flex-col gap-6">
                             <div class="flex justify-between items-center">
                                 <h4 class="text-[10px] font-black uppercase tracking-widest accent-text">To Do List :</h4>
-                                <button @click="fetchTasks()" class="text-white/20 hover:text-white transition-colors">
-                                    <svg :class="fetchingTasks ? 'animate-spin' : ''" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8M21 3v5h-5"/></svg>
-                                </button>
+                                <div class="flex gap-2">
+                                    <span class="text-[9px] font-bold text-white/20 bg-white/5 px-2 py-0.5 rounded-full" x-text="tasks.length"></span>
+                                    <button @click="fetchTasks()" class="text-white/20 hover:text-white transition-colors">
+                                        <svg :class="fetchingTasks ? 'animate-spin' : ''" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8M21 3v5h-5"/></svg>
+                                    </button>
+                                </div>
                             </div>
                             <div class="space-y-3 flex-grow overflow-y-auto max-h-[220px] pr-2">
                                 <template x-for="(t, i) in tasks" :key="t.id">
-                                    <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 group">
+                                    <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 group transition-all hover:bg-white/10">
                                         <div @click="toggleTask(t.id)" class="w-5 h-5 rounded-lg border-2 border-white/10 flex items-center justify-center cursor-pointer transition-colors hover:accent-border" :class="t.completed ? 'accent-bg accent-border' : ''">
                                             <svg x-show="t.completed" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg>
                                         </div>
-                                        <span x-text="t.content" class="text-sm font-medium" :class="t.completed ? 'text-white/20 line-through' : ''"></span>
+                                        <span x-text="t.content" class="text-sm font-medium leading-tight" :class="t.completed ? 'text-white/20 line-through' : ''"></span>
                                     </div>
                                 </template>
                                 <template x-if="tasks.length === 0">
-                                    <div class="text-[10px] text-white/20 leading-relaxed italic" x-text="fetchingTasks ? 'Linking Todoist...' : 'No pending tasks.'"></div>
+                                    <div class="text-[10px] text-white/20 leading-relaxed italic" x-text="fetchingTasks ? 'Mapping Todoist node...' : 'Registry stack clear.'"></div>
                                 </template>
                             </div>
-                            <input @keydown.enter="addTodoistTask($event)" type="text" placeholder="+ Add to Todoist..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full text-white placeholder:text-white/20">
+                            <input @keydown.enter="addTodoistTask($event)" type="text" placeholder="+ Add to Registry..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full text-white placeholder:text-white/20">
                         </div>
                     </div>
                 </div>
@@ -278,30 +282,30 @@
         </main>
     </div>
 
-    <!-- System Console Modal -->
+    <!-- Settings Modal -->
     <div x-show="settingsOpen" x-transition.opacity class="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
         <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-2xl relative z-10 p-8 border-white/5 shadow-2xl max-h-[90vh] overflow-y-auto text-left text-white" @click.stop>
             <h2 class="text-2xl font-black uppercase tracking-tighter mb-8 text-white underline decoration-blue-500 underline-offset-8">System Console</h2>
             
             <div class="space-y-6">
-                <!-- Visual Identity Section -->
+                <!-- UI/Visual Identity -->
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4">Aura Configuration</p>
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4">Aura Calibration</p>
                     <div class="grid grid-cols-2 gap-6">
                         <div>
-                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Station Designation</label>
-                            <input x-model="settings.dashName" @input="persist()" type="text" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white">
+                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Terminal Designation</label>
+                            <input x-model="settings.dashName" @input="persist()" type="text" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
                         </div>
                         <div>
-                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Accent Calibration</label>
+                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Neon Accent Color</label>
                             <div class="flex items-center gap-3">
-                                <input x-model="settings.accentColor" @input="persist()" type="color" class="w-8 h-8 bg-transparent border-none cursor-pointer">
+                                <input x-model="settings.accentColor" @input="persist()" type="color" class="w-10 h-10 bg-transparent border-none cursor-pointer">
                                 <span class="text-[10px] font-mono text-white/40" x-text="settings.accentColor"></span>
                             </div>
                         </div>
                         <div class="col-span-2">
-                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Wallpaper Source (URL)</label>
+                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Atmospheric Wallpaper (URL)</label>
                             <input x-model="settings.bg" @input="persist()" type="text" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] focus:outline-none text-white font-mono">
                             <div class="flex gap-2 mt-3">
                                 <template x-for="url in presets">
@@ -312,11 +316,11 @@
                             </div>
                         </div>
                         <div>
-                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Aura Blur: <span x-text="settings.blur + 'px'"></span></label>
+                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Lens Blur: <span x-text="settings.blur + 'px'"></span></label>
                             <input type="range" min="0" max="40" x-model="settings.blur" @input="persist()" class="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-bg">
                         </div>
                         <div>
-                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Blackout Level: <span x-text="settings.darken + '%'"></span></label>
+                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Shadow Density: <span x-text="settings.darken + '%'"></span></label>
                             <input type="range" min="0" max="100" x-model="settings.darken" @input="persist()" class="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-bg">
                         </div>
                     </div>
@@ -324,11 +328,11 @@
 
                 <!-- Sync Portal -->
                 <div class="p-4 bg-blue-600/10 rounded-2xl border border-blue-500/20 shadow-xl">
-                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Sync Protocol</p>
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Cloud Synchronization (Supabase)</p>
                     <div class="flex gap-2">
                         <div class="flex-grow">
-                             <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Terminal ID</label>
-                             <input x-model="syncKey" @input="persist()" type="text" placeholder="e.g. james-77" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
+                             <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Handshake ID</label>
+                             <input x-model="syncKey" @input="persist()" type="text" placeholder="e.g. james-pro" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
                         </div>
                         <div class="flex items-end gap-2">
                             <button @click="cloudPush()" class="px-6 py-2 bg-blue-600 rounded-lg text-[10px] font-black uppercase hover:bg-blue-500 transition-all shadow-lg active:scale-95">Push</button>
@@ -337,11 +341,11 @@
                     </div>
                 </div>
 
-                <!-- Protocol Logs -->
+                <!-- Debug Output -->
                 <div class="p-4 bg-black/60 rounded-2xl border border-white/10">
                     <div class="flex justify-between items-center mb-3">
-                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Protocol Buffer</p>
-                        <button @click="protocolLogs = []" class="text-[8px] text-white/20 hover:text-white uppercase font-bold">Clear</button>
+                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Protocol Stream</p>
+                        <button @click="protocolLogs = []" class="text-[8px] text-white/20 hover:text-white uppercase font-bold">Flush</button>
                     </div>
                     <div class="h-[100px] overflow-y-auto pr-2 text-[10px] font-mono scroll-smooth bg-black/40 p-2 rounded-lg border border-white/5" id="protocol-scroller">
                         <template x-for="(log, i) in protocolLogs" :key="i">
@@ -357,7 +361,7 @@
         </div>
     </div>
 
-    <!-- Modals (Add / Edit) -->
+    <!-- Modals -->
     <div x-show="addModalOpen" x-transition.scale class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md text-left">
         <div @click="addModalOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl" @click.stop>
@@ -408,8 +412,8 @@
         const CAL_API_KEY = "Broadfeet1!"; 
         const CAL_API_BASE = "https://api.cal.sndjy.us/events";
 
-        const TODOIST_API_KEY = "dd831333163729cde9e4bc95a631e739caf31d51";
-        const TODOIST_API_BASE = "https://api.todoist.com/rest/v2";
+        const TODOIST_TOKEN = "dd831333163729cde9e4bc95a631e739caf31d51";
+        const TODOIST_BASE = "https://api.todoist.com/rest/v2";
 
         document.addEventListener('alpine:init', () => {
              Alpine.data('nexusHandler', () => ({
@@ -421,7 +425,7 @@
                 editModalOpen: false,
                 contextMenu: { show: false, x: 0, y: 0, index: null },
                 time: '00:00:00',
-                date: 'PROTOCOL READY',
+                date: 'CONNECTING...',
                 activeTab: 'links',
                 syncKey: localStorage.getItem('nexus_sync_key') || '',
                 protocolLogs: [],
@@ -472,7 +476,7 @@
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
 
-                    // Restore Cache
+                    // Local Cache Restoration
                     const saved = localStorage.getItem('nexus_full_state');
                     if (saved) {
                         try {
@@ -480,9 +484,9 @@
                             this.links = d.links || [];
                             this.serverLinks = d.serverLinks || [];
                             this.settings = { ...this.settings, ...d.settings };
-                            this.addLog('Kernel: Local buffer restored.', 'success');
+                            this.addLog('State restored from local memory buffer.', 'success');
                         } catch (e) {
-                            this.addLog('Kernel: Buffer error.', 'error');
+                            this.addLog('Memory buffer corruption detected.', 'error');
                         }
                     }
 
@@ -490,11 +494,11 @@
                     this.booting = false;
                     this.initialized = true;
                     
-                    // Fetch initial data
+                    // Delay data sync to avoid boot friction
                     setTimeout(() => {
                         this.fetchEvents();
                         this.fetchTasks();
-                    }, 500);
+                    }, 800);
                 },
 
                 checkCloudStatus() {
@@ -518,39 +522,39 @@
                     try {
                         return supabase.createClient(this.sbConfig.url, this.sbConfig.key);
                     } catch (e) {
-                        this.addLog('Bridge: Constructor failure.', 'error');
+                        this.addLog('Bridge failure.', 'error');
                         return null;
                     }
                 },
 
                 async cloudPush() {
                     this.persist();
-                    if (!this.syncKey) return this.addLog('Error: Terminal ID unset.', 'error');
+                    if (!this.syncKey) return this.addLog('Error: Terminal ID required.', 'error');
                     const sb = this.getSupabase();
                     if (!sb) return;
 
                     this.syncing = true;
-                    this.addLog(`Cloud: Committing state to node "${this.syncKey}"...`, 'info');
+                    this.addLog(`Action: Pushing local state to node "${this.syncKey}"...`, 'info');
 
-                    const state = { links: this.links, serverLinks: this.serverLinks, tasks: this.tasks, settings: this.settings, updatedAt: new Date().toISOString() };
+                    const state = { links: this.links, serverLinks: this.serverLinks, settings: this.settings, updatedAt: new Date().toISOString() };
 
                     try {
                         const { error } = await sb.from('nexus_backups').upsert({ id: this.syncKey, content: state });
                         if (error) throw error;
-                        this.addLog('Cloud: Node synchronized successfully.', 'success');
+                        this.addLog('Cloud commit: SUCCESS.', 'success');
                     } catch (e) {
-                        this.addLog(`Cloud Error: ${e.message}`, 'error');
+                        this.addLog(`Cloud commit: FAILED. ${e.message}`, 'error');
                     } finally {
                         setTimeout(() => this.syncing = false, 1000);
                     }
                 },
 
                 async cloudPull() {
-                    if (!this.syncKey) return this.addLog('Error: Terminal ID unset.', 'error');
+                    if (!this.syncKey) return this.addLog('Error: Terminal ID required.', 'error');
                     const sb = this.getSupabase();
                     if (!sb) return;
 
-                    this.addLog(`Cloud: Requesting node data for "${this.syncKey}"...`, 'info');
+                    this.addLog(`Action: Requesting state data for node "${this.syncKey}"...`, 'info');
                     try {
                         const { data, error } = await sb.from('nexus_backups').select('content').eq('id', this.syncKey).maybeSingle();
                         if (error) throw error;
@@ -560,25 +564,25 @@
                             this.serverLinks = c.serverLinks || [];
                             this.settings = { ...this.settings, ...c.settings };
                             this.persist();
-                            this.addLog('Cloud: Node data applied locally.', 'success');
+                            this.addLog('Sync success: Data applied to local buffer.', 'success');
                             this.fetchTasks();
                         } else {
-                            this.addLog('Cloud: Target node is empty.', 'warn');
+                            this.addLog('Handshake result: Node empty.', 'warn');
                         }
                     } catch (e) {
-                        this.addLog(`Cloud Error: ${e.message}`, 'error');
+                        this.addLog(`Sync error: ${e.message}`, 'error');
                     }
                 },
 
                 async fetchEvents() {
                     if (this.fetchingEvents) return;
                     this.fetchingEvents = true;
-                    this.addLog('Registry: Scanning calendar nodes...', 'info');
+                    this.addLog('Registry: Scanning calendar events...', 'info');
                     
-                    const fetchWithTimeout = (url, options, timeout = 8000) => {
+                    const fetchWithTimeout = (url, options, timeout = 10000) => {
                         return Promise.race([
                             fetch(url, options),
-                            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeout))
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('Handshake Timeout')), timeout))
                         ]);
                     };
 
@@ -598,82 +602,76 @@
                             .sort((a, b) => new Date(a.start) - new Date(b.start))
                             .slice(0, 10)
                             .map(e => ({
-                                title: e.summary || e.title || 'Nexus Task',
+                                title: e.summary || e.title || 'Nexus Scheduled Task',
                                 time: new Date(e.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
                                 date: new Date(e.start).toLocaleDateString([], { month: 'short', day: 'numeric' })
                             }));
 
-                        this.addLog('Registry: Calendar mapping complete.');
+                        this.addLog(`Registry: ${this.events.length} event nodes mapped.`, 'success');
                     } catch (e) { 
-                        this.addLog('Registry error: Could not verify nodes.', 'error');
+                        this.addLog('Registry: Handshake fault.', 'error');
                     } finally { this.fetchingEvents = false; }
                 },
 
-                // --- TODOIST INTEGRATION ---
+                // --- TODOIST REST API INTEGRATION ---
                 async fetchTasks() {
                     if (this.fetchingTasks) return;
                     this.fetchingTasks = true;
-                    this.addLog('Todoist: Querying tasks...', 'info');
+                    this.addLog('Todoist: Pulling task stack...', 'info');
                     try {
-                        const res = await fetch(`${TODOIST_API_BASE}/tasks`, {
-                            headers: { 'Authorization': `Bearer ${TODOIST_API_KEY}` }
+                        const res = await fetch(`${TODOIST_BASE}/tasks`, {
+                            headers: { 'Authorization': `Bearer ${TODOIST_TOKEN}` }
                         });
+                        if (!res.ok) throw new Error(`Handshake error: ${res.status}`);
                         const data = await res.json();
-                        this.tasks = data.map(t => ({
-                            id: t.id,
-                            content: t.content,
-                            completed: false
-                        }));
-                        this.apiStatus = `Registry: ${this.tasks.length} items active.`;
-                        this.addLog(`Todoist: ${this.tasks.length} entries retrieved.`, 'success');
+                        
+                        if (Array.isArray(data)) {
+                            this.tasks = data.map(t => ({ id: t.id, content: t.content, completed: false }));
+                            this.addLog(`Todoist: ${this.tasks.length} entries pulled.`, 'success');
+                            this.apiStatus = `Sync: ${this.tasks.length} items.`;
+                        }
                     } catch (e) {
-                        this.addLog('Todoist Error: API Handshake failed.', 'error');
+                        this.addLog(`Todoist error: ${e.message}`, 'error');
+                        this.apiStatus = 'Handshake: Error';
                     } finally { this.fetchingTasks = false; }
                 },
 
                 async addTodoistTask(e) {
-                    const content = e.target.value.trim();
-                    if (!content) return;
-                    this.addLog(`Todoist: Injecting task "${content}"...`, 'info');
+                    const val = e.target.value.trim();
+                    if (!val) return;
+                    this.addLog(`Todoist: Pushing entry "${val}"...`, 'info');
                     try {
-                        const res = await fetch(`${TODOIST_API_BASE}/tasks`, {
+                        const res = await fetch(`${TODOIST_BASE}/tasks`, {
                             method: 'POST',
-                            headers: { 
-                                'Authorization': `Bearer ${TODOIST_API_KEY}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ content: content })
+                            headers: { 'Authorization': `Bearer ${TODOIST_TOKEN}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ content: val })
                         });
                         if (res.ok) {
                             const newTask = await res.json();
                             this.tasks.unshift({ id: newTask.id, content: newTask.content, completed: false });
                             e.target.value = '';
-                            this.addLog('Todoist: Task confirmed.', 'success');
+                            this.addLog('Todoist: Entry confirmed.', 'success');
                         }
-                    } catch (e) {
-                        this.addLog('Todoist: Injection failed.', 'error');
-                    }
+                    } catch (e) { this.addLog('Todoist: Entry failed.', 'error'); }
                 },
 
                 async toggleTask(id) {
                     const task = this.tasks.find(t => t.id === id);
                     if (!task) return;
                     task.completed = true;
-                    this.addLog('Todoist: Terminating task entry...', 'info');
+                    this.addLog('Todoist: Terminating entry node...', 'info');
                     try {
-                        const res = await fetch(`${TODOIST_API_BASE}/tasks/${id}/close`, {
+                        const res = await fetch(`${TODOIST_BASE}/tasks/${id}/close`, {
                             method: 'POST',
-                            headers: { 'Authorization': `Bearer ${TODOIST_API_KEY}` }
+                            headers: { 'Authorization': `Bearer ${TODOIST_TOKEN}` }
                         });
                         if (res.ok) {
-                            setTimeout(() => {
-                                this.tasks = this.tasks.filter(t => t.id !== id);
-                            }, 500);
-                            this.addLog('Todoist: Entry terminated.', 'success');
+                            setTimeout(() => { this.tasks = this.tasks.filter(t => t.id !== id); }, 400);
+                            this.addLog('Todoist: Entry closed.', 'success');
                         }
                     } catch (e) {
-                        this.addLog('Todoist: Termination failed.', 'error');
                         task.completed = false;
+                        this.addLog('Todoist: Closure failed.', 'error');
                     }
                 },
 
@@ -709,7 +707,7 @@
                     target[this.contextMenu.index] = { ...this.editingItem };
                     this.editModalOpen = false;
                     this.persist();
-                    this.addLog(`Modified: ${this.editingItem.name}`, 'success');
+                    this.addLog(`Updated: ${this.editingItem.name}`, 'success');
                 },
 
                 removeShortcut(idx) {
