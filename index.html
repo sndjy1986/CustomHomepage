@@ -49,36 +49,36 @@
         }
 
         .icon-box { 
-            width: 60px; 
-            height: 60px; 
+            width: 56px; 
+            height: 56px; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            border-radius: 1.2rem; 
+            border-radius: 1.1rem; 
             background: rgba(255,255,255,0.03); 
             border: 1px solid rgba(255,255,255,0.05); 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
             cursor: pointer; 
             position: relative; 
         }
 
         .icon-box img { 
-            width: 32px; 
-            height: 32px; 
+            width: 28px; 
+            height: 28px; 
             object-fit: contain; 
             filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
             transition: all 0.3s ease;
         }
 
         .icon-box:hover { 
-            transform: translateY(-5px) scale(1.08); 
+            transform: translateY(-4px) scale(1.05); 
             background: rgba(255,255,255,0.1); 
-            box-shadow: 0 0 25px -5px var(--accent-glow);
+            box-shadow: 0 0 30px -5px var(--accent-glow);
             border-color: var(--accent-glow);
         }
 
         .icon-box:hover img {
-            filter: drop-shadow(0 0 8px var(--accent-glow));
+            filter: drop-shadow(0 0 10px var(--accent-glow));
         }
 
         .gear-rotate { animation: rotate 20s linear infinite; }
@@ -112,24 +112,24 @@
         .context-menu {
             position: fixed;
             z-index: 1000;
-            min-width: 170px;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
-            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.6);
-            padding: 8px;
+            min-width: 180px;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.8);
+            padding: 6px;
         }
 
         .context-menu button {
             width: 100%;
             text-align: left;
-            padding: 10px 14px;
-            font-size: 11px;
-            font-weight: 700;
+            padding: 10px 12px;
+            font-size: 10px;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            border-radius: 10px;
+            letter-spacing: 0.1em;
+            border-radius: 8px;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
@@ -137,12 +137,12 @@
         }
 
         .context-menu button:hover {
-            background: rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.08);
             color: var(--accent-glow);
         }
     </style>
 </head>
-<body x-data="nexusHandler" x-cloak :style="`--accent-glow: ${settings.accentColor}`" @click="closeContextMenu()" @contextmenu="closeContextMenu()">
+<body x-data="nexusHandler" x-cloak :style="`--accent-glow: ${settings.accentColor}`" @click="closeContextMenu()">
 
     <div class="bg-animate"></div>
     <div class="bg-overlay" :style="initialized ? { backgroundImage: `linear-gradient(rgba(0,0,0,${settings.darken / 100}), rgba(0,0,0,${settings.darken / 100})), url(${settings.bg})`, filter: `blur(${settings.blur}px)` } : {}"></div>
@@ -155,11 +155,12 @@
          @click.stop>
         <button @click="triggerEdit()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Modify Link
+            Edit Config
         </button>
+        <div class="h-px bg-white/10 my-1 mx-2"></div>
         <button @click="removeShortcut(contextMenu.index)" class="text-red-400 hover:text-red-300">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
-            Remove
+            Terminate
         </button>
     </div>
 
@@ -186,13 +187,13 @@
         </header>
 
         <main class="flex-grow flex flex-col">
-            <!-- Central Clock -->
+            <!-- Central Display -->
             <section class="flex-grow flex flex-col items-center justify-center text-center py-4 px-4">
-                <h2 x-text="time" class="text-[6rem] md:text-[9rem] font-extrabold tracking-tighter tabular-nums uppercase leading-none drop-shadow-2xl">00:00 AM</h2>
+                <h2 x-text="time" class="text-[6rem] md:text-[8rem] font-extrabold tracking-tighter tabular-nums uppercase leading-none drop-shadow-2xl">00:00 AM</h2>
                 <p x-text="date" class="text-white/30 uppercase tracking-[0.5em] font-bold text-xs mt-4"></p>
                 <div class="w-full max-w-2xl mt-12">
                     <form action="https://google.com/search" method="GET">
-                        <input type="text" name="q" placeholder="Enter Search Protocol..." class="w-full bg-white/5 border border-white/10 rounded-[2rem] py-5 px-10 text-xl focus:outline-none focus:ring-4 accent-border transition-all text-center placeholder:text-white/10">
+                        <input type="text" name="q" placeholder="Central Search Protocol..." class="w-full bg-white/5 border border-white/10 rounded-[2rem] py-5 px-10 text-xl focus:outline-none focus:ring-4 accent-border transition-all text-center placeholder:text-white/10">
                     </form>
                 </div>
             </section>
@@ -207,17 +208,18 @@
                             <button @click="activeTab = 'server'" :class="activeTab === 'server' ? 'accent-text border-b-2 accent-border pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Server Links</button>
                         </div>
 
-                        <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
+                        <!-- Closer Grid Spacing -->
+                        <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-x-2 gap-y-6">
                             <template x-for="(link, index) in (activeTab === 'links' ? links : serverLinks)" :key="index">
                                 <div class="flex flex-col items-center gap-2 group relative text-center" 
-                                     @contextmenu.prevent="openContextMenu($event, index)">
+                                     @contextmenu.prevent.stop="openContextMenu($event, index)">
                                     <a :href="link.url" target="_blank" class="icon-box" :style="`border-bottom: 2px solid ${settings.accentColor}`">
                                         <img :src="getIcon(link)" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'">
                                     </a>
-                                    <span x-text="link.name" class="text-[8px] font-black uppercase text-white/30 truncate w-full mt-1"></span>
+                                    <span x-text="link.name" class="text-[8px] font-black uppercase text-white/20 truncate w-full mt-1 group-hover:text-white transition-colors"></span>
                                 </div>
                             </template>
-                            <button @click="addModalOpen = true" class="icon-box border-dashed border-2 border-white/10 text-white/20 hover:text-white transition-all"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
+                            <button @click="addModalOpen = true" class="icon-box border-dashed border-2 border-white/10 text-white/20 hover:text-white transition-all"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
                         </div>
                     </div>
 
@@ -226,7 +228,7 @@
                         <!-- Registry Calendar -->
                         <div class="nexus-card p-8 min-h-[220px]">
                             <div class="flex justify-between items-center mb-6">
-                                <h4 class="text-[10px] font-black uppercase tracking-widest accent-text">Registry Calendar</h4>
+                                <h4 class="text-[10px] font-black uppercase tracking-widest accent-text">Registry Activity</h4>
                                 <button @click="fetchEvents()" class="text-white/20 hover:text-white transition-colors">
                                     <svg :class="fetchingEvents ? 'animate-spin' : ''" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8M21 3v5h-5"/></svg>
                                 </button>
@@ -243,14 +245,14 @@
                                     </div>
                                 </template>
                                 <template x-if="events.length === 0">
-                                    <div class="text-[10px] text-white/20 leading-relaxed italic" x-text="fetchingEvents ? 'Querying all nodes...' : 'Registry clear.'"></div>
+                                    <div class="text-[10px] text-white/20 leading-relaxed italic" x-text="fetchingEvents ? 'Scanning nodes...' : 'Registry idle.'"></div>
                                 </template>
                             </div>
                         </div>
 
                         <!-- Queue -->
                         <div class="nexus-card p-8 flex-1 flex flex-col gap-6">
-                            <h4 class="text-[10px] font-black uppercase tracking-widest accent-text">Registry Queue</h4>
+                            <h4 class="text-[10px] font-black uppercase tracking-widest accent-text">Protocol Queue</h4>
                             <div class="space-y-3 flex-grow overflow-y-auto max-h-[160px] pr-2">
                                 <template x-for="(t, i) in tasks" :key="i">
                                     <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
@@ -277,10 +279,10 @@
             <div class="space-y-6">
                 <!-- Visual Identity Section -->
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4">Visual Aura</p>
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4">Aura Configuration</p>
                     <div class="grid grid-cols-2 gap-6">
                         <div>
-                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Station Title</label>
+                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Station Designation</label>
                             <input x-model="settings.dashName" @input="persist()" type="text" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white">
                         </div>
                         <div>
@@ -291,7 +293,7 @@
                             </div>
                         </div>
                         <div class="col-span-2">
-                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Wallpaper Stream (URL)</label>
+                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Wallpaper Source (URL)</label>
                             <div class="flex gap-2">
                                 <input x-model="settings.bg" @input="persist()" type="text" class="flex-grow bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] focus:outline-none text-white font-mono">
                             </div>
@@ -305,21 +307,21 @@
                         </div>
                         <div>
                             <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Aura Blur: <span x-text="settings.blur + 'px'"></span></label>
-                            <input type="range" min="0" max="40" x-model="settings.blur" @input="persist()" class="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer">
+                            <input type="range" min="0" max="40" x-model="settings.blur" @input="persist()" class="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-bg">
                         </div>
                         <div>
                             <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Contrast Level: <span x-text="settings.darken + '%'"></span></label>
-                            <input type="range" min="0" max="100" x-model="settings.darken" @input="persist()" class="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer">
+                            <input type="range" min="0" max="100" x-model="settings.darken" @input="persist()" class="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-bg">
                         </div>
                     </div>
                 </div>
 
                 <!-- Sync Portal -->
                 <div class="p-4 bg-blue-600/10 rounded-2xl border border-blue-500/20 shadow-xl">
-                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Cloud Synchronization</p>
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Cloud Node Synchronization</p>
                     <div class="flex gap-2">
                         <div class="flex-grow">
-                             <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Session Node ID</label>
+                             <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Terminal ID</label>
                              <input x-model="syncKey" @input="persist()" type="text" placeholder="e.g. james-77" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
                         </div>
                         <div class="flex items-end gap-2">
@@ -329,10 +331,10 @@
                     </div>
                 </div>
 
-                <!-- Protocol Activity Buffer -->
+                <!-- Protocol Logs -->
                 <div class="p-4 bg-black/60 rounded-2xl border border-white/10">
                     <div class="flex justify-between items-center mb-3">
-                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Protocol Buffer</p>
+                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Protocol Stream</p>
                         <button @click="protocolLogs = []" class="text-[8px] text-white/20 hover:text-white uppercase font-bold">Clear Buffer</button>
                     </div>
                     <div class="h-[100px] overflow-y-auto pr-2 text-[10px] font-mono scroll-smooth bg-black/40 p-2 rounded-lg border border-white/5" id="protocol-scroller">
@@ -345,7 +347,7 @@
                     </div>
                 </div>
             </div>
-            <button @click="settingsOpen = false" class="w-full mt-10 py-4 accent-bg rounded-xl font-black uppercase text-xs shadow-xl transition-all hover:opacity-90">Deactivate Console</button>
+            <button @click="settingsOpen = false" class="w-full mt-10 py-4 accent-bg rounded-xl font-black uppercase text-xs shadow-xl transition-all hover:opacity-90">Exit Console</button>
         </div>
     </div>
 
@@ -357,18 +359,18 @@
             <div class="space-y-4">
                 <div>
                     <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Label</label>
-                    <input x-model="newItem.name" placeholder="Friendly Name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                    <input x-model="newItem.name" placeholder="Name" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Destination Path</label>
-                    <input x-model="newItem.url" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                    <input x-model="newItem.url" placeholder="https://..." class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Icon Handle</label>
-                    <input x-model="newItem.icon" placeholder="e.g. terminal" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Icon Vector</label>
+                    <input x-model="newItem.icon" placeholder="e.g. terminal" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
                 </div>
             </div>
-            <button @click="addItem()" class="w-full mt-10 py-5 accent-bg rounded-2xl font-black text-xs uppercase shadow-xl hover:opacity-90">Confirm Injection</button>
+            <button @click="addItem()" class="w-full mt-10 py-5 accent-bg rounded-2xl font-black text-xs uppercase shadow-xl hover:opacity-90">Confirm Linkage</button>
         </div>
     </div>
 
@@ -379,15 +381,15 @@
             <div class="space-y-4">
                 <div>
                     <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Label</label>
-                    <input x-model="editingItem.name" placeholder="Name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                    <input x-model="editingItem.name" placeholder="Name" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Destination Path</label>
-                    <input x-model="editingItem.url" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                    <input x-model="editingItem.url" placeholder="https://..." class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Icon Handle</label>
-                    <input x-model="editingItem.icon" placeholder="e.g. bitwarden" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Icon Vector</label>
+                    <input x-model="editingItem.icon" placeholder="e.g. bitwarden" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
                 </div>
             </div>
             <button @click="saveEdit()" class="w-full mt-10 py-5 accent-bg rounded-2xl font-black text-xs uppercase shadow-xl hover:opacity-90">Apply Calibration</button>
@@ -395,14 +397,7 @@
     </div>
 
     <script>
-        // REGISTRY CALENDAR CONFIG
-        const CAL_IDS = [
-            "ee0de736-6a34-41ec-a3c1-3cf5358f686d",
-            "60fab72f-7327-49ba-9936-2b25e47183fa",
-            "6db7944a-b061-4a2c-a720-719905ee49cb",
-            "57a58707-a0c0-467d-ba6b-0beb2775e2f0",
-            "6ad30b8f-7d22-44bc-af86-8df6aed7cd74"
-        ];
+        const CAL_IDS = ["ee0de736-6a34-41ec-a3c1-3cf5358f686d", "60fab72f-7327-49ba-9936-2b25e47183fa", "6db7944a-b061-4a2c-a720-719905ee49cb", "57a58707-a0c0-467d-ba6b-0beb2775e2f0", "6ad30b8f-7d22-44bc-af86-8df6aed7cd74"];
         const CAL_API_KEY = "Broadfeet1!"; 
         const CAL_API_BASE = "https://api.cal.sndjy.us/events";
 
@@ -415,7 +410,7 @@
                 editModalOpen: false,
                 contextMenu: { show: false, x: 0, y: 0, index: null },
                 time: '00:00:00',
-                date: 'CONNECTING...',
+                date: 'PROTOCOL READY',
                 activeTab: 'links',
                 syncKey: localStorage.getItem('nexus_sync_key') || '',
                 protocolLogs: [],
@@ -425,7 +420,7 @@
                 events: [],
                 fetchingEvents: false,
                 syncing: false,
-                apiStatus: 'Registry ready...',
+                apiStatus: 'Registry standby...',
                 
                 presets: [
                     'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600',
@@ -461,7 +456,7 @@
                 },
 
                 init() {
-                    this.addLog('Nexus kernel handshake initialized.');
+                    this.addLog('System initialization sequence engaged.');
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
 
@@ -474,7 +469,7 @@
                             this.serverLinks = d.serverLinks || [];
                             this.tasks = d.tasks || [];
                             this.settings = { ...this.settings, ...d.settings };
-                            this.addLog('Cache restoration: SUCCESS.', 'success');
+                            this.addLog('State restoration: SUCCESS.', 'success');
                         } catch (e) {
                             this.addLog('Cache corruption detected.', 'error');
                         }
@@ -505,7 +500,7 @@
                     try {
                         return supabase.createClient(this.sbConfig.url, this.sbConfig.key);
                     } catch (e) {
-                        this.addLog('Critical bridge failure.', 'error');
+                        this.addLog('Handshake failure.', 'error');
                         return null;
                     }
                 },
@@ -517,7 +512,7 @@
                     if (!sb) return;
 
                     this.syncing = true;
-                    this.addLog(`Cloud: Pushing state to "${this.syncKey}"...`, 'info');
+                    this.addLog(`Action: Pushing state to "${this.syncKey}"...`, 'info');
 
                     const state = { links: this.links, serverLinks: this.serverLinks, tasks: this.tasks, settings: this.settings, updatedAt: new Date().toISOString() };
 
@@ -581,10 +576,10 @@
                                 date: new Date(e.start).toLocaleDateString([], { month: 'short', day: 'numeric' })
                             }));
 
-                        this.apiStatus = `Sync: ${this.events.length} events mapped.`;
-                        this.addLog(`Registry sync complete. Found ${this.events.length} entries.`);
+                        this.apiStatus = `Sync: ${this.events.length} events active.`;
+                        this.addLog(`Handshake complete. Found ${this.events.length} entries.`);
                     } catch (e) { 
-                        this.apiStatus = 'Registry: Error';
+                        this.apiStatus = 'Registry: Handshake error';
                         this.addLog('Registry error: Could not map nodes.', 'error');
                     } finally { this.fetchingEvents = false; }
                 },
@@ -603,8 +598,14 @@
                     this.persist();
                 },
 
+                // Context Menu Logic
                 openContextMenu(e, idx) {
-                    this.contextMenu = { show: true, x: e.clientX, y: e.clientY, index: idx };
+                    this.contextMenu = {
+                        show: true,
+                        x: e.clientX,
+                        y: e.clientY,
+                        index: idx
+                    };
                 },
 
                 closeContextMenu() { this.contextMenu.show = false; },
@@ -621,7 +622,7 @@
                     target[this.contextMenu.index] = { ...this.editingItem };
                     this.editModalOpen = false;
                     this.persist();
-                    this.addLog(`Modified: ${this.editingItem.name}`, 'success');
+                    this.addLog(`Updated: ${this.editingItem.name}`, 'success');
                 },
 
                 removeShortcut(idx) {
