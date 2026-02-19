@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus Dash | Terminal Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Alpine.js in head with defer to ensure it waits for the module script registration -->
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
@@ -35,15 +33,15 @@
         }
     </style>
 </head>
-<body x-data="nexusHandler" x-cloak>
+<body x-data="nexusData" x-cloak>
 
     <div class="bg-animate"></div>
-    <div class="bg-overlay" :style="'background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(' + settings.bg + '); filter: blur(' + settings.blur + 'px)'"></div>
+    <!-- Use direct object access and check for initialization -->
+    <div class="bg-overlay" :style="initialized ? { backgroundImage: 'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(' + settings.bg + ')', filter: 'blur(' + settings.blur + 'px)' } : {}"></div>
 
-    <!-- Wrap content in an initialized check to prevent flashing of raw state -->
     <div class="relative z-10 min-h-screen flex flex-col" x-show="initialized">
         <!-- Header -->
-        <header class="p-6 flex justify-between items-center max-w-7xl mx-auto w-full text-left">
+        <header class="p-6 flex justify-between items-center max-w-7xl mx-auto w-full">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl">
                     <svg class="gear-rotate" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -73,6 +71,7 @@
 
         <section class="max-w-7xl mx-auto w-full px-6 pb-12">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Links Tabbed Grid -->
                 <div class="lg:col-span-8 nexus-card p-8 md:p-10 flex flex-col min-h-[400px]">
                     <div class="flex items-center gap-8 mb-10 border-b border-white/5">
                         <button @click="activeTab = 'links'" :class="activeTab === 'links' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Links</button>
@@ -93,6 +92,7 @@
                     </div>
                 </div>
 
+                <!-- Sidebar -->
                 <div class="lg:col-span-4 flex flex-col gap-8 text-left">
                     <div class="nexus-card p-8 min-h-[220px]">
                         <div class="flex justify-between items-center mb-6">
@@ -135,7 +135,7 @@
     <!-- Settings Modal -->
     <div x-show="settingsOpen" x-transition.opacity class="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
         <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
-        <div class="nexus-card bg-slate-900 w-full max-w-lg relative z-10 p-8 border-white/5 shadow-2xl max-h-[90vh] overflow-y-auto text-left text-white">
+        <div class="nexus-card bg-slate-900 w-full max-w-lg relative z-10 p-8 border-white/5 shadow-2xl max-h-[90vh] overflow-y-auto text-left text-white" @click.stop>
             <h2 class="text-2xl font-black uppercase tracking-tighter mb-8 text-white">System Console</h2>
             <div class="space-y-6">
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
@@ -145,7 +145,6 @@
                         <button @click="setSyncKey()" class="px-4 py-2 bg-blue-600 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-500 transition-all">Link</button>
                     </div>
                 </div>
-
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
                     <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4 font-bold">Protocol API Bridge</p>
                     <div class="space-y-3">
@@ -153,7 +152,6 @@
                         <input x-model="settings.scriptable.authKey" @input="persist()" type="password" placeholder="DASHBOARD_API_KEY (x-api-key)" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white">
                     </div>
                 </div>
-
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
                     <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Background</p>
                     <input x-model="settings.bg" @input="persist()" type="text" placeholder="Unsplash URL" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white mb-4">
@@ -163,7 +161,6 @@
                         <span x-text="settings.blur + 'px'" class="text-[10px] font-mono text-white/40 min-w-[30px]"></span>
                     </div>
                 </div>
-
                 <div x-show="lastRawData" class="p-4 bg-black/40 rounded-xl border border-white/5">
                     <p class="text-[8px] font-bold uppercase text-white/30 mb-2">Protocol Feed Debug</p>
                     <pre class="text-[9px] text-green-500 overflow-x-auto h-[100px] font-mono" x-text="JSON.stringify(lastRawData, null, 2)"></pre>
@@ -176,7 +173,7 @@
     <!-- Inject Modal -->
     <div x-show="addModalOpen" x-transition.scale class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md text-left">
         <div @click="addModalOpen = false" class="absolute inset-0 bg-black/80"></div>
-        <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl">
+        <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl" @click.stop>
             <h2 class="text-3xl font-black uppercase tracking-tighter mb-6">Inject Module</h2>
             <div class="space-y-4">
                 <div>
@@ -196,6 +193,44 @@
         </div>
     </div>
 
+    <!-- Define the structure early so Alpine finds it -->
+    <script>
+        window.nexusData = {
+            initialized: false,
+            time: '00:00:00',
+            date: 'LOADING...',
+            activeTab: 'links',
+            syncId: localStorage.getItem('nexus_sync_key') || '',
+            syncStatus: 'Connecting...',
+            syncColor: 'text-blue-500',
+            apiStatus: 'Wait...',
+            settingsOpen: false,
+            addModalOpen: false,
+            syncing: false,
+            fetchingEvents: false,
+            lastRawData: null,
+            links: [],
+            serverLinks: [],
+            tasks: [],
+            events: [],
+            settings: { bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', blur: 0, scriptable: { endpoint: '', authKey: '' } },
+            newItem: { name: '', url: '', icon: '' },
+            
+            // Placeholder methods that will be populated by the module script
+            init() {},
+            updateTime() {},
+            setupSyncListener() {},
+            persist() {},
+            setSyncKey() {},
+            fetchEvents() {},
+            getIcon() {},
+            addItem() {},
+            removeShortcut() {},
+            addTask() {}
+        };
+    </script>
+
+    <!-- Load heavy logic and Firebase -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
@@ -215,181 +250,137 @@
         const db = getFirestore(app);
         const appId = 'nexusdash';
 
-        // Register the Alpine component logic using the official Alpine.data method
-        // Wrap it in alpine:init to ensure Alpine is ready to receive the registration
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('nexusHandler', () => ({
-                initialized: false,
-                time: '00:00:00', 
-                date: 'INITIALIZING...', 
-                activeTab: 'links',
-                syncId: localStorage.getItem('nexus_sync_key') || '',
-                syncStatus: 'Offline', 
-                syncColor: 'text-white/40',
-                apiStatus: 'Protocol pending...',
-                settingsOpen: false, 
-                addModalOpen: false, 
-                syncing: false, 
-                fetchingEvents: false,
-                lastRawData: null,
-                user: null,
-                links: [], 
-                serverLinks: [], 
-                tasks: [],
-                events: [],
-                settings: { 
-                    bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', 
-                    blur: 0, 
-                    scriptable: { endpoint: '', authKey: '', title: 'Nexus Dash' }
-                },
-                newItem: { name: '', url: '', icon: '' },
+        // Override the window object with full functionality
+        Object.assign(window.nexusData, {
+            init() {
+                this.updateTime();
+                setInterval(() => this.updateTime(), 1000);
 
-                init() {
-                    // Alpine's internal init method
-                    this.updateTime();
-                    setInterval(() => this.updateTime(), 1000);
+                onAuthStateChanged(auth, (user) => {
+                    if (user && this.syncId) {
+                        this.setupSyncListener(user);
+                    } else if (user) {
+                        this.syncStatus = 'Local Profile';
+                        this.syncColor = 'text-yellow-500/50';
+                    }
+                    this.initialized = true;
+                });
 
-                    onAuthStateChanged(auth, (user) => {
-                        this.user = user;
-                        if (user && this.syncId) {
-                            this.setupSyncListener();
-                        } else if (user) {
-                            this.syncStatus = 'Local Session';
-                            this.syncColor = 'text-yellow-500/50';
-                        }
-                        this.initialized = true;
-                    });
+                signInAnonymously(auth).catch(() => {
+                    this.syncStatus = 'Offline Mode';
+                    this.initialized = true;
+                });
+                
+                this.fetchEvents();
+            },
 
-                    signInAnonymously(auth).catch(() => {
-                        this.syncStatus = 'Auth Protocol Failed';
-                        this.syncColor = 'text-red-500';
-                        this.initialized = true;
-                    });
-                    
-                    this.fetchEvents();
-                },
+            updateTime() {
+                const now = new Date();
+                this.time = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+                this.date = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+            },
 
-                updateTime() {
-                    const now = new Date();
-                    this.time = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-                    this.date = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
-                },
+            setupSyncListener(user) {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_configs', this.syncId);
+                this.syncStatus = 'Syncing...';
+                onSnapshot(docRef, (snap) => {
+                    if (snap.exists()) {
+                        const d = snap.data();
+                        this.links = d.links || [];
+                        this.serverLinks = d.serverLinks || [];
+                        this.tasks = d.tasks || [];
+                        this.settings = { ...this.settings, ...d.settings };
+                        this.syncStatus = 'Nexus Linked';
+                        this.syncColor = 'text-green-500';
+                    } else {
+                        this.syncStatus = 'New Nexus Link';
+                        this.syncColor = 'text-blue-400';
+                    }
+                }, () => {
+                    this.syncStatus = 'Sync Error';
+                    this.syncColor = 'text-red-500';
+                });
+            },
 
-                setupSyncListener() {
-                    if (!this.user || !this.syncId) return;
+            async persist() {
+                if (!auth.currentUser || !this.syncId) return;
+                this.syncing = true;
+                try {
                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_configs', this.syncId);
-                    this.syncStatus = 'Syncing...';
-                    this.syncColor = 'text-blue-400';
-
-                    onSnapshot(docRef, (snap) => {
-                        if (snap.exists()) {
-                            const d = snap.data();
-                            this.links = d.links || [];
-                            this.serverLinks = d.serverLinks || [];
-                            this.tasks = d.tasks || [];
-                            this.settings = { ...this.settings, ...d.settings };
-                            this.syncStatus = 'Nexus Linked';
-                            this.syncColor = 'text-green-500';
-                        } else {
-                            this.syncStatus = 'Awaiting Link';
-                            this.syncColor = 'text-blue-500';
-                        }
-                    }, (error) => {
-                        this.syncStatus = 'Sync Access Denied';
-                        this.syncColor = 'text-red-500';
-                    });
-                },
-
-                async persist() {
-                    if (!this.user || !this.syncId) return;
-                    this.syncing = true;
-                    try {
-                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_configs', this.syncId);
-                        await setDoc(docRef, {
-                            links: JSON.parse(JSON.stringify(this.links)),
-                            serverLinks: JSON.parse(JSON.stringify(this.serverLinks)),
-                            tasks: JSON.parse(JSON.stringify(this.tasks)),
-                            settings: JSON.parse(JSON.stringify(this.settings)),
-                            updatedAt: Date.now()
-                        }, { merge: true });
-                        setTimeout(() => { this.syncing = false; }, 800);
-                    } catch (e) {
-                        this.syncing = false;
-                    }
-                },
-
-                setSyncKey() {
-                    if (!this.syncId) return;
-                    localStorage.setItem('nexus_sync_key', this.syncId);
-                    if (this.user) this.setupSyncListener();
-                },
-
-                async fetchEvents() {
-                    if (!this.settings?.scriptable?.endpoint) { 
-                        this.apiStatus = 'Bridge offline.'; 
-                        return; 
-                    }
-                    this.fetchingEvents = true;
-                    this.apiStatus = 'Handshake...';
-                    try {
-                        const now = new Date();
-                        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-                        const end = start + (48 * 60 * 60 * 1000);
-                        const url = new URL(this.settings.scriptable.endpoint);
-                        url.searchParams.set('start', start);
-                        url.searchParams.set('end', end);
-                        const headers = { 'Content-Type': 'application/json' };
-                        if (this.settings.scriptable.authKey) headers['x-api-key'] = this.settings.scriptable.authKey;
-                        const res = await fetch(url.toString(), { headers });
-                        const data = await res.json();
-                        this.lastRawData = data;
-                        if (res.ok) {
-                            const list = data.events || [];
-                            this.events = list.slice(0, 5).map(e => ({
-                                title: e.title || 'Unknown Protocol',
-                                time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Active'
-                            }));
-                            this.apiStatus = this.events.length > 0 ? 'Protocols Online' : 'No events found.';
-                        } else { 
-                            this.apiStatus = `Bridge Error ${res.status}`; 
-                        }
-                    } catch (e) { 
-                        this.apiStatus = 'Protocol failed.'; 
-                        this.lastRawData = { error: e.message };
-                    } finally { 
-                        this.fetchingEvents = false; 
-                    }
-                },
-
-                getIcon(item) {
-                    if (item.icon && item.icon.startsWith('http')) return item.icon;
-                    const name = item.icon || 'default';
-                    return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${name.toLowerCase().replace(/\s+/g, '-')}.svg`;
-                },
-
-                addItem() {
-                    if (!this.newItem.name) return;
-                    const target = this.activeTab === 'links' ? this.links : this.serverLinks;
-                    target.push({...this.newItem});
-                    this.newItem = { name: '', url: '', icon: '' };
-                    this.addModalOpen = false;
-                    this.persist();
-                },
-
-                removeShortcut(idx) {
-                    const target = this.activeTab === 'links' ? this.links : this.serverLinks;
-                    target.splice(idx, 1);
-                    this.persist();
-                },
-
-                addTask(e) {
-                    if (!e.target.value.trim()) return;
-                    this.tasks.push({ text: e.target.value, done: false });
-                    e.target.value = '';
-                    this.persist();
+                    await setDoc(docRef, {
+                        links: JSON.parse(JSON.stringify(this.links)),
+                        serverLinks: JSON.parse(JSON.stringify(this.serverLinks)),
+                        tasks: JSON.parse(JSON.stringify(this.tasks)),
+                        settings: JSON.parse(JSON.stringify(this.settings)),
+                        updatedAt: Date.now()
+                    }, { merge: true });
+                    setTimeout(() => { this.syncing = false; }, 800);
+                } catch (e) {
+                    this.syncing = false;
                 }
-            }));
+            },
+
+            setSyncKey() {
+                if (!this.syncId) return;
+                localStorage.setItem('nexus_sync_key', this.syncId);
+                if (auth.currentUser) this.setupSyncListener(auth.currentUser);
+            },
+
+            async fetchEvents() {
+                if (!this.settings?.scriptable?.endpoint) return;
+                this.fetchingEvents = true;
+                try {
+                    const url = new URL(this.settings.scriptable.endpoint);
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (this.settings.scriptable.authKey) headers['x-api-key'] = this.settings.scriptable.authKey;
+                    const res = await fetch(url.toString(), { headers });
+                    const data = await res.json();
+                    this.lastRawData = data;
+                    if (res.ok) {
+                        const list = data.events || [];
+                        this.events = list.slice(0, 5).map(e => ({
+                            title: e.title || 'Unknown Task',
+                            time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Active'
+                        }));
+                        this.apiStatus = this.events.length > 0 ? 'Protocols Online' : 'No schedules.';
+                    }
+                } catch (e) {
+                    this.apiStatus = 'Bridge Failure';
+                } finally {
+                    this.fetchingEvents = false;
+                }
+            },
+
+            getIcon(item) {
+                if (item.icon && item.icon.startsWith('http')) return item.icon;
+                return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${(item.icon || 'default').toLowerCase().replace(/\s+/g, '-')}.svg`;
+            },
+
+            addItem() {
+                if (!this.newItem.name) return;
+                const target = this.activeTab === 'links' ? this.links : this.serverLinks;
+                target.push({...this.newItem});
+                this.newItem = { name: '', url: '', icon: '' };
+                this.addModalOpen = false;
+                this.persist();
+            },
+
+            removeShortcut(idx) {
+                const target = this.activeTab === 'links' ? this.links : this.serverLinks;
+                target.splice(idx, 1);
+                this.persist();
+            },
+
+            addTask(e) {
+                if (!e.target.value.trim()) return;
+                this.tasks.push({ text: e.target.value, done: false });
+                e.target.value = '';
+                this.persist();
+            }
         });
     </script>
+    
+    <!-- Alpine goes LAST -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
