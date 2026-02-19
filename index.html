@@ -36,7 +36,7 @@
 <body x-data="nexusHandler" x-cloak>
 
     <div class="bg-animate"></div>
-    <div class="bg-overlay" :style="initialized ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${settings.bg})`, filter: `blur(${settings.blur}px)` } : {}"></div>
+    <div class="bg-overlay" :style="{ backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${settings.bg})`, filter: `blur(${settings.blur}px)` }"></div>
 
     <div class="relative z-10 min-h-screen flex flex-col" x-show="initialized" x-transition.opacity.duration.500ms>
         <!-- Header -->
@@ -146,7 +146,7 @@
                             <div class="w-2 h-2 rounded-full" :class="syncColor === 'text-green-500' ? 'bg-green-500 animate-pulse' : 'bg-red-500'"></div>
                             <span class="text-xs font-bold font-mono" x-text="syncStatus"></span>
                         </div>
-                        <p class="text-[9px] text-white/20 mt-2 truncate" x-text="syncId ? 'Key: ' + syncId : 'Key: Unset'"></p>
+                        <p class="text-[8px] text-white/20 mt-2 truncate" x-text="'Namespace: ' + appId"></p>
                     </div>
                     <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
                         <p class="text-[8px] font-black text-white/30 uppercase tracking-widest mb-2">API Bridge</p>
@@ -154,16 +154,17 @@
                             <div class="w-2 h-2 rounded-full" :class="apiStatus.includes('Online') ? 'bg-blue-500 animate-pulse' : 'bg-yellow-500'"></div>
                             <span class="text-xs font-bold font-mono" x-text="apiStatus"></span>
                         </div>
-                        <p class="text-[9px] text-white/20 mt-2 truncate" x-text="settings.scriptable.endpoint || 'Endpoint: Offline'"></p>
+                        <p class="text-[8px] text-white/20 mt-2 truncate" x-text="settings.scriptable.endpoint ? 'EP: Set' : 'EP: Missing'"></p>
                     </div>
                 </div>
 
+                <!-- Cloud Key Section -->
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2">Cloud Sync (Nexus Key)</p>
-                    <p class="text-[9px] text-blue-400/60 italic mb-4">Create your own private ID to sync across devices.</p>
+                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2">Nexus Identifier</p>
+                    <p class="text-[9px] text-blue-400/60 italic mb-4">Sharing this key links data across any instance in namespace <span x-text="appId" class="font-bold underline"></span>.</p>
                     <div class="flex gap-2">
-                        <input x-model="syncId" type="text" placeholder="Choose any name (e.g. my-dash-22)" class="flex-grow bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
-                        <button @click="syncId = 'user-' + Math.floor(Math.random()*9999)" class="px-3 bg-white/10 rounded-lg text-[9px] uppercase font-bold hover:bg-white/20">Gen</button>
+                        <input x-model="syncId" type="text" placeholder="e.g. pilot-zero-one" class="flex-grow bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
+                        <button @click="syncId = 'nexus-' + Math.floor(Math.random()*9999)" class="px-3 bg-white/10 rounded-lg text-[9px] uppercase font-bold hover:bg-white/20">Gen</button>
                         <button @click="setSyncKey()" class="px-4 py-2 bg-blue-600 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-500 transition-all">Link</button>
                     </div>
                 </div>
@@ -177,21 +178,16 @@
                 </div>
                 
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Background</p>
-                    <input x-model="settings.bg" @input="persist()" type="text" placeholder="Unsplash URL" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white mb-4">
+                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Visual Alignment</p>
+                    <input x-model="settings.bg" @input="persist()" type="text" placeholder="Background URL" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white mb-4">
                     <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2">Aura Blur</p>
                     <div class="flex items-center gap-4">
                         <input type="range" min="0" max="40" x-model="settings.blur" @input="persist()" class="flex-grow h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500">
                         <span x-text="settings.blur + 'px'" class="text-[10px] font-mono text-white/40 min-w-[30px]"></span>
                     </div>
                 </div>
-                
-                <div x-show="lastRawData" class="p-4 bg-black/40 rounded-xl border border-white/5">
-                    <p class="text-[8px] font-bold uppercase text-white/30 mb-2">Protocol Feed Debug</p>
-                    <pre class="text-[9px] text-green-500 overflow-x-auto h-[100px] font-mono" x-text="JSON.stringify(lastRawData, null, 2)"></pre>
-                </div>
             </div>
-            <button @click="settingsOpen = false" class="w-full mt-10 py-4 bg-blue-600 rounded-xl font-black uppercase text-xs shadow-xl transition-all hover:bg-blue-500">Close terminal</button>
+            <button @click="settingsOpen = false" class="w-full mt-10 py-4 bg-blue-600 rounded-xl font-black uppercase text-xs shadow-xl transition-all hover:bg-blue-500">Close Terminal</button>
         </div>
     </div>
 
@@ -203,21 +199,22 @@
             <div class="space-y-4">
                 <div>
                     <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Label</label>
-                    <input x-model="newItem.name" placeholder="e.g. EOS Form" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                    <input x-model="newItem.name" placeholder="Name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Endpoint URL</label>
                     <input x-model="newItem.url" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Icon String / URL</label>
-                    <input x-model="newItem.icon" placeholder="e.g. terminal or icon-url" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Icon Handle</label>
+                    <input x-model="newItem.icon" placeholder="e.g. terminal or bitwarden" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
                 </div>
             </div>
-            <button @click="addItem()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase hover:bg-blue-500 transition-all">Finalize Injection</button>
+            <button @click="addItem()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase hover:bg-blue-500 transition-all">Execute Injection</button>
         </div>
     </div>
 
+    <!-- Firebase Synchronizer -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
@@ -235,11 +232,13 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'nexusdash';
+        
+        // Critical: Check global environment appId
+        const envAppId = typeof __app_id !== 'undefined' ? __app_id : 'nexusdash';
 
-        window.NEXUS_SYNC = {
-            auth, db, appId,
-            onAuthStateChanged, signInAnonymously, doc, setDoc, onSnapshot
+        window.NEXUS_CORE = {
+            auth, db, appId: envAppId,
+            methods: { onAuthStateChanged, signInAnonymously, doc, setDoc, onSnapshot }
         };
     </script>
 
@@ -248,12 +247,13 @@
             Alpine.data('nexusHandler', () => ({
                 initialized: false,
                 time: '00:00:00',
-                date: 'PROTOCOL HANDSHAKE...',
+                date: 'CONNECTING...',
                 activeTab: 'links',
                 syncId: localStorage.getItem('nexus_sync_key') || '',
-                syncStatus: 'Connecting...',
+                syncStatus: 'Initializing...',
                 syncColor: 'text-white/40',
                 apiStatus: 'Bridge standby...',
+                appId: '...', // Local reference for display
                 settingsOpen: false,
                 addModalOpen: false,
                 syncing: false,
@@ -274,36 +274,35 @@
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
 
+                    // Wait for module handshake
                     const waiter = setInterval(() => {
-                        if (window.NEXUS_SYNC) {
+                        if (window.NEXUS_CORE) {
                             clearInterval(waiter);
+                            this.appId = window.NEXUS_CORE.appId;
                             this.startAuth();
                         }
                     }, 50);
 
-                    setTimeout(() => { 
-                        if(!this.initialized) {
-                            this.initialized = true;
-                            this.syncStatus = 'Local-Only Protocol';
-                        }
-                    }, 2500);
+                    // Force show after 3s to prevent hanging
+                    setTimeout(() => { if(!this.initialized) this.initialized = true; }, 3000);
                 },
 
                 startAuth() {
-                    const sync = window.NEXUS_SYNC;
-                    sync.onAuthStateChanged(sync.auth, (user) => {
+                    const core = window.NEXUS_CORE;
+                    core.methods.onAuthStateChanged(core.auth, (user) => {
                         if (user) {
-                            if (this.syncId) this.setupSyncListener();
-                            else {
-                                this.syncStatus = 'Personal Dashboard';
+                            if (this.syncId) {
+                                this.setupSyncListener();
+                            } else {
+                                this.syncStatus = 'Local-Only Protocol';
                                 this.syncColor = 'text-yellow-500/50';
                             }
                         }
                         this.initialized = true;
                     });
 
-                    sync.signInAnonymously(sync.auth).catch(() => {
-                        this.syncStatus = 'Offline Sync Mode';
+                    core.methods.signInAnonymously(core.auth).catch(() => {
+                        this.syncStatus = 'Cloud Access Error';
                         this.initialized = true;
                     });
                 },
@@ -315,11 +314,11 @@
                 },
 
                 setupSyncListener() {
-                    const sync = window.NEXUS_SYNC;
-                    const docRef = sync.doc(sync.db, 'artifacts', sync.appId, 'public', 'data', 'user_configs', this.syncId);
+                    const core = window.NEXUS_CORE;
+                    const docRef = core.methods.doc(core.db, 'artifacts', core.appId, 'public', 'data', 'user_configs', this.syncId);
                     
-                    this.syncStatus = 'Linking...';
-                    sync.onSnapshot(docRef, (snap) => {
+                    this.syncStatus = 'Syncing...';
+                    core.methods.onSnapshot(docRef, (snap) => {
                         if (snap.exists()) {
                             const d = snap.data();
                             this.links = d.links || [];
@@ -328,26 +327,26 @@
                             this.settings = { ...this.settings, ...d.settings };
                             this.syncStatus = 'Nexus Linked';
                             this.syncColor = 'text-green-500';
-                            this.fetchEvents(); // Re-fetch events if sync updates endpoint
+                            this.fetchEvents(); 
                         } else {
+                            // Only set status, don't auto-overwrite with empty local data
                             this.syncStatus = 'New Nexus Key';
                             this.syncColor = 'text-blue-400';
-                            this.persist();
                         }
-                    }, () => {
-                        this.syncStatus = 'Cloud Error';
+                    }, (err) => {
+                        this.syncStatus = 'Cloud Permission Error';
                         this.syncColor = 'text-red-500';
                     });
                 },
 
                 async persist() {
-                    const sync = window.NEXUS_SYNC;
-                    if (!sync || !sync.auth.currentUser || !this.syncId) return;
+                    const core = window.NEXUS_CORE;
+                    if (!core || !core.auth.currentUser || !this.syncId) return;
                     
                     this.syncing = true;
                     try {
-                        const docRef = sync.doc(sync.db, 'artifacts', sync.appId, 'public', 'data', 'user_configs', this.syncId);
-                        await sync.setDoc(docRef, {
+                        const docRef = core.methods.doc(core.db, 'artifacts', core.appId, 'public', 'data', 'user_configs', this.syncId);
+                        await core.methods.setDoc(docRef, {
                             links: JSON.parse(JSON.stringify(this.links)),
                             serverLinks: JSON.parse(JSON.stringify(this.serverLinks)),
                             tasks: JSON.parse(JSON.stringify(this.tasks)),
@@ -363,38 +362,29 @@
                 setSyncKey() {
                     if (!this.syncId) return;
                     localStorage.setItem('nexus_sync_key', this.syncId);
-                    if (window.NEXUS_SYNC && window.NEXUS_SYNC.auth.currentUser) {
+                    if (window.NEXUS_CORE && window.NEXUS_CORE.auth.currentUser) {
                         this.setupSyncListener();
                     }
                 },
 
                 async fetchEvents() {
-                    if (!this.settings?.scriptable?.endpoint) {
-                        this.apiStatus = 'Bridge offline.';
-                        return;
-                    }
+                    if (!this.settings?.scriptable?.endpoint) return;
                     this.fetchingEvents = true;
-                    this.apiStatus = 'Handshaking...';
+                    this.apiStatus = 'Bridge connecting...';
                     try {
                         const res = await fetch(this.settings.scriptable.endpoint);
                         const data = await res.json();
-                        this.lastRawData = data;
                         if (res.ok) {
                             const list = data.events || [];
                             this.events = list.slice(0, 5).map(e => ({
                                 title: e.title || 'Task',
                                 time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Active'
                             }));
-                            this.apiStatus = this.events.length > 0 ? 'Protocols Online' : 'No schedules.';
-                        } else {
-                            this.apiStatus = 'Handshake Error';
+                            this.apiStatus = this.events.length > 0 ? 'Protocols Online' : 'No schedules logged.';
                         }
                     } catch (e) { 
                         this.apiStatus = 'Bridge Failure';
-                        this.lastRawData = { error: e.message };
-                    } finally { 
-                        this.fetchingEvents = false; 
-                    }
+                    } finally { this.fetchingEvents = false; }
                 },
 
                 getIcon(item) {
