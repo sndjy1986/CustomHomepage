@@ -33,13 +33,13 @@
         }
     </style>
 </head>
-<body x-data="nexusData" x-cloak>
+<body x-data="nexusHandler" x-cloak>
 
     <div class="bg-animate"></div>
-    <!-- Use direct object access and check for initialization -->
-    <div class="bg-overlay" :style="initialized ? { backgroundImage: 'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(' + settings.bg + ')', filter: 'blur(' + settings.blur + 'px)' } : {}"></div>
+    <!-- Improved safety check to prevent style binding errors before settings exist -->
+    <div class="bg-overlay" :style="initialized ? `background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${settings.bg}); filter: blur(${settings.blur}px)` : ''"></div>
 
-    <div class="relative z-10 min-h-screen flex flex-col" x-show="initialized">
+    <div class="relative z-10 min-h-screen flex flex-col">
         <!-- Header -->
         <header class="p-6 flex justify-between items-center max-w-7xl mx-auto w-full">
             <div class="flex items-center gap-4">
@@ -59,77 +59,78 @@
             </div>
         </header>
 
-        <section class="flex-grow flex flex-col items-center justify-center text-center py-4 px-4">
-            <h2 x-text="time" class="text-[6rem] md:text-[9rem] font-extrabold tracking-tighter tabular-nums uppercase leading-none drop-shadow-2xl">00:00 AM</h2>
-            <p x-text="date" class="text-white/30 uppercase tracking-[0.5em] font-bold text-xs mt-4"></p>
-            <div class="w-full max-w-2xl mt-12">
-                <form action="https://google.com/search" method="GET">
-                    <input type="text" name="q" placeholder="Central Search Protocol..." class="w-full bg-white/5 border border-white/10 rounded-[2rem] py-5 px-10 text-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-center placeholder:text-white/10">
-                </form>
-            </div>
-        </section>
+        <!-- Main View -->
+        <main class="flex-grow flex flex-col" x-show="initialized">
+            <section class="flex-grow flex flex-col items-center justify-center text-center py-4 px-4">
+                <h2 x-text="time" class="text-[6rem] md:text-[9rem] font-extrabold tracking-tighter tabular-nums uppercase leading-none drop-shadow-2xl">00:00 AM</h2>
+                <p x-text="date" class="text-white/30 uppercase tracking-[0.5em] font-bold text-xs mt-4"></p>
+                <div class="w-full max-w-2xl mt-12">
+                    <form action="https://google.com/search" method="GET">
+                        <input type="text" name="q" placeholder="Central Search Protocol..." class="w-full bg-white/5 border border-white/10 rounded-[2rem] py-5 px-10 text-xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all text-center placeholder:text-white/10">
+                    </form>
+                </div>
+            </section>
 
-        <section class="max-w-7xl mx-auto w-full px-6 pb-12">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <!-- Links Tabbed Grid -->
-                <div class="lg:col-span-8 nexus-card p-8 md:p-10 flex flex-col min-h-[400px]">
-                    <div class="flex items-center gap-8 mb-10 border-b border-white/5">
-                        <button @click="activeTab = 'links'" :class="activeTab === 'links' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Links</button>
-                        <button @click="activeTab = 'server'" :class="activeTab === 'server' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Server Links</button>
+            <section class="max-w-7xl mx-auto w-full px-6 pb-12">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-8 nexus-card p-8 md:p-10 flex flex-col min-h-[400px]">
+                        <div class="flex items-center gap-8 mb-10 border-b border-white/5">
+                            <button @click="activeTab = 'links'" :class="activeTab === 'links' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Links</button>
+                            <button @click="activeTab = 'server'" :class="activeTab === 'server' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Server Links</button>
+                        </div>
+
+                        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
+                            <template x-for="(link, index) in (activeTab === 'links' ? links : serverLinks)" :key="index">
+                                <div class="flex flex-col items-center gap-3 group relative text-center">
+                                    <a :href="link.url" target="_blank" class="icon-box" :style="'border-bottom: 2px solid ' + (activeTab === 'links' ? '#00f2ff' : '#bc13fe')">
+                                        <img :src="getIcon(link)" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'">
+                                    </a>
+                                    <span x-text="link.name" class="text-[9px] font-black uppercase text-white/30 truncate w-full mt-1"></span>
+                                    <button @click="removeShortcut(index)" class="absolute -top-1 -right-1 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-xl z-20"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                                </div>
+                            </template>
+                            <button @click="addModalOpen = true" class="icon-box border-dashed border-2 border-white/10 text-white/20 hover:text-white transition-all"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
-                        <template x-for="(link, index) in (activeTab === 'links' ? links : serverLinks)" :key="index">
-                            <div class="flex flex-col items-center gap-3 group relative text-center">
-                                <a :href="link.url" target="_blank" class="icon-box" :style="'border-bottom: 2px solid ' + (activeTab === 'links' ? '#00f2ff' : '#bc13fe')">
-                                    <img :src="getIcon(link)" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'">
-                                </a>
-                                <span x-text="link.name" class="text-[9px] font-black uppercase text-white/30 truncate w-full mt-1"></span>
-                                <button @click="removeShortcut(index)" class="absolute -top-1 -right-1 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-xl z-20"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                    <div class="lg:col-span-4 flex flex-col gap-8 text-left">
+                        <div class="nexus-card p-8 min-h-[220px]">
+                            <div class="flex justify-between items-center mb-6">
+                                <h4 class="text-[10px] font-black uppercase text-purple-400 tracking-widest">Upcoming Events</h4>
+                                <button @click="fetchEvents()" class="text-white/20 hover:text-white transition-colors">
+                                    <svg :class="fetchingEvents ? 'animate-spin' : ''" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8M21 3v5h-5"/></svg>
+                                </button>
                             </div>
-                        </template>
-                        <button @click="addModalOpen = true" class="icon-box border-dashed border-2 border-white/10 text-white/20 hover:text-white transition-all"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
+                            <div class="space-y-4">
+                                <template x-for="ev in events">
+                                    <div class="border-l-2 border-purple-500/50 pl-4 py-1">
+                                        <p x-text="ev.title" class="text-sm font-bold text-white/90 leading-tight"></p>
+                                        <p x-text="ev.time" class="text-[10px] text-white/30 uppercase tracking-wider mt-1 font-bold"></p>
+                                    </div>
+                                </template>
+                                <template x-if="events.length === 0">
+                                    <div class="text-[10px] text-white/20 leading-relaxed italic" x-text="apiStatus"></div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="nexus-card p-8 flex-1 flex flex-col gap-6">
+                            <h4 class="text-[10px] font-black uppercase text-blue-400 tracking-widest uppercase">To-Do Protocol</h4>
+                            <div class="space-y-3 flex-grow overflow-y-auto max-h-[160px] pr-2">
+                                <template x-for="(t, i) in tasks">
+                                    <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                                        <div @click="t.done = !t.done; persist()" class="w-5 h-5 rounded-lg border-2 border-white/10 flex items-center justify-center cursor-pointer transition-colors" :class="t.done ? 'bg-blue-600 border-blue-500' : ''"><svg x-show="t.done" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg></div>
+                                        <span x-text="t.text" class="text-sm font-medium" :class="t.done ? 'text-white/20 line-through' : ''"></span>
+                                        <button @click="tasks.splice(i, 1); persist()" class="ml-auto text-white/10 hover:text-red-400 transition-colors"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                                    </div>
+                                </template>
+                            </div>
+                            <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full text-white placeholder:text-white/20">
+                        </div>
                     </div>
                 </div>
-
-                <!-- Sidebar -->
-                <div class="lg:col-span-4 flex flex-col gap-8 text-left">
-                    <div class="nexus-card p-8 min-h-[220px]">
-                        <div class="flex justify-between items-center mb-6">
-                            <h4 class="text-[10px] font-black uppercase text-purple-400 tracking-widest">Upcoming Events</h4>
-                            <button @click="fetchEvents()" class="text-white/20 hover:text-white transition-colors">
-                                <svg :class="fetchingEvents ? 'animate-spin' : ''" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8M21 3v5h-5"/></svg>
-                            </button>
-                        </div>
-                        <div class="space-y-4">
-                            <template x-for="ev in events">
-                                <div class="border-l-2 border-purple-500/50 pl-4 py-1">
-                                    <p x-text="ev.title" class="text-sm font-bold text-white/90 leading-tight"></p>
-                                    <p x-text="ev.time" class="text-[10px] text-white/30 uppercase tracking-wider mt-1 font-bold"></p>
-                                </div>
-                            </template>
-                            <template x-if="events.length === 0">
-                                <div class="text-[10px] text-white/20 leading-relaxed italic" x-text="apiStatus"></div>
-                            </template>
-                        </div>
-                    </div>
-
-                    <div class="nexus-card p-8 flex-1 flex flex-col gap-6">
-                        <h4 class="text-[10px] font-black uppercase text-blue-400 tracking-widest uppercase">To-Do Protocol</h4>
-                        <div class="space-y-3 flex-grow overflow-y-auto max-h-[160px] pr-2">
-                            <template x-for="(t, i) in tasks">
-                                <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
-                                    <div @click="t.done = !t.done; persist()" class="w-5 h-5 rounded-lg border-2 border-white/10 flex items-center justify-center cursor-pointer transition-colors" :class="t.done ? 'bg-blue-600 border-blue-500' : ''"><svg x-show="t.done" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg></div>
-                                    <span x-text="t.text" class="text-sm font-medium" :class="t.done ? 'text-white/20 line-through' : ''"></span>
-                                    <button @click="tasks.splice(i, 1); persist()" class="ml-auto text-white/10 hover:text-red-400 transition-colors"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-                                </div>
-                            </template>
-                        </div>
-                        <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full text-white placeholder:text-white/20">
-                    </div>
-                </div>
-            </div>
-        </section>
+            </section>
+        </main>
     </div>
 
     <!-- Settings Modal -->
@@ -193,44 +194,7 @@
         </div>
     </div>
 
-    <!-- Define the structure early so Alpine finds it -->
-    <script>
-        window.nexusData = {
-            initialized: false,
-            time: '00:00:00',
-            date: 'LOADING...',
-            activeTab: 'links',
-            syncId: localStorage.getItem('nexus_sync_key') || '',
-            syncStatus: 'Connecting...',
-            syncColor: 'text-blue-500',
-            apiStatus: 'Wait...',
-            settingsOpen: false,
-            addModalOpen: false,
-            syncing: false,
-            fetchingEvents: false,
-            lastRawData: null,
-            links: [],
-            serverLinks: [],
-            tasks: [],
-            events: [],
-            settings: { bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', blur: 0, scriptable: { endpoint: '', authKey: '' } },
-            newItem: { name: '', url: '', icon: '' },
-            
-            // Placeholder methods that will be populated by the module script
-            init() {},
-            updateTime() {},
-            setupSyncListener() {},
-            persist() {},
-            setSyncKey() {},
-            fetchEvents() {},
-            getIcon() {},
-            addItem() {},
-            removeShortcut() {},
-            addTask() {}
-        };
-    </script>
-
-    <!-- Load heavy logic and Firebase -->
+    <!-- 1. Sync Logic and Firebase Module -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
@@ -250,137 +214,195 @@
         const db = getFirestore(app);
         const appId = 'nexusdash';
 
-        // Override the window object with full functionality
-        Object.assign(window.nexusData, {
-            init() {
-                this.updateTime();
-                setInterval(() => this.updateTime(), 1000);
+        // Helper to get actual current user
+        window.getNexusAuth = () => auth;
+        window.getNexusDb = () => db;
+        window.getNexusAppId = () => appId;
+        window.fireMethods = { doc, setDoc, onSnapshot };
+    </script>
 
-                onAuthStateChanged(auth, (user) => {
-                    if (user && this.syncId) {
-                        this.setupSyncListener(user);
-                    } else if (user) {
-                        this.syncStatus = 'Local Profile';
-                        this.syncColor = 'text-yellow-500/50';
-                    }
-                    this.initialized = true;
-                });
+    <!-- 2. Main Dashboard Component Definition -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('nexusHandler', () => ({
+                initialized: false,
+                time: '00:00:00', 
+                date: 'PROTOCOL HANDSHAKE...', 
+                activeTab: 'links',
+                syncId: localStorage.getItem('nexus_sync_key') || '',
+                syncStatus: 'Connecting...', 
+                syncColor: 'text-white/40',
+                apiStatus: 'Bridge standby...',
+                settingsOpen: false, 
+                addModalOpen: false, 
+                syncing: false, 
+                fetchingEvents: false,
+                lastRawData: null,
+                links: [], 
+                serverLinks: [], 
+                tasks: [],
+                events: [],
+                settings: { 
+                    bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', 
+                    blur: 0, 
+                    scriptable: { endpoint: '', authKey: '' }
+                },
+                newItem: { name: '', url: '', icon: '' },
 
-                signInAnonymously(auth).catch(() => {
-                    this.syncStatus = 'Offline Mode';
-                    this.initialized = true;
-                });
-                
-                this.fetchEvents();
-            },
+                init() {
+                    this.updateTime();
+                    setInterval(() => this.updateTime(), 1000);
 
-            updateTime() {
-                const now = new Date();
-                this.time = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-                this.date = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
-            },
+                    // Wait for Firebase to be ready via the globally attached helpers
+                    const checkAuth = setInterval(() => {
+                        if (window.getNexusAuth) {
+                            clearInterval(checkAuth);
+                            this.startAuth();
+                        }
+                    }, 50);
 
-            setupSyncListener(user) {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_configs', this.syncId);
-                this.syncStatus = 'Syncing...';
-                onSnapshot(docRef, (snap) => {
-                    if (snap.exists()) {
-                        const d = snap.data();
-                        this.links = d.links || [];
-                        this.serverLinks = d.serverLinks || [];
-                        this.tasks = d.tasks || [];
-                        this.settings = { ...this.settings, ...d.settings };
-                        this.syncStatus = 'Nexus Linked';
-                        this.syncColor = 'text-green-500';
-                    } else {
-                        this.syncStatus = 'New Nexus Link';
-                        this.syncColor = 'text-blue-400';
-                    }
-                }, () => {
-                    this.syncStatus = 'Sync Error';
-                    this.syncColor = 'text-red-500';
-                });
-            },
+                    // Show UI regardless after 2 seconds as a fallback
+                    setTimeout(() => { if(!this.initialized) this.initialized = true; }, 2000);
+                },
 
-            async persist() {
-                if (!auth.currentUser || !this.syncId) return;
-                this.syncing = true;
-                try {
+                startAuth() {
+                    const auth = window.getNexusAuth();
+                    onAuthStateChanged(auth, (user) => {
+                        if (user && this.syncId) {
+                            this.setupSyncListener();
+                        } else if (user) {
+                            this.syncStatus = 'Local Session';
+                            this.syncColor = 'text-yellow-500/50';
+                        }
+                        this.initialized = true;
+                    });
+
+                    signInAnonymously(auth).catch(() => {
+                        this.syncStatus = 'Auth Failed';
+                        this.initialized = true;
+                    });
+                },
+
+                updateTime() {
+                    const now = new Date();
+                    this.time = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+                    this.date = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+                },
+
+                setupSyncListener() {
+                    const auth = window.getNexusAuth();
+                    const db = window.getNexusDb();
+                    const appId = window.getNexusAppId();
+                    const { doc, onSnapshot } = window.fireMethods;
+
+                    if (!auth.currentUser || !this.syncId) return;
+                    
                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_configs', this.syncId);
-                    await setDoc(docRef, {
-                        links: JSON.parse(JSON.stringify(this.links)),
-                        serverLinks: JSON.parse(JSON.stringify(this.serverLinks)),
-                        tasks: JSON.parse(JSON.stringify(this.tasks)),
-                        settings: JSON.parse(JSON.stringify(this.settings)),
-                        updatedAt: Date.now()
-                    }, { merge: true });
-                    setTimeout(() => { this.syncing = false; }, 800);
-                } catch (e) {
-                    this.syncing = false;
-                }
-            },
+                    this.syncStatus = 'Syncing...';
 
-            setSyncKey() {
-                if (!this.syncId) return;
-                localStorage.setItem('nexus_sync_key', this.syncId);
-                if (auth.currentUser) this.setupSyncListener(auth.currentUser);
-            },
+                    onSnapshot(docRef, (snap) => {
+                        if (snap.exists()) {
+                            const d = snap.data();
+                            this.links = d.links || [];
+                            this.serverLinks = d.serverLinks || [];
+                            this.tasks = d.tasks || [];
+                            this.settings = { ...this.settings, ...d.settings };
+                            this.syncStatus = 'Nexus Linked';
+                            this.syncColor = 'text-green-500';
+                        } else {
+                            this.syncStatus = 'New Nexus Link';
+                            this.syncColor = 'text-blue-400';
+                        }
+                    }, (err) => {
+                        this.syncStatus = 'Sync Error';
+                        this.syncColor = 'text-red-500';
+                    });
+                },
 
-            async fetchEvents() {
-                if (!this.settings?.scriptable?.endpoint) return;
-                this.fetchingEvents = true;
-                try {
-                    const url = new URL(this.settings.scriptable.endpoint);
-                    const headers = { 'Content-Type': 'application/json' };
-                    if (this.settings.scriptable.authKey) headers['x-api-key'] = this.settings.scriptable.authKey;
-                    const res = await fetch(url.toString(), { headers });
-                    const data = await res.json();
-                    this.lastRawData = data;
-                    if (res.ok) {
-                        const list = data.events || [];
-                        this.events = list.slice(0, 5).map(e => ({
-                            title: e.title || 'Unknown Task',
-                            time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Active'
-                        }));
-                        this.apiStatus = this.events.length > 0 ? 'Protocols Online' : 'No schedules.';
+                async persist() {
+                    const auth = window.getNexusAuth();
+                    const db = window.getNexusDb();
+                    const appId = window.getNexusAppId();
+                    const { doc, setDoc } = window.fireMethods;
+
+                    if (!auth.currentUser || !this.syncId) return;
+                    this.syncing = true;
+                    try {
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_configs', this.syncId);
+                        await setDoc(docRef, {
+                            links: JSON.parse(JSON.stringify(this.links)),
+                            serverLinks: JSON.parse(JSON.stringify(this.serverLinks)),
+                            tasks: JSON.parse(JSON.stringify(this.tasks)),
+                            settings: JSON.parse(JSON.stringify(this.settings)),
+                            updatedAt: Date.now()
+                        }, { merge: true });
+                        setTimeout(() => { this.syncing = false; }, 800);
+                    } catch (e) {
+                        this.syncing = false;
                     }
-                } catch (e) {
-                    this.apiStatus = 'Bridge Failure';
-                } finally {
-                    this.fetchingEvents = false;
+                },
+
+                setSyncKey() {
+                    if (!this.syncId) return;
+                    localStorage.setItem('nexus_sync_key', this.syncId);
+                    if (window.getNexusAuth && window.getNexusAuth().currentUser) {
+                        this.setupSyncListener();
+                    }
+                },
+
+                async fetchEvents() {
+                    if (!this.settings?.scriptable?.endpoint) return;
+                    this.fetchingEvents = true;
+                    try {
+                        const res = await fetch(this.settings.scriptable.endpoint);
+                        const data = await res.json();
+                        this.lastRawData = data;
+                        if (res.ok) {
+                            const list = data.events || [];
+                            this.events = list.slice(0, 5).map(e => ({
+                                title: e.title || 'Unknown Task',
+                                time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Active'
+                            }));
+                            this.apiStatus = this.events.length > 0 ? 'Protocols Online' : 'No schedules.';
+                        }
+                    } catch (e) {
+                        this.apiStatus = 'Bridge Failure';
+                    } finally {
+                        this.fetchingEvents = false;
+                    }
+                },
+
+                getIcon(item) {
+                    if (item.icon && item.icon.startsWith('http')) return item.icon;
+                    return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${(item.icon || 'default').toLowerCase().replace(/\s+/g, '-')}.svg`;
+                },
+
+                addItem() {
+                    if (!this.newItem.name) return;
+                    const target = this.activeTab === 'links' ? this.links : this.serverLinks;
+                    target.push({...this.newItem});
+                    this.newItem = { name: '', url: '', icon: '' };
+                    this.addModalOpen = false;
+                    this.persist();
+                },
+
+                removeShortcut(idx) {
+                    const target = this.activeTab === 'links' ? this.links : this.serverLinks;
+                    target.splice(idx, 1);
+                    this.persist();
+                },
+
+                addTask(e) {
+                    if (!e.target.value.trim()) return;
+                    this.tasks.push({ text: e.target.value, done: false });
+                    e.target.value = '';
+                    this.persist();
                 }
-            },
-
-            getIcon(item) {
-                if (item.icon && item.icon.startsWith('http')) return item.icon;
-                return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${(item.icon || 'default').toLowerCase().replace(/\s+/g, '-')}.svg`;
-            },
-
-            addItem() {
-                if (!this.newItem.name) return;
-                const target = this.activeTab === 'links' ? this.links : this.serverLinks;
-                target.push({...this.newItem});
-                this.newItem = { name: '', url: '', icon: '' };
-                this.addModalOpen = false;
-                this.persist();
-            },
-
-            removeShortcut(idx) {
-                const target = this.activeTab === 'links' ? this.links : this.serverLinks;
-                target.splice(idx, 1);
-                this.persist();
-            },
-
-            addTask(e) {
-                if (!e.target.value.trim()) return;
-                this.tasks.push({ text: e.target.value, done: false });
-                e.target.value = '';
-                this.persist();
-            }
+            }));
         });
     </script>
-    
-    <!-- Alpine goes LAST -->
+
+    <!-- 3. Alpine Loader -->
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
