@@ -46,7 +46,6 @@
     <div class="bg-overlay" :style="initialized ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${settings.bg})`, filter: `blur(${settings.blur}px)` } : {}"></div>
 
     <div class="relative z-10 min-h-screen flex flex-col" x-show="initialized" x-transition.opacity.duration.500ms>
-        <!-- Header -->
         <header class="p-6 flex justify-between items-center max-w-7xl mx-auto w-full">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl">
@@ -56,14 +55,13 @@
                     <h1 class="font-extrabold text-2xl tracking-tighter uppercase leading-none">Nexus<span class="text-blue-500">Dash</span></h1>
                     <div class="flex items-center gap-2 mt-1">
                         <p class="text-[9px] uppercase tracking-[0.3em] font-bold" :class="syncColor" x-text="syncStatus"></p>
-                        <span class="text-[7px] text-white/20 font-mono uppercase" x-text="`Node: ${projectId}`"></span>
                     </div>
                 </div>
             </div>
             <div class="flex items-center gap-3">
                 <div x-show="syncing" class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" title="Syncing to Cloud..."></div>
                 <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 shadow-lg">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
             </div>
         </header>
@@ -151,10 +149,10 @@
                 <!-- Status Dashboard -->
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                        <p class="text-[8px] font-black text-white/30 uppercase tracking-widest mb-2">Cloud Node</p>
+                        <p class="text-[8px] font-black text-white/30 uppercase tracking-widest mb-2">Nexus Identity</p>
                         <div class="flex items-center gap-2">
-                            <div class="w-2 h-2 rounded-full" :class="syncColor === 'text-green-500' ? 'bg-green-500 animate-pulse' : 'bg-red-500'"></div>
-                            <span class="text-xs font-bold font-mono" x-text="syncStatus"></span>
+                            <div class="w-2 h-2 rounded-full" :class="isGoogleAuth ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'"></div>
+                            <span class="text-xs font-bold font-mono" x-text="isGoogleAuth ? 'Google Linked' : 'Local Session'"></span>
                         </div>
                     </div>
                     <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
@@ -166,38 +164,43 @@
                     </div>
                 </div>
 
+                <!-- Google Login Sync Section -->
+                <div class="p-4 bg-blue-600/10 rounded-2xl border border-blue-500/20">
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Global Synchronization</p>
+                    <p class="text-[9px] text-white/40 mb-4 italic">Sign in with Google to access your data on any device instantly.</p>
+                    <div class="flex items-center justify-between gap-4">
+                        <template x-if="!isGoogleAuth">
+                            <button @click="loginWithGoogle()" class="flex-grow py-3 bg-white text-black rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-gray-200 transition-all">
+                                <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.28.81-.56z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z" fill="#EA4335"/></svg>
+                                Sync with Google
+                            </button>
+                        </template>
+                        <template x-if="isGoogleAuth">
+                            <div class="flex items-center gap-3 w-full">
+                                <img :src="userPhoto" class="w-10 h-10 rounded-full border border-blue-500/50">
+                                <div class="flex-grow">
+                                    <p class="text-xs font-bold" x-text="userName"></p>
+                                    <p class="text-[9px] text-white/30 truncate" x-text="userEmail"></p>
+                                </div>
+                                <button @click="logout()" class="px-3 py-2 bg-white/5 rounded-lg text-[9px] uppercase font-bold hover:bg-red-500/20">Exit</button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
                 <!-- Verbose Protocol Logs -->
                 <div class="p-4 bg-black/60 rounded-2xl border border-white/10">
                     <div class="flex justify-between items-center mb-3">
                         <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Protocol Verbose Output</p>
                         <button @click="protocolLogs = []" class="text-[8px] text-white/20 hover:text-white uppercase font-bold">Clear</button>
                     </div>
-                    <div class="h-[150px] overflow-y-auto pr-2 text-[10px] font-mono scroll-smooth bg-black/40 p-2 rounded-lg" id="protocol-scroller">
+                    <div class="h-[120px] overflow-y-auto pr-2 text-[10px] font-mono scroll-smooth bg-black/40 p-2 rounded-lg" id="protocol-scroller">
                         <template x-for="log in protocolLogs">
                             <div class="log-line">
                                 <span class="log-timestamp" x-text="log.time"></span>
                                 <span :class="'log-msg-' + log.type" x-text="log.msg"></span>
                             </div>
                         </template>
-                    </div>
-                </div>
-
-                <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Cloud Sync & Alignment</p>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="text-[8px] text-white/40 uppercase font-bold block mb-1">Nexus Key</label>
-                            <div class="flex gap-2">
-                                <input x-model="syncId" type="text" placeholder="Key (e.g. sndjy)" class="flex-grow bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
-                                <button @click="setSyncKey()" class="px-4 py-2 bg-blue-600 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-500 transition-all">Link</button>
-                                <button @click="persist()" class="px-4 py-2 bg-purple-600 rounded-lg text-[10px] font-bold uppercase hover:bg-purple-500 transition-all" title="Push Local -> Cloud">Push</button>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="text-[8px] text-white/40 uppercase font-bold block mb-1">Manual Namespace Override</label>
-                            <p class="text-[7px] text-yellow-500/50 italic mb-2">Ensure both windows use the EXACT same namespace ID below.</p>
-                            <input x-model="appId" type="text" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
-                        </div>
                     </div>
                 </div>
                 
@@ -247,12 +250,10 @@
     <!-- Firebase Handshake Module -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
-        import { getFirestore, doc, setDoc, onSnapshot, collection } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
+        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
+        import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
 
-        // STATIC PROJECT LOCK: We bypass the environment-provided config completely.
-        // This ensures every window talks to the SAME database.
-        const staticConfig = {
+        const config = {
             apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
             authDomain: "nexusdash-5731e.firebaseapp.com",
             projectId: "nexusdash-5731e",
@@ -261,16 +262,14 @@
             appId: "1:758016854578:web:18c6d8f8181b1134caca2b"
         };
 
-        const app = initializeApp(staticConfig);
+        const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        
-        // Locked namespace unless overridden manually
-        const defaultAppId = 'nexusdash';
+        const appId = 'nexusdash';
 
         window.NEXUS_CORE = {
-            auth, db, appId: defaultAppId, projectId: staticConfig.projectId,
-            methods: { onAuthStateChanged, signInAnonymously, signInWithCustomToken, doc, setDoc, onSnapshot, collection }
+            auth, db, appId, projectId: config.projectId,
+            methods: { onAuthStateChanged, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, doc, setDoc, onSnapshot }
         };
     </script>
 
@@ -279,15 +278,21 @@
             Alpine.data('nexusHandler', () => ({
                 initialized: false,
                 time: '00:00:00',
-                date: 'CONNECTING...',
+                date: 'HANDSHAKE...',
                 activeTab: 'links',
-                syncId: localStorage.getItem('nexus_sync_key') || '',
-                syncStatus: 'Protocol Offline',
+                syncStatus: 'Offline',
                 syncColor: 'text-white/40',
                 apiStatus: 'Standby...',
                 protocolLogs: [],
                 projectId: '...',
                 appId: '...', 
+                
+                // Auth States
+                isGoogleAuth: false,
+                userName: '',
+                userEmail: '',
+                userPhoto: '',
+                
                 settingsOpen: false,
                 addModalOpen: false,
                 syncing: false,
@@ -324,37 +329,55 @@
                             clearInterval(waiter);
                             this.appId = window.NEXUS_CORE.appId;
                             this.projectId = window.NEXUS_CORE.projectId;
-                            this.addLog(`Nexus Core attached. Namespace: ${this.appId}`, 'success');
-                            this.addLog(`Targeting Static Cloud: ${this.projectId}`, 'info');
+                            this.addLog(`Core detected. Node: ${this.projectId}`, 'success');
                             this.startAuth();
                         }
                     }, 50);
 
-                    setTimeout(() => { if(!this.initialized) { this.initialized = true; this.addLog('Handshake sequence completed with local fallback.', 'warn'); } }, 4000);
+                    setTimeout(() => { if(!this.initialized) { this.initialized = true; this.addLog('Handshake timed out.', 'warn'); } }, 4000);
                 },
 
                 async startAuth() {
                     const core = window.NEXUS_CORE;
-                    this.addLog('Requesting cloud identity verification...');
-                    
-                    try {
-                        await core.methods.signInAnonymously(core.auth);
-                        core.methods.onAuthStateChanged(core.auth, (user) => {
-                            if (user) {
-                                this.addLog(`Identity verified. Session UID: ${user.uid}`, 'success');
-                                if (this.syncId) {
-                                    this.setupSyncListener();
-                                } else {
-                                    this.syncStatus = 'Local-Only Protocol';
-                                    this.syncColor = 'text-yellow-500/50';
-                                }
+                    core.methods.onAuthStateChanged(core.auth, (user) => {
+                        if (user) {
+                            this.isGoogleAuth = !user.isAnonymous;
+                            this.addLog(`Identity Verified. UID: ${user.uid} (${this.isGoogleAuth ? 'Google' : 'Anonymous'})`, 'success');
+                            
+                            if (this.isGoogleAuth) {
+                                this.userName = user.displayName;
+                                this.userEmail = user.email;
+                                this.userPhoto = user.photoURL;
                             }
-                            this.initialized = true;
-                        });
-                    } catch (err) {
-                        this.addLog(`Handshake failed: ${err.message}`, 'error');
+                            
+                            this.setupSyncListener(user);
+                        }
                         this.initialized = true;
+                    });
+
+                    if (!core.auth.currentUser) {
+                        core.methods.signInAnonymously(core.auth).catch(err => {
+                            this.addLog(`Handshake Error: ${err.message}`, 'error');
+                        });
                     }
+                },
+
+                async loginWithGoogle() {
+                    const core = window.NEXUS_CORE;
+                    const provider = new core.methods.GoogleAuthProvider();
+                    this.addLog('Opening Google Identity Portal...', 'info');
+                    try {
+                        await core.methods.signInWithPopup(core.auth, provider);
+                        this.addLog('Google synchronization active.', 'success');
+                    } catch (e) {
+                        this.addLog(`Portal Error: ${e.message}`, 'error');
+                    }
+                },
+
+                async logout() {
+                    const core = window.NEXUS_CORE;
+                    await core.methods.signOut(core.auth);
+                    window.location.reload();
                 },
 
                 updateTime() {
@@ -363,39 +386,39 @@
                     this.date = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
                 },
 
-                setupSyncListener() {
+                setupSyncListener(user) {
                     const core = window.NEXUS_CORE;
-                    if (!core.auth.currentUser) return;
-
-                    const fullPath = `artifacts/${this.appId}/public/data/user_configs/${this.syncId}`;
-                    this.addLog(`Connecting to Path: ${fullPath}`, 'info');
                     
-                    const docRef = core.methods.doc(core.db, 'artifacts', this.appId, 'public', 'data', 'user_configs', this.syncId);
+                    // FIXED: Using even segments for document references
+                    const segments = this.isGoogleAuth 
+                        ? ['artifacts', this.appId, 'users', user.uid, 'config', 'data']
+                        : ['artifacts', this.appId, 'public', 'data', 'local_cache', 'default'];
+                    
+                    this.addLog(`Binding stream: ${segments.join('/')}`, 'info');
+                    
+                    const docRef = core.methods.doc(core.db, ...segments);
                     
                     this.syncStatus = 'Syncing...';
                     core.methods.onSnapshot(docRef, (snap) => {
                         if (snap.exists()) {
                             const d = snap.data();
-                            this.addLog(`Protocol Update: Received state containing ${d.links?.length || 0} links.`, 'success');
-                            
-                            // Important: Only apply if we are not currently uploading
+                            this.addLog(`Profile found! Synced ${d.links?.length || 0} links.`, 'success');
                             if(!this.syncing) {
                                 this.links = d.links || [];
                                 this.serverLinks = d.serverLinks || [];
                                 this.tasks = d.tasks || [];
                                 this.settings = { ...this.settings, ...d.settings };
                             }
-                            
-                            this.syncStatus = 'Nexus Linked';
+                            this.syncStatus = 'Cloud Linked';
                             this.syncColor = 'text-green-500';
                             this.fetchEvents(); 
                         } else {
-                            this.addLog(`Node empty. Ready for initial Push.`, 'warn');
-                            this.syncStatus = 'New Nexus Key';
+                            this.addLog('Cloud Node empty. Ready for initial Push.', 'warn');
+                            this.syncStatus = this.isGoogleAuth ? 'Fresh Profile' : 'Local Only';
                             this.syncColor = 'text-blue-400';
                         }
                     }, (err) => {
-                        this.addLog(`Cloud access failure: ${err.code}. Verify Namespace.`, 'error');
+                        this.addLog(`Cloud Access Failure: ${err.message}`, 'error');
                         this.syncStatus = 'Access Denied';
                         this.syncColor = 'text-red-500';
                     });
@@ -403,34 +426,29 @@
 
                 async persist() {
                     const core = window.NEXUS_CORE;
-                    if (!core.auth.currentUser || !this.syncId) return;
+                    const user = core.auth.currentUser;
+                    if (!user) return;
                     
+                    const segments = this.isGoogleAuth 
+                        ? ['artifacts', this.appId, 'users', user.uid, 'config', 'data']
+                        : ['artifacts', this.appId, 'public', 'data', 'local_cache', 'default'];
+
                     this.syncing = true;
-                    this.addLog(`Pushing state to cloud node "${this.syncId}"...`, 'info');
+                    this.addLog(`Pushing state to cloud...`, 'info');
                     try {
-                        const docRef = core.methods.doc(core.db, 'artifacts', this.appId, 'public', 'data', 'user_configs', this.syncId);
+                        const docRef = core.methods.doc(core.db, ...segments);
                         await core.methods.setDoc(docRef, {
                             links: JSON.parse(JSON.stringify(this.links)),
                             serverLinks: JSON.parse(JSON.stringify(this.serverLinks)),
                             tasks: JSON.parse(JSON.stringify(this.tasks)),
                             settings: JSON.parse(JSON.stringify(this.settings)),
-                            updatedAt: Date.now(),
-                            author: core.auth.currentUser.uid
+                            updatedAt: Date.now()
                         }, { merge: true });
                         this.addLog('Sync success.', 'success');
                         setTimeout(() => { this.syncing = false; }, 800);
                     } catch (e) {
-                        this.addLog(`Push failed: ${e.message}`, 'error');
+                        this.addLog(`Push failure: ${e.message}`, 'error');
                         this.syncing = false;
-                    }
-                },
-
-                setSyncKey() {
-                    if (!this.syncId) return;
-                    this.addLog(`Identity key set: "${this.syncId}"`, 'info');
-                    localStorage.setItem('nexus_sync_key', this.syncId);
-                    if (window.NEXUS_CORE && window.NEXUS_CORE.auth.currentUser) {
-                        this.setupSyncListener();
                     }
                 },
 
