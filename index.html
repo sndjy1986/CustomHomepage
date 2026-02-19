@@ -207,7 +207,7 @@
                             <button @click="activeTab = 'server'" :class="activeTab === 'server' ? 'accent-text border-b-2 accent-border pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Server Links</button>
                         </div>
 
-                        <!-- Ultra-Tight Grid -->
+                        <!-- Grid Spacing -->
                         <div class="grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-11 gap-x-2 gap-y-6">
                             <template x-for="(link, index) in (activeTab === 'links' ? links : serverLinks)" :key="index">
                                 <div class="flex flex-col items-center gap-2 group relative text-center" 
@@ -215,7 +215,7 @@
                                     <a :href="link.url" target="_blank" class="icon-box" :style="`border-bottom: 2px solid ${settings.accentColor}`">
                                         <img :src="getIcon(link)" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'">
                                     </a>
-                                    <span x-text="link.name" class="text-[7px] font-black uppercase text-white/10 truncate w-full mt-1 group-hover:text-white transition-colors"></span>
+                                    <span x-text="link.name" class="text-[7px] font-black uppercase text-white/20 truncate w-full mt-1 group-hover:text-white transition-colors"></span>
                                 </div>
                             </template>
                             <button @click="addModalOpen = true" class="icon-box border-dashed border-2 border-white/10 text-white/20 hover:text-white transition-all"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -224,10 +224,10 @@
 
                     <!-- Sidebar -->
                     <div class="lg:col-span-4 flex flex-col gap-8 text-left">
-                        <!-- Registry Activity -->
+                        <!-- Calendar Events -->
                         <div class="nexus-card p-8 min-h-[220px]">
                             <div class="flex justify-between items-center mb-6">
-                                <h4 class="text-[10px] font-black uppercase tracking-widest accent-text">Registry Activity</h4>
+                                <h4 class="text-[10px] font-black uppercase tracking-widest accent-text">Calendar Events</h4>
                                 <button @click="fetchEvents()" class="text-white/20 hover:text-white transition-colors">
                                     <svg :class="fetchingEvents ? 'animate-spin' : ''" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8M21 3v5h-5"/></svg>
                                 </button>
@@ -249,19 +249,28 @@
                             </div>
                         </div>
 
-                        <!-- Queue -->
+                        <!-- To Do List (Todoist) -->
                         <div class="nexus-card p-8 flex-1 flex flex-col gap-6">
-                            <h4 class="text-[10px] font-black uppercase tracking-widest accent-text">Registry Queue</h4>
-                            <div class="space-y-3 flex-grow overflow-y-auto max-h-[160px] pr-2">
-                                <template x-for="(t, i) in tasks" :key="i">
-                                    <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
-                                        <div @click="t.done = !t.done; persist()" class="w-5 h-5 rounded-lg border-2 border-white/10 flex items-center justify-center cursor-pointer transition-colors" :class="t.done ? 'accent-bg accent-border' : ''"><svg x-show="t.done" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg></div>
-                                        <span x-text="t.text" class="text-sm font-medium" :class="t.done ? 'text-white/20 line-through' : ''"></span>
-                                        <button @click="tasks.splice(i, 1); persist()" class="ml-auto text-white/10 hover:text-red-400 transition-colors"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                            <div class="flex justify-between items-center">
+                                <h4 class="text-[10px] font-black uppercase tracking-widest accent-text">To Do List :</h4>
+                                <button @click="fetchTasks()" class="text-white/20 hover:text-white transition-colors">
+                                    <svg :class="fetchingTasks ? 'animate-spin' : ''" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8M21 3v5h-5"/></svg>
+                                </button>
+                            </div>
+                            <div class="space-y-3 flex-grow overflow-y-auto max-h-[220px] pr-2">
+                                <template x-for="(t, i) in tasks" :key="t.id">
+                                    <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 group">
+                                        <div @click="toggleTask(t.id)" class="w-5 h-5 rounded-lg border-2 border-white/10 flex items-center justify-center cursor-pointer transition-colors hover:accent-border" :class="t.completed ? 'accent-bg accent-border' : ''">
+                                            <svg x-show="t.completed" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg>
+                                        </div>
+                                        <span x-text="t.content" class="text-sm font-medium" :class="t.completed ? 'text-white/20 line-through' : ''"></span>
                                     </div>
                                 </template>
+                                <template x-if="tasks.length === 0">
+                                    <div class="text-[10px] text-white/20 leading-relaxed italic" x-text="fetchingTasks ? 'Linking Todoist...' : 'No pending tasks.'"></div>
+                                </template>
                             </div>
-                            <input @keydown.enter="addTask($event)" type="text" placeholder="+ New entry..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full text-white placeholder:text-white/20">
+                            <input @keydown.enter="addTodoistTask($event)" type="text" placeholder="+ Add to Todoist..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full text-white placeholder:text-white/20">
                         </div>
                     </div>
                 </div>
@@ -328,7 +337,7 @@
                     </div>
                 </div>
 
-                <!-- Protocol Activity -->
+                <!-- Protocol Logs -->
                 <div class="p-4 bg-black/60 rounded-2xl border border-white/10">
                     <div class="flex justify-between items-center mb-3">
                         <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Protocol Buffer</p>
@@ -394,21 +403,25 @@
     </div>
 
     <script>
+        // CONFIG NODES
         const CAL_IDS = ["ee0de736-6a34-41ec-a3c1-3cf5358f686d", "60fab72f-7327-49ba-9936-2b25e47183fa", "6db7944a-b061-4a2c-a720-719905ee49cb", "57a58707-a0c0-467d-ba6b-0beb2775e2f0", "6ad30b8f-7d22-44bc-af86-8df6aed7cd74"];
         const CAL_API_KEY = "Broadfeet1!"; 
         const CAL_API_BASE = "https://api.cal.sndjy.us/events";
 
+        const TODOIST_API_KEY = "dd831333163729cde9e4bc95a631e739caf31d51";
+        const TODOIST_API_BASE = "https://api.todoist.com/rest/v2";
+
         document.addEventListener('alpine:init', () => {
              Alpine.data('nexusHandler', () => ({
                 initialized: false,
-                booting: true, // Prevent persistence during load
+                booting: true,
                 cloudReady: false,
                 settingsOpen: false,
                 addModalOpen: false,
                 editModalOpen: false,
                 contextMenu: { show: false, x: 0, y: 0, index: null },
                 time: '00:00:00',
-                date: 'CONNECTING...',
+                date: 'PROTOCOL READY',
                 activeTab: 'links',
                 syncKey: localStorage.getItem('nexus_sync_key') || '',
                 protocolLogs: [],
@@ -417,8 +430,9 @@
                 tasks: [],
                 events: [],
                 fetchingEvents: false,
+                fetchingTasks: false,
                 syncing: false,
-                apiStatus: 'Registry standby...',
+                apiStatus: 'Registry ready...',
                 
                 presets: [
                     'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600',
@@ -465,7 +479,6 @@
                             const d = JSON.parse(saved);
                             this.links = d.links || [];
                             this.serverLinks = d.serverLinks || [];
-                            this.tasks = d.tasks || [];
                             this.settings = { ...this.settings, ...d.settings };
                             this.addLog('Kernel: Local buffer restored.', 'success');
                         } catch (e) {
@@ -477,8 +490,11 @@
                     this.booting = false;
                     this.initialized = true;
                     
-                    // Delay event fetching to avoid boot friction
-                    setTimeout(() => this.fetchEvents(), 500);
+                    // Fetch initial data
+                    setTimeout(() => {
+                        this.fetchEvents();
+                        this.fetchTasks();
+                    }, 500);
                 },
 
                 checkCloudStatus() {
@@ -493,7 +509,7 @@
 
                 persist() {
                     if (this.booting) return;
-                    const state = { links: this.links, serverLinks: this.serverLinks, tasks: this.tasks, settings: this.settings };
+                    const state = { links: this.links, serverLinks: this.serverLinks, settings: this.settings };
                     localStorage.setItem('nexus_full_state', JSON.stringify(state));
                     localStorage.setItem('nexus_sync_key', this.syncKey);
                 },
@@ -542,10 +558,10 @@
                             const c = data.content;
                             this.links = c.links || [];
                             this.serverLinks = c.serverLinks || [];
-                            this.tasks = c.tasks || [];
                             this.settings = { ...this.settings, ...c.settings };
                             this.persist();
                             this.addLog('Cloud: Node data applied locally.', 'success');
+                            this.fetchTasks();
                         } else {
                             this.addLog('Cloud: Target node is empty.', 'warn');
                         }
@@ -557,9 +573,9 @@
                 async fetchEvents() {
                     if (this.fetchingEvents) return;
                     this.fetchingEvents = true;
-                    this.addLog('Registry: Scanning network nodes...', 'info');
+                    this.addLog('Registry: Scanning calendar nodes...', 'info');
                     
-                    const fetchWithTimeout = (url, options, timeout = 5000) => {
+                    const fetchWithTimeout = (url, options, timeout = 8000) => {
                         return Promise.race([
                             fetch(url, options),
                             new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeout))
@@ -587,12 +603,78 @@
                                 date: new Date(e.start).toLocaleDateString([], { month: 'short', day: 'numeric' })
                             }));
 
-                        this.apiStatus = `Mapped: ${this.events.length} entries.`;
-                        this.addLog('Registry: Node mapping complete.');
+                        this.addLog('Registry: Calendar mapping complete.');
                     } catch (e) { 
-                        this.apiStatus = 'Registry: Fault';
                         this.addLog('Registry error: Could not verify nodes.', 'error');
                     } finally { this.fetchingEvents = false; }
+                },
+
+                // --- TODOIST INTEGRATION ---
+                async fetchTasks() {
+                    if (this.fetchingTasks) return;
+                    this.fetchingTasks = true;
+                    this.addLog('Todoist: Querying tasks...', 'info');
+                    try {
+                        const res = await fetch(`${TODOIST_API_BASE}/tasks`, {
+                            headers: { 'Authorization': `Bearer ${TODOIST_API_KEY}` }
+                        });
+                        const data = await res.json();
+                        this.tasks = data.map(t => ({
+                            id: t.id,
+                            content: t.content,
+                            completed: false
+                        }));
+                        this.apiStatus = `Registry: ${this.tasks.length} items active.`;
+                        this.addLog(`Todoist: ${this.tasks.length} entries retrieved.`, 'success');
+                    } catch (e) {
+                        this.addLog('Todoist Error: API Handshake failed.', 'error');
+                    } finally { this.fetchingTasks = false; }
+                },
+
+                async addTodoistTask(e) {
+                    const content = e.target.value.trim();
+                    if (!content) return;
+                    this.addLog(`Todoist: Injecting task "${content}"...`, 'info');
+                    try {
+                        const res = await fetch(`${TODOIST_API_BASE}/tasks`, {
+                            method: 'POST',
+                            headers: { 
+                                'Authorization': `Bearer ${TODOIST_API_KEY}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ content: content })
+                        });
+                        if (res.ok) {
+                            const newTask = await res.json();
+                            this.tasks.unshift({ id: newTask.id, content: newTask.content, completed: false });
+                            e.target.value = '';
+                            this.addLog('Todoist: Task confirmed.', 'success');
+                        }
+                    } catch (e) {
+                        this.addLog('Todoist: Injection failed.', 'error');
+                    }
+                },
+
+                async toggleTask(id) {
+                    const task = this.tasks.find(t => t.id === id);
+                    if (!task) return;
+                    task.completed = true;
+                    this.addLog('Todoist: Terminating task entry...', 'info');
+                    try {
+                        const res = await fetch(`${TODOIST_API_BASE}/tasks/${id}/close`, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${TODOIST_API_KEY}` }
+                        });
+                        if (res.ok) {
+                            setTimeout(() => {
+                                this.tasks = this.tasks.filter(t => t.id !== id);
+                            }, 500);
+                            this.addLog('Todoist: Entry terminated.', 'success');
+                        }
+                    } catch (e) {
+                        this.addLog('Todoist: Termination failed.', 'error');
+                        task.completed = false;
+                    }
                 },
 
                 getIcon(item) {
@@ -627,20 +709,13 @@
                     target[this.contextMenu.index] = { ...this.editingItem };
                     this.editModalOpen = false;
                     this.persist();
-                    this.addLog(`Updated: ${this.editingItem.name}`, 'success');
+                    this.addLog(`Modified: ${this.editingItem.name}`, 'success');
                 },
 
                 removeShortcut(idx) {
                     const target = this.activeTab === 'links' ? this.links : this.serverLinks;
                     target.splice(idx, 1);
                     this.closeContextMenu();
-                    this.persist();
-                },
-
-                addTask(e) {
-                    if (!e.target.value.trim()) return;
-                    this.tasks.push({ text: e.target.value, done: false });
-                    e.target.value = '';
                     this.persist();
                 }
             }));
