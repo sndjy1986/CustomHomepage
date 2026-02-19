@@ -46,6 +46,7 @@
     <div class="bg-overlay" :style="initialized ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${settings.bg})`, filter: `blur(${settings.blur}px)` } : {}"></div>
 
     <div class="relative z-10 min-h-screen flex flex-col" x-show="initialized" x-transition.opacity.duration.500ms>
+        <!-- Header -->
         <header class="p-6 flex justify-between items-center max-w-7xl mx-auto w-full">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl">
@@ -59,7 +60,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <div x-show="syncing" class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" title="Cloud Sync Active"></div>
+                <div x-show="syncing" class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" title="Sync Activity Detected"></div>
                 <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 shadow-lg">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
@@ -67,6 +68,7 @@
         </header>
 
         <main class="flex-grow flex flex-col">
+            <!-- Clock/Search Area -->
             <section class="flex-grow flex flex-col items-center justify-center text-center py-4 px-4">
                 <h2 x-text="time" class="text-[6rem] md:text-[9rem] font-extrabold tracking-tighter tabular-nums uppercase leading-none drop-shadow-2xl">00:00 AM</h2>
                 <p x-text="date" class="text-white/30 uppercase tracking-[0.5em] font-bold text-xs mt-4"></p>
@@ -77,8 +79,10 @@
                 </div>
             </section>
 
+            <!-- Content Grid -->
             <section class="max-w-7xl mx-auto w-full px-6 pb-12">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Links -->
                     <div class="lg:col-span-8 nexus-card p-8 md:p-10 flex flex-col min-h-[400px]">
                         <div class="flex items-center gap-8 mb-10 border-b border-white/5">
                             <button @click="activeTab = 'links'" :class="activeTab === 'links' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Links</button>
@@ -99,6 +103,7 @@
                         </div>
                     </div>
 
+                    <!-- Sidebar -->
                     <div class="lg:col-span-4 flex flex-col gap-8 text-left">
                         <div class="nexus-card p-8 min-h-[220px]">
                             <div class="flex justify-between items-center mb-6">
@@ -146,52 +151,33 @@
             <h2 class="text-2xl font-black uppercase tracking-tighter mb-8 text-white">System Console</h2>
             
             <div class="space-y-6">
-                <!-- Status Dashboard -->
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                        <p class="text-[8px] font-black text-white/30 uppercase tracking-widest mb-2">Sync Status</p>
-                        <div class="flex items-center gap-2">
-                            <div class="w-2 h-2 rounded-full" :class="isGoogleAuth ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'"></div>
-                            <span class="text-xs font-bold font-mono" x-text="isGoogleAuth ? 'Cloud Synced' : 'Local Only'"></span>
-                        </div>
-                    </div>
-                    <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                        <p class="text-[8px] font-black text-white/30 uppercase tracking-widest mb-2">API Bridge</p>
-                        <div class="flex items-center gap-2">
-                            <div class="w-2 h-2 rounded-full" :class="apiStatus.includes('Online') ? 'bg-blue-500 animate-pulse' : 'bg-yellow-500'"></div>
-                            <span class="text-xs font-bold font-mono" x-text="apiStatus"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Google Identity Section (Replaces manual keys) -->
+                <!-- Google Login Section -->
                 <div class="p-4 bg-blue-600/10 rounded-2xl border border-blue-500/20">
-                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Cloud Identity</p>
-                    <p class="text-[9px] text-white/40 mb-4 italic">James: Log in with your account to load your private dashboard on any device.</p>
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Nexus Identity Portal</p>
                     <div class="flex items-center justify-between gap-4">
                         <template x-if="!isGoogleAuth">
-                            <button @click="loginWithGoogle()" class="flex-grow py-3 bg-white text-black rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-gray-200 transition-all">
+                            <button @click="loginWithGoogle()" class="flex-grow py-3 bg-white text-black rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-gray-200 transition-all shadow-xl">
                                 <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.28.81-.56z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z" fill="#EA4335"/></svg>
-                                Authenticate Profile
+                                Link Account to Cloud
                             </button>
                         </template>
                         <template x-if="isGoogleAuth">
-                            <div class="flex items-center gap-3 w-full">
-                                <img :src="userPhoto" class="w-10 h-10 rounded-full border border-blue-500/50">
+                            <div class="flex items-center gap-3 w-full bg-black/20 p-3 rounded-xl">
+                                <img :src="userPhoto" class="w-10 h-10 rounded-full border-2 border-blue-500 shadow-lg">
                                 <div class="flex-grow">
-                                    <p class="text-xs font-bold" x-text="userName"></p>
-                                    <p class="text-[9px] text-white/30 truncate" x-text="userEmail"></p>
+                                    <p class="text-xs font-bold leading-none" x-text="userName"></p>
+                                    <p class="text-[9px] text-white/30 truncate mt-1" x-text="userEmail"></p>
                                 </div>
-                                <button @click="logout()" class="px-3 py-2 bg-white/5 rounded-lg text-[9px] uppercase font-bold hover:bg-red-500/20">Sign Out</button>
+                                <button @click="logout()" class="px-3 py-2 bg-white/5 rounded-lg text-[8px] uppercase font-black hover:bg-red-500/20 transition-all">Sign Out</button>
                             </div>
                         </template>
                     </div>
                 </div>
 
-                <!-- Verbose Logs -->
+                <!-- Verbose Protocol Logs -->
                 <div class="p-4 bg-black/60 rounded-2xl border border-white/10">
                     <div class="flex justify-between items-center mb-3">
-                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Protocol Verbose Output</p>
+                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Protocol Stream</p>
                         <button @click="protocolLogs = []" class="text-[8px] text-white/20 hover:text-white uppercase font-bold">Clear</button>
                     </div>
                     <div class="h-[120px] overflow-y-auto pr-2 text-[10px] font-mono scroll-smooth bg-black/40 p-2 rounded-lg" id="protocol-scroller">
@@ -220,7 +206,7 @@
                     </div>
                 </div>
             </div>
-            <button @click="settingsOpen = false" class="w-full mt-10 py-4 bg-blue-600 rounded-xl font-black uppercase text-xs shadow-xl transition-all hover:bg-blue-500">Close Terminal</button>
+            <button @click="settingsOpen = false" class="w-full mt-10 py-4 bg-blue-600 rounded-xl font-black uppercase text-xs shadow-xl transition-all hover:bg-blue-500">Finalize Terminal</button>
         </div>
     </div>
 
@@ -240,14 +226,13 @@
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Icon Handle</label>
-                    <input x-model="newItem.icon" placeholder="e.g. terminal or bitwarden" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                    <input x-model="newItem.icon" placeholder="e.g. terminal" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
                 </div>
             </div>
             <button @click="addItem()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase hover:bg-blue-500 transition-all">Execute Injection</button>
         </div>
     </div>
 
-    <!-- Firebase Handshake Module -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
         import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
@@ -265,7 +250,7 @@
         const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = 'nexusdash';
+        const appId = 'nexus-dashboard-main'; // Static ID for global cross-session syncing
 
         window.NEXUS_CORE = {
             auth, db, appId, projectId: config.projectId,
@@ -277,15 +262,14 @@
         document.addEventListener('alpine:init', () => {
             Alpine.data('nexusHandler', () => ({
                 initialized: false,
+                hasCloudHandshake: false, // Flag to prevent overwriting cloud with local empty state
                 time: '00:00:00',
                 date: 'HANDSHAKE...',
                 activeTab: 'links',
                 syncStatus: 'Offline',
                 syncColor: 'text-white/40',
-                apiStatus: 'Standby...',
+                apiStatus: 'Bridge standby...',
                 protocolLogs: [],
-                projectId: '...',
-                appId: '...', 
                 
                 isGoogleAuth: false,
                 userName: '',
@@ -326,14 +310,12 @@
                     const waiter = setInterval(() => {
                         if (window.NEXUS_CORE) {
                             clearInterval(waiter);
-                            this.appId = window.NEXUS_CORE.appId;
-                            this.projectId = window.NEXUS_CORE.projectId;
-                            this.addLog(`Core detected. Node: ${this.projectId}`, 'success');
+                            this.addLog(`Cloud handshake ready. Starting Auth...`);
                             this.startAuth();
                         }
                     }, 50);
 
-                    setTimeout(() => { if(!this.initialized) { this.initialized = true; this.addLog('Identity sequence complete.', 'warn'); } }, 3000);
+                    setTimeout(() => { if(!this.initialized) { this.initialized = true; this.addLog('Handshake timeout.', 'warn'); } }, 3000);
                 },
 
                 async startAuth() {
@@ -341,7 +323,7 @@
                     core.methods.onAuthStateChanged(core.auth, (user) => {
                         if (user) {
                             this.isGoogleAuth = !user.isAnonymous;
-                            this.addLog(`Handshake: ${this.isGoogleAuth ? 'Private Account' : 'Guest Profile'} verified.`, 'success');
+                            this.addLog(`Handshake: Verified ${this.isGoogleAuth ? user.email : 'Guest Profile'}`, 'success');
                             
                             if (this.isGoogleAuth) {
                                 this.userName = user.displayName;
@@ -356,7 +338,7 @@
 
                     if (!core.auth.currentUser) {
                         core.methods.signInAnonymously(core.auth).catch(err => {
-                            this.addLog(`Handshake Failure: ${err.message}`, 'error');
+                            this.addLog(`Auth Rejected: ${err.message}`, 'error');
                         });
                     }
                 },
@@ -367,7 +349,7 @@
                     this.addLog('Opening Identity Portal...', 'info');
                     try {
                         await core.methods.signInWithPopup(core.auth, provider);
-                        this.addLog('Account linked successfully.', 'success');
+                        this.addLog('Sync handshake confirmed.', 'success');
                     } catch (e) {
                         this.addLog(`Portal Rejected: ${e.message}`, 'error');
                     }
@@ -388,20 +370,19 @@
                 setupSyncListener(user) {
                     const core = window.NEXUS_CORE;
                     
-                    // Private path for account users, public path for guests
-                    const segments = this.isGoogleAuth 
-                        ? ['artifacts', this.appId, 'users', user.uid, 'config', 'data']
-                        : ['artifacts', this.appId, 'public', 'data', 'local_cache', 'default'];
-                    
-                    this.addLog(`Connecting to cloud path: ${segments.join('/')}`, 'info');
+                    // Path segments must be even for document references
+                    const segments = ['artifacts', core.appId, 'users', user.uid, 'dashboard', 'settings'];
+                    this.addLog(`Node Binding: ${segments.join('/')}`, 'info');
                     
                     const docRef = core.methods.doc(core.db, ...segments);
                     
-                    this.syncStatus = 'Syncing...';
+                    this.syncStatus = 'Pulling...';
                     core.methods.onSnapshot(docRef, (snap) => {
                         if (snap.exists()) {
                             const d = snap.data();
-                            this.addLog(`Data received. Synchronizing ${d.links?.length || 0} links.`, 'success');
+                            this.addLog(`Cloud Data Detected: ${d.links?.length || 0} links found.`, 'success');
+                            
+                            // Important: Apply cloud data if we aren't currently pushing an update
                             if(!this.syncing) {
                                 this.links = d.links || [];
                                 this.serverLinks = d.serverLinks || [];
@@ -410,14 +391,16 @@
                             }
                             this.syncStatus = 'Synced';
                             this.syncColor = 'text-green-500';
+                            this.hasCloudHandshake = true; // Safe to push now
                             this.fetchEvents(); 
                         } else {
-                            this.addLog('Cloud Node empty. Awaiting first local change.', 'warn');
-                            this.syncStatus = this.isGoogleAuth ? 'Fresh Profile' : 'Not Linked';
+                            this.addLog('Cloud Node is empty. Operating in local mode.', 'warn');
+                            this.syncStatus = 'Not Linked';
                             this.syncColor = 'text-blue-400';
+                            this.hasCloudHandshake = true; // Mark as "checked" so we can start saving new data
                         }
                     }, (err) => {
-                        this.addLog(`Permission Failure: ${err.message}`, 'error');
+                        this.addLog(`Cloud Access Error: ${err.message}`, 'error');
                         this.syncStatus = 'Offline';
                         this.syncColor = 'text-red-500';
                     });
@@ -426,15 +409,17 @@
                 async persist() {
                     const core = window.NEXUS_CORE;
                     const user = core.auth.currentUser;
-                    if (!user) return;
                     
-                    const segments = this.isGoogleAuth 
-                        ? ['artifacts', this.appId, 'users', user.uid, 'config', 'data']
-                        : ['artifacts', this.appId, 'public', 'data', 'local_cache', 'default'];
-
+                    // CRITICAL DATA PROTECTION:
+                    // Only allow a "Push" to the cloud if we have already successfully checked
+                    // the cloud for data (hasCloudHandshake). This prevents an initial empty local state
+                    // from wiping an existing cloud profile during the first few seconds of boot.
+                    if (!user || !this.hasCloudHandshake) return;
+                    
                     this.syncing = true;
-                    this.addLog(`Uploading update...`, 'info');
+                    this.addLog(`Uploading Protocol Update...`, 'info');
                     try {
+                        const segments = ['artifacts', core.appId, 'users', user.uid, 'dashboard', 'settings'];
                         const docRef = core.methods.doc(core.db, ...segments);
                         await core.methods.setDoc(docRef, {
                             links: JSON.parse(JSON.stringify(this.links)),
@@ -443,10 +428,10 @@
                             settings: JSON.parse(JSON.stringify(this.settings)),
                             updatedAt: Date.now()
                         }, { merge: true });
-                        this.addLog('Cloud update confirmed.', 'success');
+                        this.addLog('Cloud Commit Verified.', 'success');
                         setTimeout(() => { this.syncing = false; }, 800);
                     } catch (e) {
-                        this.addLog(`Upload error: ${e.message}`, 'error');
+                        this.addLog(`Commit Error: ${e.message}`, 'error');
                         this.syncing = false;
                     }
                 },
@@ -460,7 +445,7 @@
                         if (res.ok) {
                             const list = data.events || [];
                             this.events = list.slice(0, 5).map(e => ({
-                                title: e.title || 'Task',
+                                title: e.title || 'Subsystem Task',
                                 time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Active'
                             }));
                             this.apiStatus = 'Bridge Online';
