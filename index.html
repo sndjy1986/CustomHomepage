@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus Dash | Terminal Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Use Supabase instead of Firebase -->
+    <!-- Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
@@ -57,12 +57,12 @@
                 <div>
                     <h1 class="font-extrabold text-2xl tracking-tighter uppercase leading-none">Nexus<span class="text-blue-500">Dash</span></h1>
                     <div class="flex items-center gap-2 mt-1">
-                        <p class="text-[9px] uppercase tracking-[0.3em] font-bold text-white/30" x-text="cloudReady ? 'Cloud Core Online' : 'Local Only Session'"></p>
+                        <p class="text-[9px] uppercase tracking-[0.3em] font-bold text-white/30" x-text="cloudReady ? 'Cloud Core Linked' : 'Local Session Ready'"></p>
                     </div>
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <div x-show="syncing" class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" title="Sync Activity Detected"></div>
+                <div x-show="syncing" class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" title="Sync activity detected"></div>
                 <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 shadow-lg">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
@@ -70,6 +70,7 @@
         </header>
 
         <main class="flex-grow flex flex-col">
+            <!-- Clock Section -->
             <section class="flex-grow flex flex-col items-center justify-center text-center py-4 px-4">
                 <h2 x-text="time" class="text-[6rem] md:text-[9rem] font-extrabold tracking-tighter tabular-nums uppercase leading-none drop-shadow-2xl">00:00 AM</h2>
                 <p x-text="date" class="text-white/30 uppercase tracking-[0.5em] font-bold text-xs mt-4"></p>
@@ -80,8 +81,10 @@
                 </div>
             </section>
 
+            <!-- Grid Content -->
             <section class="max-w-7xl mx-auto w-full px-6 pb-12">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Link Area -->
                     <div class="lg:col-span-8 nexus-card p-8 md:p-10 flex flex-col min-h-[400px]">
                         <div class="flex items-center gap-8 mb-10 border-b border-white/5">
                             <button @click="activeTab = 'links'" :class="activeTab === 'links' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Links</button>
@@ -102,10 +105,11 @@
                         </div>
                     </div>
 
+                    <!-- Sidebar Area -->
                     <div class="lg:col-span-4 flex flex-col gap-8 text-left">
                         <div class="nexus-card p-8 min-h-[220px]">
                             <div class="flex justify-between items-center mb-6">
-                                <h4 class="text-[10px] font-black uppercase text-purple-400 tracking-widest">Upcoming Events</h4>
+                                <h4 class="text-[10px] font-black uppercase text-purple-400 tracking-widest">Protocol Events</h4>
                                 <button @click="fetchEvents()" class="text-white/20 hover:text-white transition-colors">
                                     <svg :class="fetchingEvents ? 'animate-spin' : ''" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8M21 3v5h-5"/></svg>
                                 </button>
@@ -124,7 +128,7 @@
                         </div>
 
                         <div class="nexus-card p-8 flex-1 flex flex-col gap-6">
-                            <h4 class="text-[10px] font-black uppercase text-blue-400 tracking-widest uppercase">To-Do Protocol</h4>
+                            <h4 class="text-[10px] font-black uppercase text-blue-400 tracking-widest uppercase">Registry Queue</h4>
                             <div class="space-y-3 flex-grow overflow-y-auto max-h-[160px] pr-2">
                                 <template x-for="(t, i) in tasks">
                                     <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
@@ -134,7 +138,7 @@
                                     </div>
                                 </template>
                             </div>
-                            <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full text-white placeholder:text-white/20">
+                            <input @keydown.enter="addTask($event)" type="text" placeholder="+ New entry..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full text-white placeholder:text-white/20">
                         </div>
                     </div>
                 </div>
@@ -142,37 +146,48 @@
         </main>
     </div>
 
-    <!-- Settings Modal -->
+    <!-- System Console Modal -->
     <div x-show="settingsOpen" x-transition.opacity class="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
         <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-2xl relative z-10 p-8 border-white/5 shadow-2xl max-h-[90vh] overflow-y-auto text-left text-white" @click.stop>
-            <h2 class="text-2xl font-black uppercase tracking-tighter mb-8 text-white underline decoration-blue-500">System Console</h2>
+            <h2 class="text-2xl font-black uppercase tracking-tighter mb-8 text-white underline decoration-blue-500 underline-offset-8">System Console</h2>
             
             <div class="space-y-6">
-                <!-- Simple Sync Key -->
+                <!-- Supabase Sync -->
                 <div class="p-4 bg-blue-600/10 rounded-2xl border border-blue-500/20 shadow-xl">
-                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Cloud Provider: Supabase</p>
-                    <p class="text-[9px] text-white/40 mb-4 italic">Links save instantly to your browser. Enter credentials below for cloud sync.</p>
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Cloud Synchronization (Supabase)</p>
+                    <p class="text-[9px] text-white/40 mb-6 italic leading-relaxed">Local memory active. Credentials below enable cross-device backup.</p>
                     
                     <div class="space-y-3 mb-6">
-                        <input x-model="sbConfig.url" type="text" placeholder="Supabase Project URL" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] focus:outline-none text-white font-mono">
-                        <input x-model="sbConfig.key" type="password" placeholder="Supabase Anon/Public Key" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] focus:outline-none text-white font-mono">
+                        <div class="relative">
+                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Project Gateway</label>
+                            <input x-model="sbConfig.url" @input="persist()" type="text" placeholder="https://..." class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] focus:outline-none text-white font-mono">
+                        </div>
+                        <div class="relative">
+                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Service Key</label>
+                            <input x-model="sbConfig.key" @input="persist()" type="password" placeholder="Anon Key" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] focus:outline-none text-white font-mono">
+                        </div>
                     </div>
 
                     <div class="flex gap-2">
-                        <input x-model="syncKey" type="text" placeholder="Your Sync ID (e.g. james-1)" class="flex-grow bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
-                        <button @click="cloudPush()" class="px-4 py-2 bg-blue-600 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-500 transition-all">Push</button>
-                        <button @click="cloudPull()" class="px-4 py-2 bg-slate-700 rounded-lg text-[10px] font-bold uppercase hover:bg-slate-600 transition-all">Pull</button>
+                        <div class="flex-grow">
+                             <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Session ID</label>
+                             <input x-model="syncKey" @input="persist()" type="text" placeholder="e.g. james-pro-1" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
+                        </div>
+                        <div class="flex items-end gap-2">
+                            <button @click="cloudPush()" class="px-6 py-2 bg-blue-600 rounded-lg text-[10px] font-black uppercase hover:bg-blue-500 transition-all shadow-lg active:scale-95">Push</button>
+                            <button @click="cloudPull()" class="px-6 py-2 bg-slate-700 rounded-lg text-[10px] font-black uppercase hover:bg-slate-600 transition-all shadow-lg active:scale-95">Pull</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Activity Logs -->
+                <!-- Protocol Logs -->
                 <div class="p-4 bg-black/60 rounded-2xl border border-white/10">
                     <div class="flex justify-between items-center mb-3">
-                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Protocol Stream</p>
-                        <button @click="protocolLogs = []" class="text-[8px] text-white/20 hover:text-white uppercase font-bold">Clear Buffer</button>
+                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Protocol Activity</p>
+                        <button @click="protocolLogs = []" class="text-[8px] text-white/20 hover:text-white uppercase font-bold">Flush Buffer</button>
                     </div>
-                    <div class="h-[100px] overflow-y-auto pr-2 text-[10px] font-mono scroll-smooth bg-black/40 p-2 rounded-lg border border-white/5" id="protocol-scroller">
+                    <div class="h-[120px] overflow-y-auto pr-2 text-[10px] font-mono scroll-smooth bg-black/40 p-2 rounded-lg border border-white/5" id="protocol-scroller">
                         <template x-for="log in protocolLogs">
                             <div class="log-line">
                                 <span class="log-timestamp" x-text="log.time"></span>
@@ -183,45 +198,45 @@
                 </div>
                 
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4 font-bold">API Gateway (Scriptable)</p>
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4 font-bold">API Gateways</p>
                     <div class="space-y-3">
                         <input x-model="settings.scriptable.endpoint" @input="persist()" placeholder="Scriptable Endpoint" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white">
-                        <input x-model="settings.scriptable.authKey" @input="persist()" type="password" placeholder="API Key" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white">
+                        <input x-model="settings.scriptable.authKey" @input="persist()" type="password" placeholder="Auth Key" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white">
                     </div>
                 </div>
                 
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2">Visual Aura</p>
+                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2">Display Filter</p>
                     <div class="flex items-center gap-4">
                         <input type="range" min="0" max="40" x-model="settings.blur" @input="persist()" class="flex-grow h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500">
                         <span x-text="settings.blur + 'px'" class="text-[10px] font-mono text-white/40 min-w-[30px]"></span>
                     </div>
                 </div>
             </div>
-            <button @click="settingsOpen = false" class="w-full mt-10 py-4 bg-blue-600 rounded-xl font-black uppercase text-xs shadow-xl transition-all hover:bg-blue-500">Close System Console</button>
+            <button @click="settingsOpen = false" class="w-full mt-10 py-4 bg-blue-600 rounded-xl font-black uppercase text-xs shadow-xl transition-all hover:bg-blue-500">Shutdown System Console</button>
         </div>
     </div>
 
-    <!-- Inject Modal -->
+    <!-- Module Injection Modal -->
     <div x-show="addModalOpen" x-transition.scale class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md text-left">
         <div @click="addModalOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl" @click.stop>
             <h2 class="text-3xl font-black uppercase tracking-tighter mb-6 text-white text-left">Inject Module</h2>
             <div class="space-y-4">
                 <div>
-                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Label</label>
+                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Module Label</label>
                     <input x-model="newItem.name" placeholder="Name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Endpoint URL</label>
+                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Destination Path</label>
                     <input x-model="newItem.url" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Icon Handle</label>
-                    <input x-model="newItem.icon" placeholder="e.g. terminal" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Vector Icon</label>
+                    <input x-model="newItem.icon" placeholder="e.g. terminal, bitwarden" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
                 </div>
             </div>
-            <button @click="addItem()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase hover:bg-blue-500 transition-all shadow-xl">Execute Injection</button>
+            <button @click="addItem()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase hover:bg-blue-500 transition-all shadow-xl">Execute Linkage</button>
         </div>
     </div>
 
@@ -233,7 +248,7 @@
                 settingsOpen: false,
                 addModalOpen: false,
                 time: '00:00:00',
-                date: 'ENGINE READY',
+                date: 'PROTOCOL ENGAGED',
                 activeTab: 'links',
                 syncKey: localStorage.getItem('nexus_sync_key') || '',
                 protocolLogs: [],
@@ -243,11 +258,12 @@
                 events: [],
                 fetchingEvents: false,
                 syncing: false,
-                apiStatus: 'Bridge standby...',
+                apiStatus: 'Registry standby...',
                 
+                // YOUR HARDCODED SUPABASE CREDENTIALS
                 sbConfig: {
-                    url: localStorage.getItem('nexus_sb_url') || '',
-                    key: localStorage.getItem('nexus_sb_key') || ''
+                    url: localStorage.getItem('nexus_sb_url') || 'https://tygrcsauitiwwlnpzhei.supabase.co',
+                    key: localStorage.getItem('nexus_sb_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5Z3Jjc2F1aXRpd3dsbnB6aGVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NDAxODksImV4cCI6MjA4NzExNjE4OX0.OLiwsqVi9qeltxhgNk42rzgukmOG3gDTDuFacAskZAc'
                 },
 
                 settings: { 
@@ -269,11 +285,11 @@
                 },
 
                 init() {
-                    this.addLog('Nexus portable engine boot.');
+                    this.addLog('Nexus kernel initialized.');
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
 
-                    // Restore from LocalStorage (Permanent until browser cache clear)
+                    // Restore from LocalStorage (Permanent browser cookie behavior)
                     const saved = localStorage.getItem('nexus_full_state');
                     if (saved) {
                         try {
@@ -282,23 +298,24 @@
                             this.serverLinks = d.serverLinks || [];
                             this.tasks = d.tasks || [];
                             this.settings = { ...this.settings, ...d.settings };
-                            this.addLog('State restored from local memory.', 'success');
+                            this.addLog('State restored from local memory buffer.', 'success');
                         } catch (e) {
-                            this.addLog('Local memory corrupted.', 'error');
+                            this.addLog('State restoration failed: format error.', 'error');
                         }
                     }
 
                     this.checkCloudStatus();
                     this.initialized = true;
+                    this.fetchEvents();
                 },
 
                 checkCloudStatus() {
                     if (this.sbConfig.url && this.sbConfig.key) {
                         this.cloudReady = true;
-                        this.addLog('Supabase provider configured.', 'success');
+                        this.addLog('Supabase node handshaked.', 'success');
                     } else {
                         this.cloudReady = false;
-                        this.addLog('Cloud provider unset. Running local-only.', 'warn');
+                        this.addLog('Cloud node unreachable. Config required.', 'warn');
                     }
                 },
 
@@ -309,7 +326,7 @@
                 },
 
                 persist() {
-                    // Update LocalStorage (Instant)
+                    // Update LocalStorage (This is your "Cookie")
                     const state = {
                         links: this.links,
                         serverLinks: this.serverLinks,
@@ -318,7 +335,7 @@
                     };
                     localStorage.setItem('nexus_full_state', JSON.stringify(state));
                     
-                    // Persist config fields
+                    // Persist credentials separately
                     localStorage.setItem('nexus_sb_url', this.sbConfig.url);
                     localStorage.setItem('nexus_sb_key', this.sbConfig.key);
                     localStorage.setItem('nexus_sync_key', this.syncKey);
@@ -331,19 +348,19 @@
                     try {
                         return supabase.createClient(this.sbConfig.url, this.sbConfig.key);
                     } catch (e) {
-                        this.addLog('Provider connection failed.', 'error');
+                        this.addLog('Critical: Bridge construction failed.', 'error');
                         return null;
                     }
                 },
 
                 async cloudPush() {
                     this.persist();
-                    if (!this.syncKey) return this.addLog('Manual Push: Define Sync ID first.', 'error');
+                    if (!this.syncKey) return this.addLog('Error: Sync ID undefined.', 'error');
                     const sb = this.getSupabase();
-                    if (!sb) return this.addLog('Provider error.', 'error');
+                    if (!sb) return this.addLog('Error: Handshake missing.', 'error');
 
                     this.syncing = true;
-                    this.addLog(`Pushing state to node "${this.syncKey}"...`, 'info');
+                    this.addLog(`Action: Pushing local state to node "${this.syncKey}"...`, 'info');
 
                     const state = {
                         links: this.links,
@@ -354,26 +371,27 @@
                     };
 
                     try {
+                        // User needs a table: nexus_backups (id text primary key, content jsonb)
                         const { error } = await sb
                             .from('nexus_backups')
                             .upsert({ id: this.syncKey, content: state });
 
                         if (error) throw error;
-                        this.addLog('Cloud commit successful.', 'success');
+                        this.addLog('Commit: Success. Node synchronized.', 'success');
                     } catch (e) {
-                        this.addLog(`Push error: ${e.message}`, 'error');
-                        this.addLog(`Note: Ensure table 'nexus_backups' exists.`, 'warn');
+                        this.addLog(`Commit Error: ${e.message}`, 'error');
+                        this.addLog(`Tip: Ensure table 'nexus_backups' is initialized.`, 'warn');
                     } finally {
                         setTimeout(() => this.syncing = false, 1000);
                     }
                 },
 
                 async cloudPull() {
-                    if (!this.syncKey) return this.addLog('Manual Pull: Define Sync ID first.', 'error');
+                    if (!this.syncKey) return this.addLog('Error: Sync ID undefined.', 'error');
                     const sb = this.getSupabase();
-                    if (!sb) return this.addLog('Provider error.', 'error');
+                    if (!sb) return this.addLog('Error: Handshake missing.', 'error');
 
-                    this.addLog(`Requesting data pull for node "${this.syncKey}"...`, 'info');
+                    this.addLog(`Action: Pulling cloud state for "${this.syncKey}"...`, 'info');
                     try {
                         const { data, error } = await sb
                             .from('nexus_backups')
@@ -389,12 +407,12 @@
                             this.tasks = c.tasks || [];
                             this.settings = { ...this.settings, ...c.settings };
                             this.persist();
-                            this.addLog('Cloud state applied.', 'success');
+                            this.addLog('Restoration: Cloud state applied locally.', 'success');
                         } else {
-                            this.addLog('Node exists but contains no state or not found.', 'warn');
+                            this.addLog('Handshake: Node empty or key mismatch.', 'warn');
                         }
                     } catch (e) {
-                        this.addLog(`Pull failure: ${e.message}`, 'error');
+                        this.addLog(`Restoration failure: ${e.message}`, 'error');
                     }
                 },
 
@@ -406,12 +424,12 @@
                         const data = await res.json();
                         if (res.ok) {
                             this.events = (data.events || []).slice(0, 5).map(e => ({
-                                title: e.title || 'System Schedule',
+                                title: e.title || 'Schedule Vector',
                                 time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Active'
                             }));
-                            this.apiStatus = 'Bridge Online';
+                            this.apiStatus = 'Online: Link Established';
                         }
-                    } catch (e) { this.apiStatus = 'Bridge Failure'; } finally { this.fetchingEvents = false; }
+                    } catch (e) { this.apiStatus = 'Offline: Link Error'; } finally { this.fetchingEvents = false; }
                 },
 
                 getIcon(item) {
