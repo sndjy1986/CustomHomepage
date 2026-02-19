@@ -60,7 +60,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <div x-show="syncing" class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" title="Sync Activity Detected"></div>
+                <div x-show="syncing" class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" title="Cloud Sync Active"></div>
                 <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 shadow-lg">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
@@ -151,9 +151,28 @@
             <h2 class="text-2xl font-black uppercase tracking-tighter mb-8 text-white">System Console</h2>
             
             <div class="space-y-6">
+                <!-- Status Dashboard -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
+                        <p class="text-[8px] font-black text-white/30 uppercase tracking-widest mb-2">Cloud Identity</p>
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full" :class="isGoogleAuth ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'"></div>
+                            <span class="text-xs font-bold font-mono" x-text="isGoogleAuth ? 'Private account' : 'Guest session'"></span>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
+                        <p class="text-[8px] font-black text-white/30 uppercase tracking-widest mb-2">API Bridge</p>
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full" :class="apiStatus.includes('Online') ? 'bg-blue-500 animate-pulse' : 'bg-yellow-500'"></div>
+                            <span class="text-xs font-bold font-mono" x-text="apiStatus"></span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Google Login Section -->
                 <div class="p-4 bg-blue-600/10 rounded-2xl border border-blue-500/20">
-                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Nexus Identity Portal</p>
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Google Synchronization</p>
+                    <p class="text-[9px] text-white/40 mb-4 italic">James: Log in to save your dashboard permanently across browsers.</p>
                     <div class="flex items-center justify-between gap-4">
                         <template x-if="!isGoogleAuth">
                             <button @click="loginWithGoogle()" class="flex-grow py-3 bg-white text-black rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-gray-200 transition-all shadow-xl">
@@ -180,7 +199,7 @@
                         <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Protocol Stream</p>
                         <button @click="protocolLogs = []" class="text-[8px] text-white/20 hover:text-white uppercase font-bold">Clear</button>
                     </div>
-                    <div class="h-[120px] overflow-y-auto pr-2 text-[10px] font-mono scroll-smooth bg-black/40 p-2 rounded-lg" id="protocol-scroller">
+                    <div class="h-[150px] overflow-y-auto pr-2 text-[10px] font-mono scroll-smooth bg-black/40 p-2 rounded-lg" id="protocol-scroller">
                         <template x-for="log in protocolLogs">
                             <div class="log-line">
                                 <span class="log-timestamp" x-text="log.time"></span>
@@ -238,6 +257,7 @@
         import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
 
+        // STATIC CONFIG LOCK: Ensures all browsers meet in the exact same database project.
         const config = {
             apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
             authDomain: "nexusdash-5731e.firebaseapp.com",
@@ -250,10 +270,10 @@
         const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = 'nexus-dashboard-main'; // Static ID for global cross-session syncing
+        const staticNamespace = 'nexus-dashboard-master'; // FORCED NAMESPACE LOCK
 
         window.NEXUS_CORE = {
-            auth, db, appId, projectId: config.projectId,
+            auth, db, appId: staticNamespace, projectId: config.projectId,
             methods: { onAuthStateChanged, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, doc, setDoc, onSnapshot }
         };
     </script>
@@ -262,13 +282,14 @@
         document.addEventListener('alpine:init', () => {
             Alpine.data('nexusHandler', () => ({
                 initialized: false,
-                hasCloudHandshake: false, // Flag to prevent overwriting cloud with local empty state
+                hasCloudHandshake: false, 
+                currentDocUnsubscribe: null, // Track the active listener
                 time: '00:00:00',
                 date: 'HANDSHAKE...',
                 activeTab: 'links',
-                syncStatus: 'Offline',
+                syncStatus: 'Disconnected',
                 syncColor: 'text-white/40',
-                apiStatus: 'Bridge standby...',
+                apiStatus: 'Standby...',
                 protocolLogs: [],
                 
                 isGoogleAuth: false,
@@ -303,19 +324,19 @@
                 },
 
                 init() {
-                    this.addLog('Nexus protocol boot sequence engaged.');
+                    this.addLog('System boot initiated.');
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
 
                     const waiter = setInterval(() => {
                         if (window.NEXUS_CORE) {
                             clearInterval(waiter);
-                            this.addLog(`Cloud handshake ready. Starting Auth...`);
+                            this.addLog(`Nexus Core attached. Project: ${window.NEXUS_CORE.projectId}`);
                             this.startAuth();
                         }
                     }, 50);
 
-                    setTimeout(() => { if(!this.initialized) { this.initialized = true; this.addLog('Handshake timeout.', 'warn'); } }, 3000);
+                    setTimeout(() => { if(!this.initialized) { this.initialized = true; this.addLog('Local session fallback triggered.', 'warn'); } }, 3000);
                 },
 
                 async startAuth() {
@@ -323,7 +344,7 @@
                     core.methods.onAuthStateChanged(core.auth, (user) => {
                         if (user) {
                             this.isGoogleAuth = !user.isAnonymous;
-                            this.addLog(`Handshake: Verified ${this.isGoogleAuth ? user.email : 'Guest Profile'}`, 'success');
+                            this.addLog(`Handshake: ${this.isGoogleAuth ? user.email : 'Guest'} authenticated.`, 'success');
                             
                             if (this.isGoogleAuth) {
                                 this.userName = user.displayName;
@@ -331,6 +352,7 @@
                                 this.userPhoto = user.photoURL;
                             }
                             
+                            // Every time auth state changes, we must reset the listener to point at the new UID folder
                             this.setupSyncListener(user);
                         }
                         this.initialized = true;
@@ -338,7 +360,7 @@
 
                     if (!core.auth.currentUser) {
                         core.methods.signInAnonymously(core.auth).catch(err => {
-                            this.addLog(`Auth Rejected: ${err.message}`, 'error');
+                            this.addLog(`Cloud Auth Rejected: ${err.message}`, 'error');
                         });
                     }
                 },
@@ -346,12 +368,12 @@
                 async loginWithGoogle() {
                     const core = window.NEXUS_CORE;
                     const provider = new core.methods.GoogleAuthProvider();
-                    this.addLog('Opening Identity Portal...', 'info');
+                    this.addLog('Opening OAuth Portal...', 'info');
                     try {
                         await core.methods.signInWithPopup(core.auth, provider);
-                        this.addLog('Sync handshake confirmed.', 'success');
+                        this.addLog('Google synchronization handshake active.', 'success');
                     } catch (e) {
-                        this.addLog(`Portal Rejected: ${e.message}`, 'error');
+                        this.addLog(`Portal failure: ${e.message}`, 'error');
                     }
                 },
 
@@ -370,19 +392,27 @@
                 setupSyncListener(user) {
                     const core = window.NEXUS_CORE;
                     
-                    // Path segments must be even for document references
+                    // Cleanup existing listener to avoid double-logging and resource leaks
+                    if(this.currentDocUnsubscribe) {
+                        this.addLog('Terminating previous data stream...');
+                        this.currentDocUnsubscribe();
+                    }
+
                     const segments = ['artifacts', core.appId, 'users', user.uid, 'dashboard', 'settings'];
-                    this.addLog(`Node Binding: ${segments.join('/')}`, 'info');
+                    const fullPath = segments.join('/');
+                    this.addLog(`Establishing Node binding: ${fullPath}`, 'info');
                     
                     const docRef = core.methods.doc(core.db, ...segments);
                     
                     this.syncStatus = 'Pulling...';
-                    core.methods.onSnapshot(docRef, (snap) => {
+                    this.hasCloudHandshake = false; // Reset handshake for the new path check
+
+                    this.currentDocUnsubscribe = core.methods.onSnapshot(docRef, (snap) => {
                         if (snap.exists()) {
                             const d = snap.data();
-                            this.addLog(`Cloud Data Detected: ${d.links?.length || 0} links found.`, 'success');
+                            this.addLog(`Cloud Data Detected: ${d.links?.length || 0} links pulled.`, 'success');
                             
-                            // Important: Apply cloud data if we aren't currently pushing an update
+                            // Important: Only apply data from cloud if we aren't mid-upload locally
                             if(!this.syncing) {
                                 this.links = d.links || [];
                                 this.serverLinks = d.serverLinks || [];
@@ -391,17 +421,20 @@
                             }
                             this.syncStatus = 'Synced';
                             this.syncColor = 'text-green-500';
-                            this.hasCloudHandshake = true; // Safe to push now
+                            this.hasCloudHandshake = true; // Handshake complete, safe to Push now
                             this.fetchEvents(); 
                         } else {
-                            this.addLog('Cloud Node is empty. Operating in local mode.', 'warn');
-                            this.syncStatus = 'Not Linked';
+                            this.addLog(`Handshake success. Node "${fullPath}" is empty.`, 'warn');
+                            this.syncStatus = this.isGoogleAuth ? 'Empty Account' : 'Ready to Sync';
                             this.syncColor = 'text-blue-400';
-                            this.hasCloudHandshake = true; // Mark as "checked" so we can start saving new data
+                            
+                            // SAFETY: We mark handshake as done so new local links can be uploaded,
+                            // but we don't upload the current empty local state immediately.
+                            this.hasCloudHandshake = true; 
                         }
                     }, (err) => {
-                        this.addLog(`Cloud Access Error: ${err.message}`, 'error');
-                        this.syncStatus = 'Offline';
+                        this.addLog(`Access Blocked: ${err.message}`, 'error');
+                        this.syncStatus = 'Permission Error';
                         this.syncColor = 'text-red-500';
                     });
                 },
@@ -410,14 +443,13 @@
                     const core = window.NEXUS_CORE;
                     const user = core.auth.currentUser;
                     
-                    // CRITICAL DATA PROTECTION:
-                    // Only allow a "Push" to the cloud if we have already successfully checked
-                    // the cloud for data (hasCloudHandshake). This prevents an initial empty local state
-                    // from wiping an existing cloud profile during the first few seconds of boot.
+                    // PREVENT DATA WIPING:
+                    // We only "Push" if the cloud handshake is complete. This ensures that
+                    // an empty local start doesn't overwrite your cloud data before it's been pulled.
                     if (!user || !this.hasCloudHandshake) return;
                     
                     this.syncing = true;
-                    this.addLog(`Uploading Protocol Update...`, 'info');
+                    this.addLog(`Synchronizing local profile to cloud...`, 'info');
                     try {
                         const segments = ['artifacts', core.appId, 'users', user.uid, 'dashboard', 'settings'];
                         const docRef = core.methods.doc(core.db, ...segments);
@@ -428,10 +460,10 @@
                             settings: JSON.parse(JSON.stringify(this.settings)),
                             updatedAt: Date.now()
                         }, { merge: true });
-                        this.addLog('Cloud Commit Verified.', 'success');
+                        this.addLog('Cloud update confirmed.', 'success');
                         setTimeout(() => { this.syncing = false; }, 800);
                     } catch (e) {
-                        this.addLog(`Commit Error: ${e.message}`, 'error');
+                        this.addLog(`Commit failure: ${e.message}`, 'error');
                         this.syncing = false;
                     }
                 },
@@ -445,7 +477,7 @@
                         if (res.ok) {
                             const list = data.events || [];
                             this.events = list.slice(0, 5).map(e => ({
-                                title: e.title || 'Subsystem Task',
+                                title: e.title || 'Schedule Item',
                                 time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Active'
                             }));
                             this.apiStatus = 'Bridge Online';
