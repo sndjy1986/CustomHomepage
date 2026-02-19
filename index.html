@@ -56,7 +56,6 @@
                     <h1 class="font-extrabold text-2xl tracking-tighter uppercase leading-none">Nexus<span class="text-blue-500">Dash</span></h1>
                     <div class="flex items-center gap-2 mt-1">
                         <p class="text-[9px] uppercase tracking-[0.3em] font-bold" :class="syncColor" x-text="syncStatus"></p>
-                        <span class="text-[7px] text-white/20 font-mono uppercase" x-text="`NS: ${appId}`"></span>
                     </div>
                 </div>
             </div>
@@ -183,19 +182,20 @@
                 </div>
 
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Cloud Alignment</p>
+                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Cloud Sync & Alignment</p>
                     <div class="space-y-4">
                         <div>
                             <label class="text-[8px] text-white/40 uppercase font-bold block mb-1">Nexus Key</label>
                             <div class="flex gap-2">
                                 <input x-model="syncId" type="text" placeholder="Key (e.g. sndjy)" class="flex-grow bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
                                 <button @click="setSyncKey()" class="px-4 py-2 bg-blue-600 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-500 transition-all">Link</button>
+                                <button @click="persist()" class="px-4 py-2 bg-purple-600 rounded-lg text-[10px] font-bold uppercase hover:bg-purple-500 transition-all">Push</button>
                             </div>
                         </div>
                         <div>
-                            <label class="text-[8px] text-white/40 uppercase font-bold block mb-1">Namespace Override (Advanced)</label>
-                            <p class="text-[7px] text-yellow-500/50 italic mb-2">Manual entry here allows cross-session syncing if IDs match exactly.</p>
-                            <input x-model="appId" @change="setSyncKey()" type="text" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
+                            <label class="text-[8px] text-white/40 uppercase font-bold block mb-1">Manual Namespace Override</label>
+                            <p class="text-[7px] text-yellow-500/50 italic mb-2">If syncing fails across sessions, ensure both windows use the EXACT same namespace ID below.</p>
+                            <input x-model="appId" type="text" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
                         </div>
                     </div>
                 </div>
@@ -243,12 +243,13 @@
         </div>
     </div>
 
-    <!-- Firebase Handshake Module -->
+    <!-- Firebase Logic Loader -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
-        import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
+        import { getFirestore, doc, setDoc, onSnapshot, collection } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
 
+        // Use standard environment config if available
         const config = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
             : {
@@ -263,11 +264,13 @@
         const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        
+        // This is the variable that differs between windows!
         const envAppId = typeof __app_id !== 'undefined' ? __app_id : 'nexusdash';
 
         window.NEXUS_CORE = {
-            auth, db, appId: envAppId, projectId: config.projectId,
-            methods: { onAuthStateChanged, signInAnonymously, signInWithCustomToken, doc, setDoc, onSnapshot }
+            auth, db, appId: envAppId,
+            methods: { onAuthStateChanged, signInAnonymously, signInWithCustomToken, doc, setDoc, onSnapshot, collection }
         };
     </script>
 
@@ -276,15 +279,14 @@
             Alpine.data('nexusHandler', () => ({
                 initialized: false,
                 time: '00:00:00',
-                date: 'HANDSHAKE...',
+                date: 'CONNECTING...',
                 activeTab: 'links',
                 syncId: localStorage.getItem('nexus_sync_key') || '',
                 syncStatus: 'Protocol Offline',
                 syncColor: 'text-white/40',
                 apiStatus: 'Standby...',
                 protocolLogs: [],
-                projectId: '...',
-                appId: '...', // Current active namespace
+                appId: '...', 
                 settingsOpen: false,
                 addModalOpen: false,
                 syncing: false,
@@ -312,7 +314,7 @@
                 },
 
                 init() {
-                    this.addLog('Nexus protocol boot sequence engaged.');
+                    this.addLog('Boot sequence initialized.');
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
 
@@ -320,43 +322,41 @@
                         if (window.NEXUS_CORE) {
                             clearInterval(waiter);
                             this.appId = window.NEXUS_CORE.appId;
-                            this.projectId = window.NEXUS_CORE.projectId;
-                            this.addLog(`Nexus Core Module detected. Namespace: ${this.appId}`, 'success');
-                            this.addLog(`Active Project ID: ${this.projectId}`, 'info');
+                            this.addLog(`Nexus Core attached. Detected Namespace: ${this.appId}`, 'success');
                             this.startAuth();
                         }
                     }, 50);
 
-                    setTimeout(() => { if(!this.initialized) { this.initialized = true; this.addLog('Handshake timeout. Running local session.', 'warn'); } }, 4000);
+                    setTimeout(() => { if(!this.initialized) { this.initialized = true; this.addLog('Connection handshake delayed. Rendering Local Session.', 'warn'); } }, 4000);
                 },
 
                 async startAuth() {
                     const core = window.NEXUS_CORE;
-                    this.addLog('Requesting identity verification from cloud...');
+                    this.addLog('Requesting cloud identity verification...');
                     
                     try {
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            this.addLog('Performing Custom Token handshake...', 'info');
+                            this.addLog(' Handshaking with custom session token...', 'info');
                             await core.methods.signInWithCustomToken(core.auth, __initial_auth_token);
                         } else {
-                            this.addLog('Fallback to Anonymous handshake sequence...', 'warn');
+                            this.addLog(' Handshaking with anonymous profile...', 'info');
                             await core.methods.signInAnonymously(core.auth);
                         }
 
                         core.methods.onAuthStateChanged(core.auth, (user) => {
                             if (user) {
-                                this.addLog(`Identity verified. UID: ${user.uid}`, 'success');
+                                this.addLog(` Identity Verified. Session UID: ${user.uid}`, 'success');
                                 if (this.syncId) {
                                     this.setupSyncListener();
                                 } else {
-                                    this.syncStatus = 'Local-Only Protocol';
+                                    this.syncStatus = 'Local-Only Mode';
                                     this.syncColor = 'text-yellow-500/50';
                                 }
                             }
                             this.initialized = true;
                         });
                     } catch (err) {
-                        this.addLog(`Handshake rejected: ${err.message}`, 'error');
+                        this.addLog(` Identity handshake failed: ${err.message}`, 'error');
                         this.initialized = true;
                     }
                 },
@@ -371,17 +371,17 @@
                     const core = window.NEXUS_CORE;
                     if (!core.auth.currentUser) return;
 
-                    // The path is defined by the core's appId and the user's syncId
-                    const path = `artifacts/${this.appId}/public/data/global_configs/${this.syncId}`;
-                    this.addLog(`Connecting to cloud node at: ${path}`, 'info');
+                    // STRICT PATHING as per environment requirements
+                    const fullPath = `/artifacts/${this.appId}/public/data/user_configs/${this.syncId}`;
+                    this.addLog(`Connecting to Node Path: ${fullPath}`, 'info');
                     
-                    const docRef = core.methods.doc(core.db, 'artifacts', this.appId, 'public', 'data', 'global_configs', this.syncId);
+                    const docRef = core.methods.doc(core.db, 'artifacts', this.appId, 'public', 'data', 'user_configs', this.syncId);
                     
                     this.syncStatus = 'Syncing...';
                     core.methods.onSnapshot(docRef, (snap) => {
                         if (snap.exists()) {
                             const d = snap.data();
-                            this.addLog(`Cloud profile found. Merging ${d.links?.length || 0} links into local state.`, 'success');
+                            this.addLog(`Data Stream Active: Received ${d.links?.length || 0} links.`, 'success');
                             this.links = d.links || [];
                             this.serverLinks = d.serverLinks || [];
                             this.tasks = d.tasks || [];
@@ -390,13 +390,13 @@
                             this.syncColor = 'text-green-500';
                             this.fetchEvents(); 
                         } else {
-                            this.addLog(`Node empty at this Namespace/Key combination. Pending initial commit.`, 'warn');
+                            this.addLog('Node Empty: The cloud profile for this Namespace + Key combo has no data.', 'warn');
                             this.syncStatus = 'New Nexus Key';
                             this.syncColor = 'text-blue-400';
                         }
                     }, (err) => {
-                        this.addLog(`Cloud Node rejection: ${err.code}. Check Permissions.`, 'error');
-                        this.syncStatus = 'Node Reject';
+                        this.addLog(`Cloud Rejection: ${err.code}. Namespace mismatch?`, 'error');
+                        this.syncStatus = 'Node Error';
                         this.syncColor = 'text-red-500';
                     });
                 },
@@ -406,28 +406,27 @@
                     if (!core.auth.currentUser || !this.syncId) return;
                     
                     this.syncing = true;
-                    this.addLog(`Transmitting local state to cloud node "${this.syncId}"...`, 'info');
+                    this.addLog(`Uploading local profile to cloud node "${this.syncId}"...`, 'info');
                     try {
-                        const docRef = core.methods.doc(core.db, 'artifacts', this.appId, 'public', 'data', 'global_configs', this.syncId);
+                        const docRef = core.methods.doc(core.db, 'artifacts', this.appId, 'public', 'data', 'user_configs', this.syncId);
                         await core.methods.setDoc(docRef, {
                             links: JSON.parse(JSON.stringify(this.links)),
                             serverLinks: JSON.parse(JSON.stringify(this.serverLinks)),
                             tasks: JSON.parse(JSON.stringify(this.tasks)),
                             settings: JSON.parse(JSON.stringify(this.settings)),
-                            updatedBy: core.auth.currentUser.uid,
                             updatedAt: Date.now()
                         }, { merge: true });
-                        this.addLog('Cloud commit acknowledged.', 'success');
+                        this.addLog('Upload Confirmed: Local state synced to cloud.', 'success');
                         setTimeout(() => { this.syncing = false; }, 800);
                     } catch (e) {
-                        this.addLog(`Commit failure: ${e.message}`, 'error');
+                        this.addLog(`Upload Failed: ${e.message}`, 'error');
                         this.syncing = false;
                     }
                 },
 
                 setSyncKey() {
                     if (!this.syncId) return;
-                    this.addLog(`Identity key handle set to: "${this.syncId}"`, 'info');
+                    this.addLog(`Target Key set to: "${this.syncId}"`, 'info');
                     localStorage.setItem('nexus_sync_key', this.syncId);
                     if (window.NEXUS_CORE && window.NEXUS_CORE.auth.currentUser) {
                         this.setupSyncListener();
