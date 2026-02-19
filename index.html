@@ -104,12 +104,61 @@
         .accent-border { border-color: var(--accent-glow) !important; }
         .accent-text { color: var(--accent-glow) !important; }
         .accent-bg { background-color: var(--accent-glow) !important; }
+
+        /* Context Menu Styles */
+        .context-menu {
+            position: fixed;
+            z-index: 1000;
+            min-width: 160px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            padding: 6px;
+        }
+
+        .context-menu button {
+            width: 100%;
+            text-align: left;
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .context-menu button:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--accent-glow);
+        }
     </style>
 </head>
-<body x-data="nexusHandler" x-cloak :style="`--accent-glow: ${settings.accentColor}`">
+<body x-data="nexusHandler" x-cloak :style="`--accent-glow: ${settings.accentColor}`" @click="closeContextMenu()" @contextmenu="closeContextMenu()">
 
     <div class="bg-animate"></div>
     <div class="bg-overlay" :style="initialized ? { backgroundImage: `linear-gradient(rgba(0,0,0,${settings.darken / 100}), rgba(0,0,0,${settings.darken / 100})), url(${settings.bg})`, filter: `blur(${settings.blur}px)` } : {}"></div>
+
+    <!-- Right-Click Context Menu -->
+    <div x-show="contextMenu.show" 
+         class="context-menu" 
+         :style="`top: ${contextMenu.y}px; left: ${contextMenu.x}px;`"
+         x-transition.opacity
+         @click.stop>
+        <button @click="triggerEdit()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Edit Module
+        </button>
+        <button @click="removeShortcut(contextMenu.index)" class="text-red-400 hover:text-red-300">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+            Delete
+        </button>
+    </div>
 
     <div class="relative z-10 min-h-screen flex flex-col" x-show="initialized" x-transition.opacity.duration.500ms>
         <!-- Header -->
@@ -157,12 +206,14 @@
 
                         <div class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-4">
                             <template x-for="(link, index) in (activeTab === 'links' ? links : serverLinks)" :key="index">
-                                <div class="flex flex-col items-center gap-2 group relative text-center">
+                                <div class="flex flex-col items-center gap-2 group relative text-center" 
+                                     @contextmenu.prevent="openContextMenu($event, index)">
                                     <a :href="link.url" target="_blank" class="icon-box" :style="`border-bottom: 2px solid ${settings.accentColor}`">
                                         <img :src="getIcon(link)" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'">
                                     </a>
                                     <span x-text="link.name" class="text-[8px] font-black uppercase text-white/30 truncate w-full mt-1"></span>
-                                    <button @click="removeShortcut(index)" class="absolute -top-1 -right-1 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-xl z-20"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                                    <!-- Legacy small remove button - kept for convenience, context menu is primary -->
+                                    <button @click.stop="removeShortcut(index)" class="absolute -top-1 -right-1 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-xl z-20"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
                                 </div>
                             </template>
                             <button @click="addModalOpen = true" class="icon-box border-dashed border-2 border-white/10 text-white/20 hover:text-white transition-all"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -314,6 +365,29 @@
         </div>
     </div>
 
+    <!-- Edit Module Modal -->
+    <div x-show="editModalOpen" x-transition.scale class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md text-left">
+        <div @click="editModalOpen = false" class="absolute inset-0 bg-black/80"></div>
+        <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl" @click.stop>
+            <h2 class="text-3xl font-black uppercase tracking-tighter mb-6 text-white text-left">Edit Module</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Module Label</label>
+                    <input x-model="editingItem.name" placeholder="Name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Destination Path</label>
+                    <input x-model="editingItem.url" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Vector Icon</label>
+                    <input x-model="editingItem.icon" placeholder="e.g. terminal" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                </div>
+            </div>
+            <button @click="saveEdit()" class="w-full mt-10 py-5 accent-bg rounded-2xl font-black text-xs uppercase transition-all shadow-xl hover:opacity-90">Save Calibration</button>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('alpine:init', () => {
              Alpine.data('nexusHandler', () => ({
@@ -321,6 +395,8 @@
                 cloudReady: false,
                 settingsOpen: false,
                 addModalOpen: false,
+                editModalOpen: false,
+                contextMenu: { show: false, x: 0, y: 0, index: null },
                 time: '00:00:00',
                 date: 'PROTOCOL ENGAGED',
                 activeTab: 'links',
@@ -356,6 +432,7 @@
                 },
 
                 newItem: { name: '', url: '', icon: '' },
+                editingItem: { name: '', url: '', icon: '' },
 
                 addLog(msg, type = 'info') {
                     const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -496,9 +573,9 @@
                                 title: e.title || 'Registry event',
                                 time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Active'
                             }));
-                            this.apiStatus = 'Gateway: Online';
+                            this.apiStatus = 'Online: Link Established';
                         }
-                    } catch (e) { this.apiStatus = 'Gateway: Link error'; } finally { this.fetchingEvents = false; }
+                    } catch (e) { this.apiStatus = 'Offline: Link Error'; } finally { this.fetchingEvents = false; }
                 },
 
                 getIcon(item) {
@@ -515,9 +592,40 @@
                     this.persist();
                 },
 
+                // Context Menu Logic
+                openContextMenu(e, idx) {
+                    this.contextMenu = {
+                        show: true,
+                        x: e.clientX,
+                        y: e.clientY,
+                        index: idx
+                    };
+                },
+
+                closeContextMenu() {
+                    this.contextMenu.show = false;
+                },
+
+                triggerEdit() {
+                    const target = this.activeTab === 'links' ? this.links : this.serverLinks;
+                    const item = target[this.contextMenu.index];
+                    this.editingItem = { ...item };
+                    this.editModalOpen = true;
+                    this.closeContextMenu();
+                },
+
+                saveEdit() {
+                    const target = this.activeTab === 'links' ? this.links : this.serverLinks;
+                    target[this.contextMenu.index] = { ...this.editingItem };
+                    this.editModalOpen = false;
+                    this.persist();
+                    this.addLog(`Updated module: ${this.editingItem.name}`, 'success');
+                },
+
                 removeShortcut(idx) {
                     const target = this.activeTab === 'links' ? this.links : this.serverLinks;
                     target.splice(idx, 1);
+                    this.closeContextMenu();
                     this.persist();
                 },
 
