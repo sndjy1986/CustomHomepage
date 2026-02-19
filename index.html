@@ -62,7 +62,7 @@
             <div class="flex items-center gap-3">
                 <div x-show="syncing" class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" title="Syncing to Cloud..."></div>
                 <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 shadow-lg">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
             </div>
         </header>
@@ -189,7 +189,7 @@
                             <div class="flex gap-2">
                                 <input x-model="syncId" type="text" placeholder="Key (e.g. sndjy)" class="flex-grow bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
                                 <button @click="setSyncKey()" class="px-4 py-2 bg-blue-600 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-500 transition-all">Link</button>
-                                <button @click="persist()" class="px-4 py-2 bg-purple-600 rounded-lg text-[10px] font-bold uppercase hover:bg-purple-500 transition-all">Push</button>
+                                <button @click="persist()" class="px-4 py-2 bg-purple-600 rounded-lg text-[10px] font-bold uppercase hover:bg-purple-500 transition-all" title="Push Local -> Cloud">Push</button>
                             </div>
                         </div>
                         <div>
@@ -243,29 +243,27 @@
         </div>
     </div>
 
-    <!-- Firebase Logic Loader -->
+    <!-- Firebase Handshake Module -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, onSnapshot, collection } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
 
-        // Use standard environment config if available
-        const config = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : {
-                apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
-                authDomain: "nexusdash-5731e.firebaseapp.com",
-                projectId: "nexusdash-5731e",
-                storageBucket: "nexusdash-5731e.firebasestorage.app",
-                messagingSenderId: "758016854578",
-                appId: "1:758016854578:web:18c6d8f8181b1134caca2b"
-            };
+        // FORCE ALIGNMENT: Using a stable config prevents project mismatch between browsers.
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
+            authDomain: "nexusdash-5731e.firebaseapp.com",
+            projectId: "nexusdash-5731e",
+            storageBucket: "nexusdash-5731e.firebasestorage.app",
+            messagingSenderId: "758016854578",
+            appId: "1:758016854578:web:18c6d8f8181b1134caca2b"
+        };
 
-        const app = initializeApp(config);
+        const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         
-        // This is the variable that differs between windows!
+        // This variable is the folder name. Match this exactly to sync cross-session!
         const envAppId = typeof __app_id !== 'undefined' ? __app_id : 'nexusdash';
 
         window.NEXUS_CORE = {
@@ -314,7 +312,7 @@
                 },
 
                 init() {
-                    this.addLog('Boot sequence initialized.');
+                    this.addLog('Nexus protocol boot sequence engaged.');
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
 
@@ -322,12 +320,12 @@
                         if (window.NEXUS_CORE) {
                             clearInterval(waiter);
                             this.appId = window.NEXUS_CORE.appId;
-                            this.addLog(`Nexus Core attached. Detected Namespace: ${this.appId}`, 'success');
+                            this.addLog(`Nexus Core attached. Namespace: ${this.appId}`, 'success');
                             this.startAuth();
                         }
                     }, 50);
 
-                    setTimeout(() => { if(!this.initialized) { this.initialized = true; this.addLog('Connection handshake delayed. Rendering Local Session.', 'warn'); } }, 4000);
+                    setTimeout(() => { if(!this.initialized) { this.initialized = true; this.addLog('Handshake sequence completed with local fallback.', 'warn'); } }, 4000);
                 },
 
                 async startAuth() {
@@ -336,16 +334,16 @@
                     
                     try {
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            this.addLog(' Handshaking with custom session token...', 'info');
+                            this.addLog('Performing session token handshake...', 'info');
                             await core.methods.signInWithCustomToken(core.auth, __initial_auth_token);
                         } else {
-                            this.addLog(' Handshaking with anonymous profile...', 'info');
+                            this.addLog('Handshaking with anonymous profile...', 'info');
                             await core.methods.signInAnonymously(core.auth);
                         }
 
                         core.methods.onAuthStateChanged(core.auth, (user) => {
                             if (user) {
-                                this.addLog(` Identity Verified. Session UID: ${user.uid}`, 'success');
+                                this.addLog(`Identity verified. Session UID: ${user.uid}`, 'success');
                                 if (this.syncId) {
                                     this.setupSyncListener();
                                 } else {
@@ -356,7 +354,7 @@
                             this.initialized = true;
                         });
                     } catch (err) {
-                        this.addLog(` Identity handshake failed: ${err.message}`, 'error');
+                        this.addLog(`Handshake failed: ${err.message}`, 'error');
                         this.initialized = true;
                     }
                 },
@@ -371,9 +369,8 @@
                     const core = window.NEXUS_CORE;
                     if (!core.auth.currentUser) return;
 
-                    // STRICT PATHING as per environment requirements
-                    const fullPath = `/artifacts/${this.appId}/public/data/user_configs/${this.syncId}`;
-                    this.addLog(`Connecting to Node Path: ${fullPath}`, 'info');
+                    const fullPath = `artifacts/${this.appId}/public/data/user_configs/${this.syncId}`;
+                    this.addLog(`Connecting to Path: ${fullPath}`, 'info');
                     
                     const docRef = core.methods.doc(core.db, 'artifacts', this.appId, 'public', 'data', 'user_configs', this.syncId);
                     
@@ -381,7 +378,7 @@
                     core.methods.onSnapshot(docRef, (snap) => {
                         if (snap.exists()) {
                             const d = snap.data();
-                            this.addLog(`Data Stream Active: Received ${d.links?.length || 0} links.`, 'success');
+                            this.addLog(`Protocol Update: Received state containing ${d.links?.length || 0} links.`, 'success');
                             this.links = d.links || [];
                             this.serverLinks = d.serverLinks || [];
                             this.tasks = d.tasks || [];
@@ -390,13 +387,13 @@
                             this.syncColor = 'text-green-500';
                             this.fetchEvents(); 
                         } else {
-                            this.addLog('Node Empty: The cloud profile for this Namespace + Key combo has no data.', 'warn');
+                            this.addLog(`Path is currently empty. Ready for initial Push.`, 'warn');
                             this.syncStatus = 'New Nexus Key';
                             this.syncColor = 'text-blue-400';
                         }
                     }, (err) => {
-                        this.addLog(`Cloud Rejection: ${err.code}. Namespace mismatch?`, 'error');
-                        this.syncStatus = 'Node Error';
+                        this.addLog(`Node failure: ${err.code}. Verify Namespace.`, 'error');
+                        this.syncStatus = 'Sync Fail';
                         this.syncColor = 'text-red-500';
                     });
                 },
@@ -406,7 +403,7 @@
                     if (!core.auth.currentUser || !this.syncId) return;
                     
                     this.syncing = true;
-                    this.addLog(`Uploading local profile to cloud node "${this.syncId}"...`, 'info');
+                    this.addLog(`Pushing state to cloud node "${this.syncId}"...`, 'info');
                     try {
                         const docRef = core.methods.doc(core.db, 'artifacts', this.appId, 'public', 'data', 'user_configs', this.syncId);
                         await core.methods.setDoc(docRef, {
@@ -416,17 +413,17 @@
                             settings: JSON.parse(JSON.stringify(this.settings)),
                             updatedAt: Date.now()
                         }, { merge: true });
-                        this.addLog('Upload Confirmed: Local state synced to cloud.', 'success');
+                        this.addLog('State sync complete.', 'success');
                         setTimeout(() => { this.syncing = false; }, 800);
                     } catch (e) {
-                        this.addLog(`Upload Failed: ${e.message}`, 'error');
+                        this.addLog(`Push failed: ${e.message}`, 'error');
                         this.syncing = false;
                     }
                 },
 
                 setSyncKey() {
                     if (!this.syncId) return;
-                    this.addLog(`Target Key set to: "${this.syncId}"`, 'info');
+                    this.addLog(`Key handle set: "${this.syncId}"`, 'info');
                     localStorage.setItem('nexus_sync_key', this.syncId);
                     if (window.NEXUS_CORE && window.NEXUS_CORE.auth.currentUser) {
                         this.setupSyncListener();
