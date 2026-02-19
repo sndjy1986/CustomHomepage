@@ -56,6 +56,7 @@
                     <h1 class="font-extrabold text-2xl tracking-tighter uppercase leading-none">Nexus<span class="text-blue-500">Dash</span></h1>
                     <div class="flex items-center gap-2 mt-1">
                         <p class="text-[9px] uppercase tracking-[0.3em] font-bold" :class="syncColor" x-text="syncStatus"></p>
+                        <span class="text-[7px] text-white/20 font-mono uppercase" x-text="`Node: ${projectId}`"></span>
                     </div>
                 </div>
             </div>
@@ -194,7 +195,7 @@
                         </div>
                         <div>
                             <label class="text-[8px] text-white/40 uppercase font-bold block mb-1">Manual Namespace Override</label>
-                            <p class="text-[7px] text-yellow-500/50 italic mb-2">If syncing fails across sessions, ensure both windows use the EXACT same namespace ID below.</p>
+                            <p class="text-[7px] text-yellow-500/50 italic mb-2">Ensure both windows use the EXACT same namespace ID below.</p>
                             <input x-model="appId" type="text" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
                         </div>
                     </div>
@@ -243,13 +244,14 @@
         </div>
     </div>
 
-    <!-- Firebase Handshake Module -->
+    <!-- Firebase Synchronizer -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, onSnapshot, collection } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
 
-        // FORCE ALIGNMENT: Using a stable config prevents project mismatch between browsers.
+        // CRITICAL FIX: We no longer check for __firebase_config. 
+        // We force your personal project configuration so all instances meet at the same place.
         const firebaseConfig = {
             apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
             authDomain: "nexusdash-5731e.firebaseapp.com",
@@ -263,11 +265,11 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         
-        // This variable is the folder name. Match this exactly to sync cross-session!
+        // This is the variable that differs between windows!
         const envAppId = typeof __app_id !== 'undefined' ? __app_id : 'nexusdash';
 
         window.NEXUS_CORE = {
-            auth, db, appId: envAppId,
+            auth, db, appId: envAppId, projectId: firebaseConfig.projectId,
             methods: { onAuthStateChanged, signInAnonymously, signInWithCustomToken, doc, setDoc, onSnapshot, collection }
         };
     </script>
@@ -284,6 +286,7 @@
                 syncColor: 'text-white/40',
                 apiStatus: 'Standby...',
                 protocolLogs: [],
+                projectId: '...', 
                 appId: '...', 
                 settingsOpen: false,
                 addModalOpen: false,
@@ -320,7 +323,9 @@
                         if (window.NEXUS_CORE) {
                             clearInterval(waiter);
                             this.appId = window.NEXUS_CORE.appId;
+                            this.projectId = window.NEXUS_CORE.projectId;
                             this.addLog(`Nexus Core attached. Namespace: ${this.appId}`, 'success');
+                            this.addLog(`Targeting Static Cloud: ${this.projectId}`, 'info');
                             this.startAuth();
                         }
                     }, 50);
@@ -333,13 +338,8 @@
                     this.addLog('Requesting cloud identity verification...');
                     
                     try {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            this.addLog('Performing session token handshake...', 'info');
-                            await core.methods.signInWithCustomToken(core.auth, __initial_auth_token);
-                        } else {
-                            this.addLog('Handshaking with anonymous profile...', 'info');
-                            await core.methods.signInAnonymously(core.auth);
-                        }
+                        // Handshaking anonymously for ease of use
+                        await core.methods.signInAnonymously(core.auth);
 
                         core.methods.onAuthStateChanged(core.auth, (user) => {
                             if (user) {
@@ -369,6 +369,7 @@
                     const core = window.NEXUS_CORE;
                     if (!core.auth.currentUser) return;
 
+                    // STRICT PATHING as per environmental requirement Rule 1
                     const fullPath = `artifacts/${this.appId}/public/data/user_configs/${this.syncId}`;
                     this.addLog(`Connecting to Path: ${fullPath}`, 'info');
                     
@@ -378,22 +379,27 @@
                     core.methods.onSnapshot(docRef, (snap) => {
                         if (snap.exists()) {
                             const d = snap.data();
-                            this.addLog(`Protocol Update: Received state containing ${d.links?.length || 0} links.`, 'success');
-                            this.links = d.links || [];
-                            this.serverLinks = d.serverLinks || [];
-                            this.tasks = d.tasks || [];
-                            this.settings = { ...this.settings, ...d.settings };
+                            this.addLog(`Cloud profile found. Receiving ${d.links?.length || 0} links.`, 'success');
+                            
+                            // Important: Only apply if we are not currently uploading
+                            if(!this.syncing) {
+                                this.links = d.links || [];
+                                this.serverLinks = d.serverLinks || [];
+                                this.tasks = d.tasks || [];
+                                this.settings = { ...this.settings, ...d.settings };
+                            }
+                            
                             this.syncStatus = 'Nexus Linked';
                             this.syncColor = 'text-green-500';
                             this.fetchEvents(); 
                         } else {
-                            this.addLog(`Path is currently empty. Ready for initial Push.`, 'warn');
+                            this.addLog(`No data found at "${this.syncId}". Ready for data push.`, 'warn');
                             this.syncStatus = 'New Nexus Key';
                             this.syncColor = 'text-blue-400';
                         }
                     }, (err) => {
-                        this.addLog(`Node failure: ${err.code}. Verify Namespace.`, 'error');
-                        this.syncStatus = 'Sync Fail';
+                        this.addLog(`Cloud access failure: ${err.code}. Check permissions.`, 'error');
+                        this.syncStatus = 'Access Denied';
                         this.syncColor = 'text-red-500';
                     });
                 },
@@ -411,19 +417,20 @@
                             serverLinks: JSON.parse(JSON.stringify(this.serverLinks)),
                             tasks: JSON.parse(JSON.stringify(this.tasks)),
                             settings: JSON.parse(JSON.stringify(this.settings)),
-                            updatedAt: Date.now()
+                            updatedAt: Date.now(),
+                            author: core.auth.currentUser.uid
                         }, { merge: true });
-                        this.addLog('State sync complete.', 'success');
+                        this.addLog('Sync success.', 'success');
                         setTimeout(() => { this.syncing = false; }, 800);
                     } catch (e) {
-                        this.addLog(`Push failed: ${e.message}`, 'error');
+                        this.addLog(`Push failure: ${e.message}`, 'error');
                         this.syncing = false;
                     }
                 },
 
                 setSyncKey() {
                     if (!this.syncId) return;
-                    this.addLog(`Key handle set: "${this.syncId}"`, 'info');
+                    this.addLog(`Identity key set: "${this.syncId}"`, 'info');
                     localStorage.setItem('nexus_sync_key', this.syncId);
                     if (window.NEXUS_CORE && window.NEXUS_CORE.auth.currentUser) {
                         this.setupSyncListener();
