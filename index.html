@@ -63,7 +63,7 @@
             <div class="flex items-center gap-3">
                 <div x-show="syncing" class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" title="Syncing to Cloud..."></div>
                 <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 shadow-lg">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
             </div>
         </header>
@@ -244,15 +244,15 @@
         </div>
     </div>
 
-    <!-- Firebase Synchronizer -->
+    <!-- Firebase Handshake Module -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, onSnapshot, collection } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
 
-        // CRITICAL FIX: We no longer check for __firebase_config. 
-        // We force your personal project configuration so all instances meet at the same place.
-        const firebaseConfig = {
+        // STATIC PROJECT LOCK: We bypass the environment-provided config completely.
+        // This ensures every window talks to the SAME database.
+        const staticConfig = {
             apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
             authDomain: "nexusdash-5731e.firebaseapp.com",
             projectId: "nexusdash-5731e",
@@ -261,15 +261,15 @@
             appId: "1:758016854578:web:18c6d8f8181b1134caca2b"
         };
 
-        const app = initializeApp(firebaseConfig);
+        const app = initializeApp(staticConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         
-        // This is the variable that differs between windows!
-        const envAppId = typeof __app_id !== 'undefined' ? __app_id : 'nexusdash';
+        // Locked namespace unless overridden manually
+        const defaultAppId = 'nexusdash';
 
         window.NEXUS_CORE = {
-            auth, db, appId: envAppId, projectId: firebaseConfig.projectId,
+            auth, db, appId: defaultAppId, projectId: staticConfig.projectId,
             methods: { onAuthStateChanged, signInAnonymously, signInWithCustomToken, doc, setDoc, onSnapshot, collection }
         };
     </script>
@@ -286,7 +286,7 @@
                 syncColor: 'text-white/40',
                 apiStatus: 'Standby...',
                 protocolLogs: [],
-                projectId: '...', 
+                projectId: '...',
                 appId: '...', 
                 settingsOpen: false,
                 addModalOpen: false,
@@ -338,16 +338,14 @@
                     this.addLog('Requesting cloud identity verification...');
                     
                     try {
-                        // Handshaking anonymously for ease of use
                         await core.methods.signInAnonymously(core.auth);
-
                         core.methods.onAuthStateChanged(core.auth, (user) => {
                             if (user) {
                                 this.addLog(`Identity verified. Session UID: ${user.uid}`, 'success');
                                 if (this.syncId) {
                                     this.setupSyncListener();
                                 } else {
-                                    this.syncStatus = 'Local-Only Mode';
+                                    this.syncStatus = 'Local-Only Protocol';
                                     this.syncColor = 'text-yellow-500/50';
                                 }
                             }
@@ -369,7 +367,6 @@
                     const core = window.NEXUS_CORE;
                     if (!core.auth.currentUser) return;
 
-                    // STRICT PATHING as per environmental requirement Rule 1
                     const fullPath = `artifacts/${this.appId}/public/data/user_configs/${this.syncId}`;
                     this.addLog(`Connecting to Path: ${fullPath}`, 'info');
                     
@@ -379,7 +376,7 @@
                     core.methods.onSnapshot(docRef, (snap) => {
                         if (snap.exists()) {
                             const d = snap.data();
-                            this.addLog(`Cloud profile found. Receiving ${d.links?.length || 0} links.`, 'success');
+                            this.addLog(`Protocol Update: Received state containing ${d.links?.length || 0} links.`, 'success');
                             
                             // Important: Only apply if we are not currently uploading
                             if(!this.syncing) {
@@ -393,12 +390,12 @@
                             this.syncColor = 'text-green-500';
                             this.fetchEvents(); 
                         } else {
-                            this.addLog(`No data found at "${this.syncId}". Ready for data push.`, 'warn');
+                            this.addLog(`Node empty. Ready for initial Push.`, 'warn');
                             this.syncStatus = 'New Nexus Key';
                             this.syncColor = 'text-blue-400';
                         }
                     }, (err) => {
-                        this.addLog(`Cloud access failure: ${err.code}. Check permissions.`, 'error');
+                        this.addLog(`Cloud access failure: ${err.code}. Verify Namespace.`, 'error');
                         this.syncStatus = 'Access Denied';
                         this.syncColor = 'text-red-500';
                     });
@@ -423,7 +420,7 @@
                         this.addLog('Sync success.', 'success');
                         setTimeout(() => { this.syncing = false; }, 800);
                     } catch (e) {
-                        this.addLog(`Push failure: ${e.message}`, 'error');
+                        this.addLog(`Push failed: ${e.message}`, 'error');
                         this.syncing = false;
                     }
                 },
