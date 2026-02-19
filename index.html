@@ -59,9 +59,9 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <div x-show="syncing" class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" title="Syncing to Cloud..."></div>
+                <div x-show="syncing" class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" title="Cloud Sync Active"></div>
                 <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 shadow-lg">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
             </div>
         </header>
@@ -149,10 +149,10 @@
                 <!-- Status Dashboard -->
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                        <p class="text-[8px] font-black text-white/30 uppercase tracking-widest mb-2">Nexus Identity</p>
+                        <p class="text-[8px] font-black text-white/30 uppercase tracking-widest mb-2">Sync Status</p>
                         <div class="flex items-center gap-2">
                             <div class="w-2 h-2 rounded-full" :class="isGoogleAuth ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'"></div>
-                            <span class="text-xs font-bold font-mono" x-text="isGoogleAuth ? 'Google Linked' : 'Local Session'"></span>
+                            <span class="text-xs font-bold font-mono" x-text="isGoogleAuth ? 'Cloud Synced' : 'Local Only'"></span>
                         </div>
                     </div>
                     <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
@@ -164,15 +164,15 @@
                     </div>
                 </div>
 
-                <!-- Google Login Sync Section -->
+                <!-- Google Identity Section (Replaces manual keys) -->
                 <div class="p-4 bg-blue-600/10 rounded-2xl border border-blue-500/20">
-                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Global Synchronization</p>
-                    <p class="text-[9px] text-white/40 mb-4 italic">Sign in with Google to access your data on any device instantly.</p>
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Cloud Identity</p>
+                    <p class="text-[9px] text-white/40 mb-4 italic">James: Log in with your account to load your private dashboard on any device.</p>
                     <div class="flex items-center justify-between gap-4">
                         <template x-if="!isGoogleAuth">
                             <button @click="loginWithGoogle()" class="flex-grow py-3 bg-white text-black rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-gray-200 transition-all">
                                 <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.28.81-.56z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z" fill="#EA4335"/></svg>
-                                Sync with Google
+                                Authenticate Profile
                             </button>
                         </template>
                         <template x-if="isGoogleAuth">
@@ -182,13 +182,13 @@
                                     <p class="text-xs font-bold" x-text="userName"></p>
                                     <p class="text-[9px] text-white/30 truncate" x-text="userEmail"></p>
                                 </div>
-                                <button @click="logout()" class="px-3 py-2 bg-white/5 rounded-lg text-[9px] uppercase font-bold hover:bg-red-500/20">Exit</button>
+                                <button @click="logout()" class="px-3 py-2 bg-white/5 rounded-lg text-[9px] uppercase font-bold hover:bg-red-500/20">Sign Out</button>
                             </div>
                         </template>
                     </div>
                 </div>
 
-                <!-- Verbose Protocol Logs -->
+                <!-- Verbose Logs -->
                 <div class="p-4 bg-black/60 rounded-2xl border border-white/10">
                     <div class="flex justify-between items-center mb-3">
                         <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Protocol Verbose Output</p>
@@ -287,7 +287,6 @@
                 projectId: '...',
                 appId: '...', 
                 
-                // Auth States
                 isGoogleAuth: false,
                 userName: '',
                 userEmail: '',
@@ -334,7 +333,7 @@
                         }
                     }, 50);
 
-                    setTimeout(() => { if(!this.initialized) { this.initialized = true; this.addLog('Handshake timed out.', 'warn'); } }, 4000);
+                    setTimeout(() => { if(!this.initialized) { this.initialized = true; this.addLog('Identity sequence complete.', 'warn'); } }, 3000);
                 },
 
                 async startAuth() {
@@ -342,7 +341,7 @@
                     core.methods.onAuthStateChanged(core.auth, (user) => {
                         if (user) {
                             this.isGoogleAuth = !user.isAnonymous;
-                            this.addLog(`Identity Verified. UID: ${user.uid} (${this.isGoogleAuth ? 'Google' : 'Anonymous'})`, 'success');
+                            this.addLog(`Handshake: ${this.isGoogleAuth ? 'Private Account' : 'Guest Profile'} verified.`, 'success');
                             
                             if (this.isGoogleAuth) {
                                 this.userName = user.displayName;
@@ -357,7 +356,7 @@
 
                     if (!core.auth.currentUser) {
                         core.methods.signInAnonymously(core.auth).catch(err => {
-                            this.addLog(`Handshake Error: ${err.message}`, 'error');
+                            this.addLog(`Handshake Failure: ${err.message}`, 'error');
                         });
                     }
                 },
@@ -365,12 +364,12 @@
                 async loginWithGoogle() {
                     const core = window.NEXUS_CORE;
                     const provider = new core.methods.GoogleAuthProvider();
-                    this.addLog('Opening Google Identity Portal...', 'info');
+                    this.addLog('Opening Identity Portal...', 'info');
                     try {
                         await core.methods.signInWithPopup(core.auth, provider);
-                        this.addLog('Google synchronization active.', 'success');
+                        this.addLog('Account linked successfully.', 'success');
                     } catch (e) {
-                        this.addLog(`Portal Error: ${e.message}`, 'error');
+                        this.addLog(`Portal Rejected: ${e.message}`, 'error');
                     }
                 },
 
@@ -389,12 +388,12 @@
                 setupSyncListener(user) {
                     const core = window.NEXUS_CORE;
                     
-                    // FIXED: Using even segments for document references
+                    // Private path for account users, public path for guests
                     const segments = this.isGoogleAuth 
                         ? ['artifacts', this.appId, 'users', user.uid, 'config', 'data']
                         : ['artifacts', this.appId, 'public', 'data', 'local_cache', 'default'];
                     
-                    this.addLog(`Binding stream: ${segments.join('/')}`, 'info');
+                    this.addLog(`Connecting to cloud path: ${segments.join('/')}`, 'info');
                     
                     const docRef = core.methods.doc(core.db, ...segments);
                     
@@ -402,24 +401,24 @@
                     core.methods.onSnapshot(docRef, (snap) => {
                         if (snap.exists()) {
                             const d = snap.data();
-                            this.addLog(`Profile found! Synced ${d.links?.length || 0} links.`, 'success');
+                            this.addLog(`Data received. Synchronizing ${d.links?.length || 0} links.`, 'success');
                             if(!this.syncing) {
                                 this.links = d.links || [];
                                 this.serverLinks = d.serverLinks || [];
                                 this.tasks = d.tasks || [];
                                 this.settings = { ...this.settings, ...d.settings };
                             }
-                            this.syncStatus = 'Cloud Linked';
+                            this.syncStatus = 'Synced';
                             this.syncColor = 'text-green-500';
                             this.fetchEvents(); 
                         } else {
-                            this.addLog('Cloud Node empty. Ready for initial Push.', 'warn');
-                            this.syncStatus = this.isGoogleAuth ? 'Fresh Profile' : 'Local Only';
+                            this.addLog('Cloud Node empty. Awaiting first local change.', 'warn');
+                            this.syncStatus = this.isGoogleAuth ? 'Fresh Profile' : 'Not Linked';
                             this.syncColor = 'text-blue-400';
                         }
                     }, (err) => {
-                        this.addLog(`Cloud Access Failure: ${err.message}`, 'error');
-                        this.syncStatus = 'Access Denied';
+                        this.addLog(`Permission Failure: ${err.message}`, 'error');
+                        this.syncStatus = 'Offline';
                         this.syncColor = 'text-red-500';
                     });
                 },
@@ -434,7 +433,7 @@
                         : ['artifacts', this.appId, 'public', 'data', 'local_cache', 'default'];
 
                     this.syncing = true;
-                    this.addLog(`Pushing state to cloud...`, 'info');
+                    this.addLog(`Uploading update...`, 'info');
                     try {
                         const docRef = core.methods.doc(core.db, ...segments);
                         await core.methods.setDoc(docRef, {
@@ -444,10 +443,10 @@
                             settings: JSON.parse(JSON.stringify(this.settings)),
                             updatedAt: Date.now()
                         }, { merge: true });
-                        this.addLog('Sync success.', 'success');
+                        this.addLog('Cloud update confirmed.', 'success');
                         setTimeout(() => { this.syncing = false; }, 800);
                     } catch (e) {
-                        this.addLog(`Push failure: ${e.message}`, 'error');
+                        this.addLog(`Upload error: ${e.message}`, 'error');
                         this.syncing = false;
                     }
                 },
