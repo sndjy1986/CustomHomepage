@@ -153,6 +153,7 @@
                             <div class="w-2 h-2 rounded-full" :class="syncColor === 'text-green-500' ? 'bg-green-500 animate-pulse' : 'bg-red-500'"></div>
                             <span class="text-xs font-bold font-mono" x-text="syncStatus"></span>
                         </div>
+                        <p class="text-[8px] text-white/20 mt-2 truncate" x-text="'Project: ' + (projectId || 'Unknown')"></p>
                     </div>
                     <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
                         <p class="text-[8px] font-black text-white/30 uppercase tracking-widest mb-2">API Bridge</p>
@@ -160,6 +161,7 @@
                             <div class="w-2 h-2 rounded-full" :class="apiStatus.includes('Online') ? 'bg-blue-500 animate-pulse' : 'bg-yellow-500'"></div>
                             <span class="text-xs font-bold font-mono" x-text="apiStatus"></span>
                         </div>
+                        <p class="text-[8px] text-white/20 mt-2 truncate" x-text="'Namespace: ' + (appId || '...')"></p>
                     </div>
                 </div>
 
@@ -175,9 +177,6 @@
                                 <span class="log-timestamp" x-text="log.time"></span>
                                 <span :class="'log-msg-' + log.type" x-text="log.msg"></span>
                             </div>
-                        </template>
-                        <template x-if="protocolLogs.length === 0">
-                            <div class="text-white/10 italic">Awaiting protocol events...</div>
                         </template>
                     </div>
                 </div>
@@ -233,13 +232,14 @@
         </div>
     </div>
 
-    <!-- Firebase Handshake Module -->
+    <!-- Firebase Synchronizer -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
 
-        // Use standard environmental Firebase config for cross-session syncing
+        // FORCE ALIGNMENT: We check if environment project is provided. If not, fallback to your hardcoded one.
+        // If syncing between different tabs/browsers fails, they are using different environment projects.
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
             : {
@@ -257,7 +257,7 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'nexusdash';
 
         window.NEXUS_CORE = {
-            auth, db, appId,
+            auth, db, appId, projectId: firebaseConfig.projectId,
             methods: { onAuthStateChanged, signInAnonymously, signInWithCustomToken, doc, setDoc, onSnapshot }
         };
     </script>
@@ -273,6 +273,8 @@
                 syncStatus: 'Protocol Offline',
                 syncColor: 'text-white/40',
                 apiStatus: 'Standby...',
+                projectId: '...',
+                appId: '...',
                 protocolLogs: [],
                 settingsOpen: false,
                 addModalOpen: false,
@@ -308,7 +310,10 @@
                     const waiter = setInterval(() => {
                         if (window.NEXUS_CORE) {
                             clearInterval(waiter);
-                            this.addLog(`Nexus Core Module detected. Namespace: ${window.NEXUS_CORE.appId}`, 'success');
+                            this.appId = window.NEXUS_CORE.appId;
+                            this.projectId = window.NEXUS_CORE.projectId;
+                            this.addLog(`Nexus Core Module detected. Namespace: ${this.appId}`, 'success');
+                            this.addLog(`Active Cloud Project: ${this.projectId}`, 'info');
                             this.startAuth();
                         }
                     }, 50);
@@ -321,7 +326,6 @@
                     this.addLog('Requesting cloud authentication credentials...');
                     
                     try {
-                        // Priority: Custom Token -> Anonymous
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                             this.addLog('Attempting handshake with Custom Token...', 'info');
                             await core.methods.signInWithCustomToken(core.auth, __initial_auth_token);
@@ -356,13 +360,10 @@
 
                 setupSyncListener() {
                     const core = window.NEXUS_CORE;
-                    if (!core.auth.currentUser) {
-                        this.addLog('Critical: Cannot bind stream without verified identity.', 'error');
-                        return;
-                    }
+                    if (!core.auth.currentUser) return;
 
-                    const path = `artifacts/${core.appId}/public/data/user_configs/${this.syncId}`;
-                    this.addLog(`Binding stream to protocol path: ${path}`, 'info');
+                    const fullPath = `artifacts/${core.appId}/public/data/user_configs/${this.syncId}`;
+                    this.addLog(`Binding stream to protocol path: ${fullPath}`, 'info');
                     
                     const docRef = core.methods.doc(core.db, 'artifacts', core.appId, 'public', 'data', 'user_configs', this.syncId);
                     
@@ -370,22 +371,21 @@
                     core.methods.onSnapshot(docRef, (snap) => {
                         if (snap.exists()) {
                             const d = snap.data();
-                            this.addLog(`Profile update detected. Synced ${d.links?.length || 0} links.`, 'success');
+                            this.addLog(`Profile found! Synced ${d.links?.length || 0} links.`, 'success');
                             this.links = d.links || [];
                             this.serverLinks = d.serverLinks || [];
                             this.tasks = d.tasks || [];
                             this.settings = { ...this.settings, ...d.settings };
                             this.syncStatus = 'Nexus Linked';
                             this.syncColor = 'text-green-500';
-                            this.fetchEvents(); 
                         } else {
-                            this.addLog(`Profile for "${this.syncId}" not found in current namespace. Handshake pending for data injection.`, 'warn');
+                            this.addLog(`Profile "${this.syncId}" is currently empty in project "${this.projectId}".`, 'warn');
                             this.syncStatus = 'New Nexus Key';
                             this.syncColor = 'text-blue-400';
                         }
                     }, (err) => {
-                        this.addLog(`Handshake failure: ${err.code}`, 'error');
-                        this.syncStatus = 'Handshake Error';
+                        this.addLog(`Sync handshake failure: ${err.code}`, 'error');
+                        this.syncStatus = 'Sync Error';
                         this.syncColor = 'text-red-500';
                     });
                 },
@@ -405,7 +405,7 @@
                             settings: JSON.parse(JSON.stringify(this.settings)),
                             updatedAt: Date.now()
                         }, { merge: true });
-                        this.addLog('State successfully synchronized to cloud protocol.', 'success');
+                        this.addLog('State successfully synchronized.', 'success');
                         setTimeout(() => { this.syncing = false; }, 800);
                     } catch (e) {
                         this.addLog(`Injection failed: ${e.message}`, 'error');
@@ -415,7 +415,7 @@
 
                 setSyncKey() {
                     if (!this.syncId) return;
-                    this.addLog(`Registering new identity key: "${this.syncId}"`, 'info');
+                    this.addLog(`Registering key handle: "${this.syncId}"`, 'info');
                     localStorage.setItem('nexus_sync_key', this.syncId);
                     if (window.NEXUS_CORE && window.NEXUS_CORE.auth.currentUser) {
                         this.setupSyncListener();
@@ -425,22 +425,19 @@
                 async fetchEvents() {
                     if (!this.settings?.scriptable?.endpoint) return;
                     this.fetchingEvents = true;
-                    this.addLog('Synchronizing with API bridge...', 'info');
                     try {
                         const res = await fetch(this.settings.scriptable.endpoint);
                         const data = await res.json();
                         if (res.ok) {
                             const list = data.events || [];
                             this.events = list.slice(0, 5).map(e => ({
-                                title: e.title || 'Unknown Subsystem',
+                                title: e.title || 'Task',
                                 time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Active'
                             }));
                             this.apiStatus = 'Bridge Online';
-                            this.addLog(`API bridge synchronized. ${this.events.length} schedule items pulled.`, 'success');
                         }
                     } catch (e) { 
                         this.apiStatus = 'Bridge Failure';
-                        this.addLog(`API bridge communication error: ${e.message}`, 'error');
                     } finally { this.fetchingEvents = false; }
                 },
 
