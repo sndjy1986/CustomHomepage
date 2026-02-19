@@ -36,10 +36,9 @@
 <body x-data="nexusHandler" x-cloak>
 
     <div class="bg-animate"></div>
-    <!-- Improved safety check to prevent style binding errors before settings exist -->
-    <div class="bg-overlay" :style="initialized ? `background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${settings.bg}); filter: blur(${settings.blur}px)` : ''"></div>
+    <div class="bg-overlay" :style="initialized ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${settings.bg})`, filter: `blur(${settings.blur}px)` } : {}"></div>
 
-    <div class="relative z-10 min-h-screen flex flex-col">
+    <div class="relative z-10 min-h-screen flex flex-col" x-show="initialized">
         <!-- Header -->
         <header class="p-6 flex justify-between items-center max-w-7xl mx-auto w-full">
             <div class="flex items-center gap-4">
@@ -59,8 +58,7 @@
             </div>
         </header>
 
-        <!-- Main View -->
-        <main class="flex-grow flex flex-col" x-show="initialized">
+        <main class="flex-grow flex flex-col">
             <section class="flex-grow flex flex-col items-center justify-center text-center py-4 px-4">
                 <h2 x-text="time" class="text-[6rem] md:text-[9rem] font-extrabold tracking-tighter tabular-nums uppercase leading-none drop-shadow-2xl">00:00 AM</h2>
                 <p x-text="date" class="text-white/30 uppercase tracking-[0.5em] font-bold text-xs mt-4"></p>
@@ -162,10 +160,6 @@
                         <span x-text="settings.blur + 'px'" class="text-[10px] font-mono text-white/40 min-w-[30px]"></span>
                     </div>
                 </div>
-                <div x-show="lastRawData" class="p-4 bg-black/40 rounded-xl border border-white/5">
-                    <p class="text-[8px] font-bold uppercase text-white/30 mb-2">Protocol Feed Debug</p>
-                    <pre class="text-[9px] text-green-500 overflow-x-auto h-[100px] font-mono" x-text="JSON.stringify(lastRawData, null, 2)"></pre>
-                </div>
             </div>
             <button @click="settingsOpen = false" class="w-full mt-10 py-4 bg-blue-600 rounded-xl font-black uppercase text-xs shadow-xl transition-all hover:bg-blue-500">Close terminal</button>
         </div>
@@ -194,7 +188,6 @@
         </div>
     </div>
 
-    <!-- 1. Sync Logic and Firebase Module -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
@@ -212,40 +205,41 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = 'nexusdash';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'nexusdash';
 
-        // Helper to get actual current user
-        window.getNexusAuth = () => auth;
-        window.getNexusDb = () => db;
-        window.getNexusAppId = () => appId;
-        window.fireMethods = { doc, setDoc, onSnapshot };
+        // Attach all methods and instances to a global object for Alpine to access
+        window.nexusSync = {
+            auth,
+            db,
+            appId,
+            methods: { onAuthStateChanged, signInAnonymously, doc, setDoc, onSnapshot }
+        };
     </script>
 
-    <!-- 2. Main Dashboard Component Definition -->
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('nexusHandler', () => ({
                 initialized: false,
-                time: '00:00:00', 
-                date: 'PROTOCOL HANDSHAKE...', 
+                time: '00:00:00',
+                date: 'CONNECTING...',
                 activeTab: 'links',
                 syncId: localStorage.getItem('nexus_sync_key') || '',
-                syncStatus: 'Connecting...', 
+                syncStatus: 'Connecting...',
                 syncColor: 'text-white/40',
-                apiStatus: 'Bridge standby...',
-                settingsOpen: false, 
-                addModalOpen: false, 
-                syncing: false, 
+                apiStatus: 'Standby...',
+                settingsOpen: false,
+                addModalOpen: false,
+                syncing: false,
                 fetchingEvents: false,
                 lastRawData: null,
-                links: [], 
-                serverLinks: [], 
+                links: [],
+                serverLinks: [],
                 tasks: [],
                 events: [],
                 settings: { 
                     bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', 
                     blur: 0, 
-                    scriptable: { endpoint: '', authKey: '' }
+                    scriptable: { endpoint: '', authKey: '' } 
                 },
                 newItem: { name: '', url: '', icon: '' },
 
@@ -253,32 +247,38 @@
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
 
-                    // Wait for Firebase to be ready via the globally attached helpers
-                    const checkAuth = setInterval(() => {
-                        if (window.getNexusAuth) {
-                            clearInterval(checkAuth);
+                    // Check for sync module and start auth
+                    const waiter = setInterval(() => {
+                        if (window.nexusSync) {
+                            clearInterval(waiter);
                             this.startAuth();
                         }
                     }, 50);
 
-                    // Show UI regardless after 2 seconds as a fallback
-                    setTimeout(() => { if(!this.initialized) this.initialized = true; }, 2000);
+                    // Safety fallback: Show UI after 3s even if Firebase hangs
+                    setTimeout(() => { 
+                        if(!this.initialized) {
+                            this.initialized = true;
+                            this.syncStatus = 'Local-Only (Timeout)';
+                        }
+                    }, 3000);
                 },
 
                 startAuth() {
-                    const auth = window.getNexusAuth();
-                    onAuthStateChanged(auth, (user) => {
-                        if (user && this.syncId) {
-                            this.setupSyncListener();
-                        } else if (user) {
-                            this.syncStatus = 'Local Session';
-                            this.syncColor = 'text-yellow-500/50';
+                    const { auth, methods } = window.nexusSync;
+                    methods.onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            if (this.syncId) this.setupSyncListener();
+                            else {
+                                this.syncStatus = 'Local Profile';
+                                this.syncColor = 'text-yellow-500/50';
+                            }
                         }
                         this.initialized = true;
                     });
 
-                    signInAnonymously(auth).catch(() => {
-                        this.syncStatus = 'Auth Failed';
+                    methods.signInAnonymously(auth).catch(() => {
+                        this.syncStatus = 'Sync Offline';
                         this.initialized = true;
                     });
                 },
@@ -290,17 +290,11 @@
                 },
 
                 setupSyncListener() {
-                    const auth = window.getNexusAuth();
-                    const db = window.getNexusDb();
-                    const appId = window.getNexusAppId();
-                    const { doc, onSnapshot } = window.fireMethods;
-
-                    if (!auth.currentUser || !this.syncId) return;
+                    const { db, appId, methods } = window.nexusSync;
+                    const docRef = methods.doc(db, 'artifacts', appId, 'public', 'data', 'user_configs', this.syncId);
                     
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_configs', this.syncId);
                     this.syncStatus = 'Syncing...';
-
-                    onSnapshot(docRef, (snap) => {
+                    methods.onSnapshot(docRef, (snap) => {
                         if (snap.exists()) {
                             const d = snap.data();
                             this.links = d.links || [];
@@ -310,26 +304,23 @@
                             this.syncStatus = 'Nexus Linked';
                             this.syncColor = 'text-green-500';
                         } else {
-                            this.syncStatus = 'New Nexus Link';
+                            this.syncStatus = 'New Nexus Key';
                             this.syncColor = 'text-blue-400';
                         }
-                    }, (err) => {
+                    }, () => {
                         this.syncStatus = 'Sync Error';
                         this.syncColor = 'text-red-500';
                     });
                 },
 
                 async persist() {
-                    const auth = window.getNexusAuth();
-                    const db = window.getNexusDb();
-                    const appId = window.getNexusAppId();
-                    const { doc, setDoc } = window.fireMethods;
-
+                    const { auth, db, appId, methods } = window.nexusSync;
                     if (!auth.currentUser || !this.syncId) return;
+                    
                     this.syncing = true;
                     try {
-                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_configs', this.syncId);
-                        await setDoc(docRef, {
+                        const docRef = methods.doc(db, 'artifacts', appId, 'public', 'data', 'user_configs', this.syncId);
+                        await methods.setDoc(docRef, {
                             links: JSON.parse(JSON.stringify(this.links)),
                             serverLinks: JSON.parse(JSON.stringify(this.serverLinks)),
                             tasks: JSON.parse(JSON.stringify(this.tasks)),
@@ -345,7 +336,7 @@
                 setSyncKey() {
                     if (!this.syncId) return;
                     localStorage.setItem('nexus_sync_key', this.syncId);
-                    if (window.getNexusAuth && window.getNexusAuth().currentUser) {
+                    if (window.nexusSync && window.nexusSync.auth.currentUser) {
                         this.setupSyncListener();
                     }
                 },
@@ -356,20 +347,14 @@
                     try {
                         const res = await fetch(this.settings.scriptable.endpoint);
                         const data = await res.json();
-                        this.lastRawData = data;
                         if (res.ok) {
                             const list = data.events || [];
                             this.events = list.slice(0, 5).map(e => ({
-                                title: e.title || 'Unknown Task',
-                                time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Active'
+                                title: e.title || 'Task',
+                                time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Now'
                             }));
-                            this.apiStatus = this.events.length > 0 ? 'Protocols Online' : 'No schedules.';
                         }
-                    } catch (e) {
-                        this.apiStatus = 'Bridge Failure';
-                    } finally {
-                        this.fetchingEvents = false;
-                    }
+                    } catch (e) { } finally { this.fetchingEvents = false; }
                 },
 
                 getIcon(item) {
@@ -402,7 +387,6 @@
         });
     </script>
 
-    <!-- 3. Alpine Loader -->
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
