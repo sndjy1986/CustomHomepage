@@ -233,28 +233,32 @@
         </div>
     </div>
 
+    <!-- Firebase Handshake Module -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
-        import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
-            authDomain: "nexusdash-5731e.firebaseapp.com",
-            projectId: "nexusdash-5731e",
-            storageBucket: "nexusdash-5731e.firebasestorage.app",
-            messagingSenderId: "758016854578",
-            appId: "1:758016854578:web:18c6d8f8181b1134caca2b"
-        };
+        // Use standard environmental Firebase config for cross-session syncing
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : {
+                apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
+                authDomain: "nexusdash-5731e.firebaseapp.com",
+                projectId: "nexusdash-5731e",
+                storageBucket: "nexusdash-5731e.firebasestorage.app",
+                messagingSenderId: "758016854578",
+                appId: "1:758016854578:web:18c6d8f8181b1134caca2b"
+            };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const envAppId = typeof __app_id !== 'undefined' ? __app_id : 'nexusdash';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'nexusdash';
 
-        window.NEXUS_SYNC = {
-            auth, db, appId: envAppId,
-            methods: { onAuthStateChanged, signInAnonymously, doc, setDoc, onSnapshot }
+        window.NEXUS_CORE = {
+            auth, db, appId,
+            methods: { onAuthStateChanged, signInAnonymously, signInWithCustomToken, doc, setDoc, onSnapshot }
         };
     </script>
 
@@ -263,14 +267,13 @@
             Alpine.data('nexusHandler', () => ({
                 initialized: false,
                 time: '00:00:00',
-                date: 'CONNECTING...',
+                date: 'HANDSHAKE...',
                 activeTab: 'links',
                 syncId: localStorage.getItem('nexus_sync_key') || '',
-                syncStatus: 'Connecting...',
+                syncStatus: 'Protocol Offline',
                 syncColor: 'text-white/40',
                 apiStatus: 'Standby...',
                 protocolLogs: [],
-                appId: '...',
                 settingsOpen: false,
                 addModalOpen: false,
                 syncing: false,
@@ -291,7 +294,6 @@
                     const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
                     this.protocolLogs.push({ time, msg, type });
                     if (this.protocolLogs.length > 50) this.protocolLogs.shift();
-                    
                     this.$nextTick(() => {
                         const scroller = document.getElementById('protocol-scroller');
                         if (scroller) scroller.scrollTop = scroller.scrollHeight;
@@ -299,50 +301,51 @@
                 },
 
                 init() {
-                    this.addLog('System initialization sequence started.');
+                    this.addLog('Nexus protocol boot initiated.');
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
 
                     const waiter = setInterval(() => {
-                        if (window.NEXUS_SYNC) {
+                        if (window.NEXUS_CORE) {
                             clearInterval(waiter);
-                            this.appId = window.NEXUS_SYNC.appId;
-                            this.addLog(`Nexus Core Module attached. Namespace: ${this.appId}`, 'success');
+                            this.addLog(`Nexus Core Module detected. Namespace: ${window.NEXUS_CORE.appId}`, 'success');
                             this.startAuth();
                         }
                     }, 50);
 
-                    setTimeout(() => { 
-                        if(!this.initialized) { 
-                            this.initialized = true; 
-                            this.addLog('Handshake sequence completed with local fallback.', 'warn'); 
-                        } 
-                    }, 3000);
+                    setTimeout(() => { if(!this.initialized) { this.initialized = true; this.addLog('Connection timeout. Initialized with local fallback.', 'warn'); } }, 4000);
                 },
 
-                startAuth() {
-                    const sync = window.NEXUS_SYNC;
-                    this.addLog('Authenticating with Cloud Node...');
+                async startAuth() {
+                    const core = window.NEXUS_CORE;
+                    this.addLog('Requesting cloud authentication credentials...');
                     
-                    sync.methods.onAuthStateChanged(sync.auth, (user) => {
-                        if (user) {
-                            this.addLog(`Auth successful. UID: ${user.uid}`, 'success');
-                            if (this.syncId) {
-                                this.addLog(`Key detected: "${this.syncId}". Initializing Listener.`, 'info');
-                                this.setupSyncListener();
-                            } else {
-                                this.addLog('No ID provided. Local Storage active.', 'warn');
-                                this.syncStatus = 'Local-Only Protocol';
-                                this.syncColor = 'text-yellow-500/50';
-                            }
+                    try {
+                        // Priority: Custom Token -> Anonymous
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            this.addLog('Attempting handshake with Custom Token...', 'info');
+                            await core.methods.signInWithCustomToken(core.auth, __initial_auth_token);
+                        } else {
+                            this.addLog('Custom Token missing. Using Anonymous handshake.', 'warn');
+                            await core.methods.signInAnonymously(core.auth);
                         }
-                        this.initialized = true;
-                    });
 
-                    sync.methods.signInAnonymously(sync.auth).catch((err) => {
-                        this.addLog(`Handshake failed: ${err.message}`, 'error');
+                        core.methods.onAuthStateChanged(core.auth, (user) => {
+                            if (user) {
+                                this.addLog(`Authentication handshake verified. UID: ${user.uid}`, 'success');
+                                if (this.syncId) {
+                                    this.setupSyncListener();
+                                } else {
+                                    this.syncStatus = 'Local-Only Mode';
+                                    this.syncColor = 'text-yellow-500/50';
+                                }
+                            }
+                            this.initialized = true;
+                        });
+                    } catch (err) {
+                        this.addLog(`Handshake rejected: ${err.message}`, 'error');
                         this.initialized = true;
-                    });
+                    }
                 },
 
                 updateTime() {
@@ -352,16 +355,22 @@
                 },
 
                 setupSyncListener() {
-                    const sync = window.NEXUS_SYNC;
-                    const docRef = sync.methods.doc(sync.db, 'artifacts', sync.appId, 'public', 'data', 'user_configs', this.syncId);
+                    const core = window.NEXUS_CORE;
+                    if (!core.auth.currentUser) {
+                        this.addLog('Critical: Cannot bind stream without verified identity.', 'error');
+                        return;
+                    }
+
+                    const path = `artifacts/${core.appId}/public/data/user_configs/${this.syncId}`;
+                    this.addLog(`Binding stream to protocol path: ${path}`, 'info');
+                    
+                    const docRef = core.methods.doc(core.db, 'artifacts', core.appId, 'public', 'data', 'user_configs', this.syncId);
                     
                     this.syncStatus = 'Syncing...';
-                    this.addLog(`Binding stream to Nexus Key: "${this.syncId}"`, 'info');
-
-                    sync.methods.onSnapshot(docRef, (snap) => {
+                    core.methods.onSnapshot(docRef, (snap) => {
                         if (snap.exists()) {
                             const d = snap.data();
-                            this.addLog(`Incoming protocol update. Syncing ${d.links?.length || 0} links.`, 'success');
+                            this.addLog(`Profile update detected. Synced ${d.links?.length || 0} links.`, 'success');
                             this.links = d.links || [];
                             this.serverLinks = d.serverLinks || [];
                             this.tasks = d.tasks || [];
@@ -370,45 +379,45 @@
                             this.syncColor = 'text-green-500';
                             this.fetchEvents(); 
                         } else {
-                            this.addLog(`No cloud profile for key: "${this.syncId}". Ready for data injection.`, 'warn');
-                            this.syncStatus = 'New Nexus Link';
+                            this.addLog(`Profile for "${this.syncId}" not found in current namespace. Handshake pending for data injection.`, 'warn');
+                            this.syncStatus = 'New Nexus Key';
                             this.syncColor = 'text-blue-400';
                         }
                     }, (err) => {
-                        this.addLog(`Stream failure: ${err.code}`, 'error');
-                        this.syncStatus = 'Sync Error';
+                        this.addLog(`Handshake failure: ${err.code}`, 'error');
+                        this.syncStatus = 'Handshake Error';
                         this.syncColor = 'text-red-500';
                     });
                 },
 
                 async persist() {
-                    const sync = window.NEXUS_SYNC;
-                    if (!sync || !sync.auth.currentUser || !this.syncId) return;
+                    const core = window.NEXUS_CORE;
+                    if (!core.auth.currentUser || !this.syncId) return;
                     
                     this.syncing = true;
-                    this.addLog(`Pushing state update to Key: "${this.syncId}"...`, 'info');
+                    this.addLog(`Injecting local state to cloud key "${this.syncId}"...`, 'info');
                     try {
-                        const docRef = sync.methods.doc(sync.db, 'artifacts', sync.appId, 'public', 'data', 'user_configs', this.syncId);
-                        await sync.methods.setDoc(docRef, {
+                        const docRef = core.methods.doc(core.db, 'artifacts', core.appId, 'public', 'data', 'user_configs', this.syncId);
+                        await core.methods.setDoc(docRef, {
                             links: JSON.parse(JSON.stringify(this.links)),
                             serverLinks: JSON.parse(JSON.stringify(this.serverLinks)),
                             tasks: JSON.parse(JSON.stringify(this.tasks)),
                             settings: JSON.parse(JSON.stringify(this.settings)),
                             updatedAt: Date.now()
                         }, { merge: true });
-                        this.addLog('State synchronized with cloud.', 'success');
+                        this.addLog('State successfully synchronized to cloud protocol.', 'success');
                         setTimeout(() => { this.syncing = false; }, 800);
                     } catch (e) {
-                        this.addLog(`Sync failure: ${e.message}`, 'error');
+                        this.addLog(`Injection failed: ${e.message}`, 'error');
                         this.syncing = false;
                     }
                 },
 
                 setSyncKey() {
                     if (!this.syncId) return;
-                    this.addLog(`Applying Nexus Key: "${this.syncId}"`, 'info');
+                    this.addLog(`Registering new identity key: "${this.syncId}"`, 'info');
                     localStorage.setItem('nexus_sync_key', this.syncId);
-                    if (window.NEXUS_SYNC && window.NEXUS_SYNC.auth.currentUser) {
+                    if (window.NEXUS_CORE && window.NEXUS_CORE.auth.currentUser) {
                         this.setupSyncListener();
                     }
                 },
@@ -416,22 +425,22 @@
                 async fetchEvents() {
                     if (!this.settings?.scriptable?.endpoint) return;
                     this.fetchingEvents = true;
-                    this.addLog(`Polling bridge endpoint...`, 'info');
+                    this.addLog('Synchronizing with API bridge...', 'info');
                     try {
                         const res = await fetch(this.settings.scriptable.endpoint);
                         const data = await res.json();
                         if (res.ok) {
                             const list = data.events || [];
                             this.events = list.slice(0, 5).map(e => ({
-                                title: e.title || 'Task',
+                                title: e.title || 'Unknown Subsystem',
                                 time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Active'
                             }));
-                            this.apiStatus = 'Protocols Online';
-                            this.addLog(`Bridge synchronized: ${this.events.length} schedule entries found.`, 'success');
+                            this.apiStatus = 'Bridge Online';
+                            this.addLog(`API bridge synchronized. ${this.events.length} schedule items pulled.`, 'success');
                         }
                     } catch (e) { 
                         this.apiStatus = 'Bridge Failure';
-                        this.addLog(`Bridge error: ${e.message}`, 'error');
+                        this.addLog(`API bridge communication error: ${e.message}`, 'error');
                     } finally { this.fetchingEvents = false; }
                 },
 
