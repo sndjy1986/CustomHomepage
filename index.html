@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus Dash | Terminal Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
-
+    <!-- Load Alpine.js in head with defer to ensure it waits for the module script registration -->
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
         [x-cloak] { display: none !important; }
@@ -24,14 +23,25 @@
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
     </style>
 </head>
-<body x-data="nexusHandler()" x-init="boot()" x-cloak>
+<body x-data="nexusHandler" x-cloak>
 
     <div class="bg-animate"></div>
     <div class="bg-overlay" :style="'background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(' + settings.bg + '); filter: blur(' + settings.blur + 'px)'"></div>
 
-    <div class="relative z-10 min-h-screen flex flex-col">
+    <!-- Wrap content in an initialized check to prevent flashing of raw state -->
+    <div class="relative z-10 min-h-screen flex flex-col" x-show="initialized">
         <!-- Header -->
         <header class="p-6 flex justify-between items-center max-w-7xl mx-auto w-full text-left">
             <div class="flex items-center gap-4">
@@ -40,7 +50,7 @@
                 </div>
                 <div>
                     <h1 class="font-extrabold text-2xl tracking-tighter uppercase leading-none">Nexus<span class="text-blue-500">Dash</span></h1>
-                    <p class="text-[9px] uppercase tracking-[0.3em] text-white/40 font-bold mt-1" x-text="syncStatus"></p>
+                    <p class="text-[9px] uppercase tracking-[0.3em] font-bold mt-1" :class="syncColor" x-text="syncStatus"></p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -52,7 +62,7 @@
         </header>
 
         <section class="flex-grow flex flex-col items-center justify-center text-center py-4 px-4">
-            <h2 x-text="time" class="text-[7rem] md:text-[10rem] font-extrabold tracking-tighter tabular-nums uppercase leading-none drop-shadow-2xl">00:00 AM</h2>
+            <h2 x-text="time" class="text-[6rem] md:text-[9rem] font-extrabold tracking-tighter tabular-nums uppercase leading-none drop-shadow-2xl">00:00 AM</h2>
             <p x-text="date" class="text-white/30 uppercase tracking-[0.5em] font-bold text-xs mt-4"></p>
             <div class="w-full max-w-2xl mt-12">
                 <form action="https://google.com/search" method="GET">
@@ -63,7 +73,6 @@
 
         <section class="max-w-7xl mx-auto w-full px-6 pb-12">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <!-- Links Tabbed Grid -->
                 <div class="lg:col-span-8 nexus-card p-8 md:p-10 flex flex-col min-h-[400px]">
                     <div class="flex items-center gap-8 mb-10 border-b border-white/5">
                         <button @click="activeTab = 'links'" :class="activeTab === 'links' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Links</button>
@@ -73,18 +82,17 @@
                     <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-6">
                         <template x-for="(link, index) in (activeTab === 'links' ? links : serverLinks)" :key="index">
                             <div class="flex flex-col items-center gap-3 group relative text-center">
-                                <a :href="link.url" target="_blank" class="icon-box" :style="'border-bottom: 2px solid #00f2ff'">
+                                <a :href="link.url" target="_blank" class="icon-box" :style="'border-bottom: 2px solid ' + (activeTab === 'links' ? '#00f2ff' : '#bc13fe')">
                                     <img :src="getIcon(link)" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'">
                                 </a>
                                 <span x-text="link.name" class="text-[9px] font-black uppercase text-white/30 truncate w-full mt-1"></span>
-                                <button @click="removeShortcut(index)" class="absolute -top-1 -right-1 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-xl"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+                                <button @click="removeShortcut(index)" class="absolute -top-1 -right-1 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-xl z-20"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
                             </div>
                         </template>
                         <button @click="addModalOpen = true" class="icon-box border-dashed border-2 border-white/10 text-white/20 hover:text-white transition-all"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>
                     </div>
                 </div>
 
-                <!-- Sidebar -->
                 <div class="lg:col-span-4 flex flex-col gap-8 text-left">
                     <div class="nexus-card p-8 min-h-[220px]">
                         <div class="flex justify-between items-center mb-6">
@@ -113,10 +121,11 @@
                                 <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
                                     <div @click="t.done = !t.done; persist()" class="w-5 h-5 rounded-lg border-2 border-white/10 flex items-center justify-center cursor-pointer transition-colors" :class="t.done ? 'bg-blue-600 border-blue-500' : ''"><svg x-show="t.done" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg></div>
                                     <span x-text="t.text" class="text-sm font-medium" :class="t.done ? 'text-white/20 line-through' : ''"></span>
+                                    <button @click="tasks.splice(i, 1); persist()" class="ml-auto text-white/10 hover:text-red-400 transition-colors"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
                                 </div>
                             </template>
                         </div>
-                        <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full">
+                        <input @keydown.enter="addTask($event)" type="text" placeholder="+ New Task..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full text-white placeholder:text-white/20">
                     </div>
                 </div>
             </div>
@@ -124,22 +133,19 @@
     </div>
 
     <!-- Settings Modal -->
-    <div x-show="settingsOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
+    <div x-show="settingsOpen" x-transition.opacity class="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
         <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-lg relative z-10 p-8 border-white/5 shadow-2xl max-h-[90vh] overflow-y-auto text-left text-white">
             <h2 class="text-2xl font-black uppercase tracking-tighter mb-8 text-white">System Console</h2>
-            
             <div class="space-y-6">
-                <!-- Sync Key -->
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
                     <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Cloud Sync (Nexus Key)</p>
                     <div class="flex gap-2">
-                        <input x-model="syncId" type="text" placeholder="e.g. sndjy-dash" class="flex-grow bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white">
-                        <button @click="setSyncKey()" class="px-4 py-2 bg-blue-600 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-500 transition-all">Update</button>
+                        <input x-model="syncId" type="text" placeholder="e.g. user-742" class="flex-grow bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
+                        <button @click="setSyncKey()" class="px-4 py-2 bg-blue-600 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-500 transition-all">Link</button>
                     </div>
                 </div>
 
-                <!-- API Control -->
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
                     <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4 font-bold">Protocol API Bridge</p>
                     <div class="space-y-3">
@@ -148,37 +154,53 @@
                     </div>
                 </div>
 
-                <!-- JSON Debugger Area -->
-                <div class="p-4 bg-black/40 rounded-xl border border-white/5">
-                    <p class="text-[8px] font-bold uppercase text-white/30 mb-2">JSON Protocol Feed (Debug)</p>
-                    <pre class="text-[9px] text-green-500 overflow-x-auto h-[100px] font-mono" x-text="JSON.stringify(lastRawData, null, 2)"></pre>
+                <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
+                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Background</p>
+                    <input x-model="settings.bg" @input="persist()" type="text" placeholder="Unsplash URL" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white mb-4">
+                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2">Aura Blur</p>
+                    <div class="flex items-center gap-4">
+                        <input type="range" min="0" max="40" x-model="settings.blur" @input="persist()" class="flex-grow h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500">
+                        <span x-text="settings.blur + 'px'" class="text-[10px] font-mono text-white/40 min-w-[30px]"></span>
+                    </div>
                 </div>
 
-                <div class="px-1 pt-2">
-                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Aura Blur</p>
-                    <input type="range" min="0" max="40" x-model="settings.blur" @input="persist()" class="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500">
+                <div x-show="lastRawData" class="p-4 bg-black/40 rounded-xl border border-white/5">
+                    <p class="text-[8px] font-bold uppercase text-white/30 mb-2">Protocol Feed Debug</p>
+                    <pre class="text-[9px] text-green-500 overflow-x-auto h-[100px] font-mono" x-text="JSON.stringify(lastRawData, null, 2)"></pre>
                 </div>
             </div>
-            
             <button @click="settingsOpen = false" class="w-full mt-10 py-4 bg-blue-600 rounded-xl font-black uppercase text-xs shadow-xl transition-all hover:bg-blue-500">Close terminal</button>
         </div>
     </div>
 
     <!-- Inject Modal -->
-    <div x-show="addModalOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md text-left">
+    <div x-show="addModalOpen" x-transition.scale class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md text-left">
         <div @click="addModalOpen = false" class="absolute inset-0 bg-black/80"></div>
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl">
             <h2 class="text-3xl font-black uppercase tracking-tighter mb-6">Inject Module</h2>
             <div class="space-y-4">
-                <input x-model="newItem.name" placeholder="Label" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
-                <input x-model="newItem.url" placeholder="URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
-                <input x-model="newItem.icon" placeholder="Icon Link" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                <div>
+                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Label</label>
+                    <input x-model="newItem.name" placeholder="e.g. EOS Form" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Endpoint URL</label>
+                    <input x-model="newItem.url" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Icon String / URL</label>
+                    <input x-model="newItem.icon" placeholder="e.g. terminal or icon-url" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none text-white">
+                </div>
             </div>
             <button @click="addItem()" class="w-full mt-10 py-5 bg-blue-600 rounded-2xl font-black text-xs uppercase hover:bg-blue-500 transition-all">Finalize Injection</button>
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
+        import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
+        import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
+
         const firebaseConfig = {
             apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
             authDomain: "nexusdash-5731e.firebaseapp.com",
@@ -187,124 +209,162 @@
             messagingSenderId: "758016854578",
             appId: "1:758016854578:web:18c6d8f8181b1134caca2b"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
 
-        function nexusHandler() {
-            return {
-                time: '', date: '', activeTab: 'links',
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = 'nexusdash';
+
+        // Register the Alpine component logic using the official Alpine.data method
+        // Wrap it in alpine:init to ensure Alpine is ready to receive the registration
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('nexusHandler', () => ({
+                initialized: false,
+                time: '00:00:00', 
+                date: 'INITIALIZING...', 
+                activeTab: 'links',
                 syncId: localStorage.getItem('nexus_sync_key') || '',
-                syncStatus: 'Offline', apiStatus: 'Awaiting handshake...',
-                settingsOpen: false, addModalOpen: false, syncing: false, fetchingEvents: false, isCloudReady: false,
-                lastRawData: { status: "Idle" },
-                links: [
-                    { name: 'EOS Form', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/icons8-application-100.png', url: 'https://forms.office.com/pages/responsepage.aspx?id=Zh-exeJVn0SAfe_1FF9ZixnyQxfHe_9EkCPctjghjHBUM002U1hLUUJTSVhMTU5MNE5XR1g0S0ZENi4u&route=shorturl' },
-                    { name: 'Vanguard', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/Icon-57%402x.png', url: 'https://vanguard.emsanyware.com/' },
-                    { name: 'ESO Suite', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/eso.png', url: 'https://scheduling.esosuite.net/Default.aspx?DB=priorityambulance' },
-                    { name: 'Helo Sync', icon: 'https://raw.githubusercontent.com/sndjy1986/WorkHomepage/refs/heads/main/icons/EMS_Helo-removebg-preview.png', url: 'https://andersoncounty911_sc.transport.net/#/login' },
-                    { name: 'Daily Sheet', icon: 'https://icons.duckduckgo.com/ip3/drive.google.com.ico', url: 'https://docs.google.com/spreadsheets/d/1H6C59UoF_g1QHSutXQCqBUUhfW4r2rLoNaTe0ZRQYSw/edit?usp=sharing' },
-                    { name: 'Coroner', icon: 'https://raw.githubusercontent.com/sndjy1986/_traichu/refs/heads/main/icons/Priority.png', url: 'https://drive.google.com/file/d/1Lq3m5KIhkwP7zQZu9RTKlXRO18BPhx1A/view?usp=drive_link' }
-                ],
-                serverLinks: [
-                    { name: 'Termix2', icon: 'terminal', url: 'https://Termix2.sndjy.us' },
-                    { name: 'Warden', icon: 'bitwarden', url: 'https://Warden.sndjy.us' },
-                    { name: 'Calendar', icon: 'google-calendar', url: 'https://Calendar.sndjy.us' }
-                ],
-                tasks: [{ text: 'Terminal Boot Sequence Complete', done: true }],
+                syncStatus: 'Offline', 
+                syncColor: 'text-white/40',
+                apiStatus: 'Protocol pending...',
+                settingsOpen: false, 
+                addModalOpen: false, 
+                syncing: false, 
+                fetchingEvents: false,
+                lastRawData: null,
+                user: null,
+                links: [], 
+                serverLinks: [], 
+                tasks: [],
                 events: [],
-                settings: { bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', blur: 0, scriptable: { endpoint: '', authKey: '', title: 'Nexus Protocol' }},
+                settings: { 
+                    bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', 
+                    blur: 0, 
+                    scriptable: { endpoint: '', authKey: '', title: 'Nexus Dash' }
+                },
                 newItem: { name: '', url: '', icon: '' },
 
-                boot() {
-                    setInterval(() => {
-                        const now = new Date();
-                        this.time = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-                        this.date = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
-                    }, 1000);
+                init() {
+                    // Alpine's internal init method
+                    this.updateTime();
+                    setInterval(() => this.updateTime(), 1000);
+
+                    onAuthStateChanged(auth, (user) => {
+                        this.user = user;
+                        if (user && this.syncId) {
+                            this.setupSyncListener();
+                        } else if (user) {
+                            this.syncStatus = 'Local Session';
+                            this.syncColor = 'text-yellow-500/50';
+                        }
+                        this.initialized = true;
+                    });
+
+                    signInAnonymously(auth).catch(() => {
+                        this.syncStatus = 'Auth Protocol Failed';
+                        this.syncColor = 'text-red-500';
+                        this.initialized = true;
+                    });
                     
-                    auth.signInAnonymously().then(() => {
-                        if (this.syncId) this.loadCloud();
-                        else { this.isCloudReady = true; this.fetchEvents(); }
+                    this.fetchEvents();
+                },
+
+                updateTime() {
+                    const now = new Date();
+                    this.time = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+                    this.date = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+                },
+
+                setupSyncListener() {
+                    if (!this.user || !this.syncId) return;
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_configs', this.syncId);
+                    this.syncStatus = 'Syncing...';
+                    this.syncColor = 'text-blue-400';
+
+                    onSnapshot(docRef, (snap) => {
+                        if (snap.exists()) {
+                            const d = snap.data();
+                            this.links = d.links || [];
+                            this.serverLinks = d.serverLinks || [];
+                            this.tasks = d.tasks || [];
+                            this.settings = { ...this.settings, ...d.settings };
+                            this.syncStatus = 'Nexus Linked';
+                            this.syncColor = 'text-green-500';
+                        } else {
+                            this.syncStatus = 'Awaiting Link';
+                            this.syncColor = 'text-blue-500';
+                        }
+                    }, (error) => {
+                        this.syncStatus = 'Sync Access Denied';
+                        this.syncColor = 'text-red-500';
                     });
                 },
 
-                async loadCloud() {
-                    this.syncStatus = 'Connecting...';
-                    try {
-                        const snap = await db.collection('artifacts').doc('nexusdash').collection('public').doc('data').collection('user_configs').doc(this.syncId).get();
-                        if (snap.exists) {
-                            const d = snap.data();
-                            this.links = d.links || this.links;
-                            this.serverLinks = d.serverLinks || this.serverLinks;
-                            this.tasks = d.tasks || this.tasks;
-                            this.settings = d.settings || this.settings;
-                            this.syncStatus = 'Nexus Linked';
-                        } else { this.syncStatus = 'New Key Handshake'; }
-                        this.isCloudReady = true;
-                        this.fetchEvents();
-                    } catch (e) { this.syncStatus = 'Sync Error'; this.isCloudReady = true; this.fetchEvents(); }
-                },
-
                 async persist() {
-                    if (!this.syncId || !this.isCloudReady) return;
+                    if (!this.user || !this.syncId) return;
                     this.syncing = true;
                     try {
-                        await db.collection('artifacts').doc('nexusdash').collection('public').doc('data').collection('user_configs').doc(this.syncId).set({
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_configs', this.syncId);
+                        await setDoc(docRef, {
                             links: JSON.parse(JSON.stringify(this.links)),
                             serverLinks: JSON.parse(JSON.stringify(this.serverLinks)),
                             tasks: JSON.parse(JSON.stringify(this.tasks)),
                             settings: JSON.parse(JSON.stringify(this.settings)),
                             updatedAt: Date.now()
-                        });
-                        setTimeout(() => this.syncing = false, 800);
-                    } catch (e) { this.syncing = false; }
+                        }, { merge: true });
+                        setTimeout(() => { this.syncing = false; }, 800);
+                    } catch (e) {
+                        this.syncing = false;
+                    }
+                },
+
+                setSyncKey() {
+                    if (!this.syncId) return;
+                    localStorage.setItem('nexus_sync_key', this.syncId);
+                    if (this.user) this.setupSyncListener();
                 },
 
                 async fetchEvents() {
-                    if (!this.settings.scriptable.endpoint) { this.apiStatus = 'Endpoint not configured.'; return; }
+                    if (!this.settings?.scriptable?.endpoint) { 
+                        this.apiStatus = 'Bridge offline.'; 
+                        return; 
+                    }
                     this.fetchingEvents = true;
-                    this.apiStatus = 'Connecting to Worker...';
-                    
+                    this.apiStatus = 'Handshake...';
                     try {
-                        // Open the time window to 48 hours
                         const now = new Date();
                         const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
                         const end = start + (48 * 60 * 60 * 1000);
-
                         const url = new URL(this.settings.scriptable.endpoint);
                         url.searchParams.set('start', start);
                         url.searchParams.set('end', end);
-
                         const headers = { 'Content-Type': 'application/json' };
-                        if (this.settings.scriptable.authKey) {
-                            headers['x-api-key'] = this.settings.scriptable.authKey;
-                        }
-
+                        if (this.settings.scriptable.authKey) headers['x-api-key'] = this.settings.scriptable.authKey;
                         const res = await fetch(url.toString(), { headers });
                         const data = await res.json();
-                        this.lastRawData = data; // Put raw data in debug panel
-                        
-                        if (res.status === 401) {
-                            this.apiStatus = '401 Unauthorized. Set x-api-key in Settings.';
-                            this.events = [];
-                        } else if (res.ok) {
+                        this.lastRawData = data;
+                        if (res.ok) {
                             const list = data.events || [];
                             this.events = list.slice(0, 5).map(e => ({
-                                title: e.title || 'Untitled',
+                                title: e.title || 'Unknown Protocol',
                                 time: e.start_ts ? new Date(e.start_ts).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : 'Active'
                             }));
-                            this.apiStatus = this.events.length > 0 ? 'Protocol Online' : 'No protocols in window.';
-                        } else { this.apiStatus = `API Error ${res.status}. Check Debug Panel.`; }
+                            this.apiStatus = this.events.length > 0 ? 'Protocols Online' : 'No events found.';
+                        } else { 
+                            this.apiStatus = `Bridge Error ${res.status}`; 
+                        }
                     } catch (e) { 
-                        this.apiStatus = 'CORS/Connection Error. Verify handleCors in Worker.'; 
+                        this.apiStatus = 'Protocol failed.'; 
                         this.lastRawData = { error: e.message };
-                    } finally { this.fetchingEvents = false; }
+                    } finally { 
+                        this.fetchingEvents = false; 
+                    }
                 },
 
                 getIcon(item) {
-                    if (item.icon.startsWith('http')) return item.icon;
-                    return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${item.icon.toLowerCase().replace(/\s+/g, '-')}.svg`;
+                    if (item.icon && item.icon.startsWith('http')) return item.icon;
+                    const name = item.icon || 'default';
+                    return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${name.toLowerCase().replace(/\s+/g, '-')}.svg`;
                 },
 
                 addItem() {
@@ -327,17 +387,9 @@
                     this.tasks.push({ text: e.target.value, done: false });
                     e.target.value = '';
                     this.persist();
-                },
-
-                setSyncKey() {
-                    if (!this.syncId) return;
-                    localStorage.setItem('nexus_sync_key', this.syncId);
-                    this.loadCloud();
                 }
-            }
-        }
+            }));
+        });
     </script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
-
