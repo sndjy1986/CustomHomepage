@@ -68,7 +68,6 @@
         </header>
 
         <main class="flex-grow flex flex-col">
-            <!-- Clock/Search Area -->
             <section class="flex-grow flex flex-col items-center justify-center text-center py-4 px-4">
                 <h2 x-text="time" class="text-[6rem] md:text-[9rem] font-extrabold tracking-tighter tabular-nums uppercase leading-none drop-shadow-2xl">00:00 AM</h2>
                 <p x-text="date" class="text-white/30 uppercase tracking-[0.5em] font-bold text-xs mt-4"></p>
@@ -79,10 +78,8 @@
                 </div>
             </section>
 
-            <!-- Content Grid -->
             <section class="max-w-7xl mx-auto w-full px-6 pb-12">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <!-- Links -->
                     <div class="lg:col-span-8 nexus-card p-8 md:p-10 flex flex-col min-h-[400px]">
                         <div class="flex items-center gap-8 mb-10 border-b border-white/5">
                             <button @click="activeTab = 'links'" :class="activeTab === 'links' ? 'text-blue-400 border-b-2 border-blue-400 pb-4' : 'text-white/20 pb-4'" class="text-xs font-black uppercase tracking-[0.3em] transition-all">Links</button>
@@ -103,7 +100,6 @@
                         </div>
                     </div>
 
-                    <!-- Sidebar -->
                     <div class="lg:col-span-4 flex flex-col gap-8 text-left">
                         <div class="nexus-card p-8 min-h-[220px]">
                             <div class="flex justify-between items-center mb-6">
@@ -254,10 +250,9 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
-        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
+        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, linkWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js';
 
-        // STATIC CONFIG LOCK: Ensures all browsers meet in the exact same database project.
         const config = {
             apiKey: "AIzaSyDNqhSW1M0Q-gNchNDLh3FADL8UOjmmtpA",
             authDomain: "nexusdash-5731e.firebaseapp.com",
@@ -270,11 +265,11 @@
         const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const staticNamespace = 'nexus-dashboard-master'; // FORCED NAMESPACE LOCK
+        const staticNamespace = 'nexus-dashboard-master';
 
         window.NEXUS_CORE = {
             auth, db, appId: staticNamespace, projectId: config.projectId,
-            methods: { onAuthStateChanged, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, doc, setDoc, onSnapshot }
+            methods: { onAuthStateChanged, signInAnonymously, GoogleAuthProvider, signInWithPopup, linkWithPopup, signOut, doc, setDoc, onSnapshot }
         };
     </script>
 
@@ -283,7 +278,7 @@
             Alpine.data('nexusHandler', () => ({
                 initialized: false,
                 hasCloudHandshake: false, 
-                currentDocUnsubscribe: null, // Track the active listener
+                currentDocUnsubscribe: null,
                 time: '00:00:00',
                 date: 'HANDSHAKE...',
                 activeTab: 'links',
@@ -352,7 +347,6 @@
                                 this.userPhoto = user.photoURL;
                             }
                             
-                            // Every time auth state changes, we must reset the listener to point at the new UID folder
                             this.setupSyncListener(user);
                         }
                         this.initialized = true;
@@ -369,9 +363,20 @@
                     const core = window.NEXUS_CORE;
                     const provider = new core.methods.GoogleAuthProvider();
                     this.addLog('Opening OAuth Portal...', 'info');
+
                     try {
-                        await core.methods.signInWithPopup(core.auth, provider);
-                        this.addLog('Google synchronization handshake active.', 'success');
+                        const user = core.auth.currentUser;
+
+                        // UPGRADE ANONYMOUS USER TO GOOGLE (Fix for UID mismatch)
+                        if (user && user.isAnonymous) {
+                            this.addLog('Linking current profile to Google...', 'info');
+                            await core.methods.linkWithPopup(user, provider);
+                            this.addLog('Anonymous profile upgraded. UID preserved.', 'success');
+                        } else {
+                            // Standard sign-in if guest doesn't exist or already authenticated
+                            await core.methods.signInWithPopup(core.auth, provider);
+                            this.addLog('Google profile active.', 'success');
+                        }
                     } catch (e) {
                         this.addLog(`Portal failure: ${e.message}`, 'error');
                     }
@@ -392,9 +397,8 @@
                 setupSyncListener(user) {
                     const core = window.NEXUS_CORE;
                     
-                    // Cleanup existing listener to avoid double-logging and resource leaks
                     if(this.currentDocUnsubscribe) {
-                        this.addLog('Terminating previous data stream...');
+                        this.addLog('Switching protocol stream...');
                         this.currentDocUnsubscribe();
                     }
 
@@ -405,14 +409,13 @@
                     const docRef = core.methods.doc(core.db, ...segments);
                     
                     this.syncStatus = 'Pulling...';
-                    this.hasCloudHandshake = false; // Reset handshake for the new path check
+                    this.hasCloudHandshake = false; 
 
                     this.currentDocUnsubscribe = core.methods.onSnapshot(docRef, (snap) => {
                         if (snap.exists()) {
                             const d = snap.data();
-                            this.addLog(`Cloud Data Detected: ${d.links?.length || 0} links pulled.`, 'success');
+                            this.addLog(`Cloud Data Detected. UID: ${user.uid}`, 'success');
                             
-                            // Important: Only apply data from cloud if we aren't mid-upload locally
                             if(!this.syncing) {
                                 this.links = d.links || [];
                                 this.serverLinks = d.serverLinks || [];
@@ -421,15 +424,12 @@
                             }
                             this.syncStatus = 'Synced';
                             this.syncColor = 'text-green-500';
-                            this.hasCloudHandshake = true; // Handshake complete, safe to Push now
+                            this.hasCloudHandshake = true;
                             this.fetchEvents(); 
                         } else {
-                            this.addLog(`Handshake success. Node "${fullPath}" is empty.`, 'warn');
+                            this.addLog(`Node empty. Handshake verified for UID: ${user.uid}`, 'warn');
                             this.syncStatus = this.isGoogleAuth ? 'Empty Account' : 'Ready to Sync';
                             this.syncColor = 'text-blue-400';
-                            
-                            // SAFETY: We mark handshake as done so new local links can be uploaded,
-                            // but we don't upload the current empty local state immediately.
                             this.hasCloudHandshake = true; 
                         }
                     }, (err) => {
@@ -443,13 +443,10 @@
                     const core = window.NEXUS_CORE;
                     const user = core.auth.currentUser;
                     
-                    // PREVENT DATA WIPING:
-                    // We only "Push" if the cloud handshake is complete. This ensures that
-                    // an empty local start doesn't overwrite your cloud data before it's been pulled.
                     if (!user || !this.hasCloudHandshake) return;
                     
                     this.syncing = true;
-                    this.addLog(`Synchronizing local profile to cloud...`, 'info');
+                    this.addLog(`Pushing state to cloud...`, 'info');
                     try {
                         const segments = ['artifacts', core.appId, 'users', user.uid, 'dashboard', 'settings'];
                         const docRef = core.methods.doc(core.db, ...segments);
