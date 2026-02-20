@@ -63,8 +63,8 @@
         }
 
         .icon-box img { 
-            width: 24px; 
-            height: 24px; 
+            width: 26px; 
+            height: 26px; 
             object-fit: contain; 
             filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
             transition: all 0.3s ease;
@@ -245,36 +245,34 @@
                                     </div>
                                 </template>
                                 <template x-if="events.length === 0">
-                                    <div class="text-[10px] text-white/20 leading-relaxed italic" x-text="fetchingEvents ? 'Querying registry...' : 'Registry idle.'"></div>
+                                    <div class="text-[10px] text-white/20 leading-relaxed italic" x-text="fetchingEvents ? 'Querying registry...' : 'Registry clear.'"></div>
                                 </template>
                             </div>
                         </div>
 
-                        <!-- To Do List (Todoist Integration) -->
+                        <!-- To Do List (Local-First Cloud-Synced) -->
                         <div class="nexus-card p-8 flex-1 flex flex-col gap-6">
                             <div class="flex justify-between items-center">
                                 <h4 class="text-[10px] font-black uppercase tracking-widest accent-text">To Do List :</h4>
-                                <div class="flex gap-2">
-                                    <span class="text-[9px] font-bold text-white/20 bg-white/5 px-2 py-0.5 rounded-full" x-text="tasks.length"></span>
-                                    <button @click="fetchTasks()" class="text-white/20 hover:text-white transition-colors">
-                                        <svg :class="fetchingTasks ? 'animate-spin' : ''" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8M21 3v5h-5"/></svg>
-                                    </button>
-                                </div>
+                                <span class="text-[9px] font-bold text-white/20 bg-white/5 px-2 py-0.5 rounded-full" x-text="tasks.length"></span>
                             </div>
                             <div class="space-y-3 flex-grow overflow-y-auto max-h-[220px] pr-2">
-                                <template x-for="(t, i) in tasks" :key="t.id">
+                                <template x-for="(t, i) in tasks" :key="i">
                                     <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 group transition-all hover:bg-white/10">
-                                        <div @click="toggleTask(t.id)" class="w-5 h-5 rounded-lg border-2 border-white/10 flex items-center justify-center cursor-pointer transition-colors hover:accent-border" :class="t.completed ? 'accent-bg accent-border' : ''">
+                                        <div @click="toggleTask(i)" class="w-5 h-5 rounded-lg border-2 border-white/10 flex items-center justify-center cursor-pointer transition-colors hover:accent-border" :class="t.completed ? 'accent-bg accent-border' : ''">
                                             <svg x-show="t.completed" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg>
                                         </div>
                                         <span x-text="t.content" class="text-sm font-medium leading-tight" :class="t.completed ? 'text-white/20 line-through' : ''"></span>
+                                        <button @click="tasks.splice(i, 1); persist()" class="ml-auto opacity-0 group-hover:opacity-100 text-red-500/50 hover:text-red-500 transition-all">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                                        </button>
                                     </div>
                                 </template>
                                 <template x-if="tasks.length === 0">
-                                    <div class="text-[10px] text-white/20 leading-relaxed italic" x-text="fetchingTasks ? 'Mapping Todoist node...' : 'Registry stack clear.'"></div>
+                                    <div class="text-[10px] text-white/20 leading-relaxed italic">Nexus task registry is clear.</div>
                                 </template>
                             </div>
-                            <input @keydown.enter="addTodoistTask($event)" type="text" placeholder="+ Add to Registry..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full text-white placeholder:text-white/20">
+                            <input @keydown.enter="addTaskEntry($event)" type="text" placeholder="+ New entry..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full text-white placeholder:text-white/20">
                         </div>
                     </div>
                 </div>
@@ -407,14 +405,10 @@
     </div>
 
     <script>
-        // CONFIG NODES
+        // CALENDAR CONFIG
         const CAL_IDS = ["ee0de736-6a34-41ec-a3c1-3cf5358f686d", "60fab72f-7327-49ba-9936-2b25e47183fa", "6db7944a-b061-4a2c-a720-719905ee49cb", "57a58707-a0c0-467d-ba6b-0beb2775e2f0", "6ad30b8f-7d22-44bc-af86-8df6aed7cd74"];
         const CAL_API_KEY = "Broadfeet1!"; 
         const CAL_API_BASE = "https://api.cal.sndjy.us/events";
-
-        // UPDATED TODOIST TOKEN
-        const TODOIST_TOKEN = "81967fd1dd43a4c732a7012a2aa6f16d16726e2a";
-        const TODOIST_BASE = "https://api.todoist.com/rest/v2";
 
         document.addEventListener('alpine:init', () => {
              Alpine.data('nexusHandler', () => ({
@@ -426,7 +420,7 @@
                 editModalOpen: false,
                 contextMenu: { show: false, x: 0, y: 0, index: null },
                 time: '00:00:00',
-                date: 'CONNECTING...',
+                date: 'PROTOCOL READY',
                 activeTab: 'links',
                 syncKey: localStorage.getItem('nexus_sync_key') || '',
                 protocolLogs: [],
@@ -435,7 +429,6 @@
                 tasks: [],
                 events: [],
                 fetchingEvents: false,
-                fetchingTasks: false,
                 syncing: false,
                 apiStatus: 'Registry ready...',
                 
@@ -477,13 +470,14 @@
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
 
-                    // Local Cache Restoration
+                    // Local Cache Restoration (Immediate "Cookie" behavior)
                     const saved = localStorage.getItem('nexus_full_state');
                     if (saved) {
                         try {
                             const d = JSON.parse(saved);
                             this.links = d.links || [];
                             this.serverLinks = d.serverLinks || [];
+                            this.tasks = d.tasks || []; // TASKS ARE NOW INTERNAL & CLOUD SYNCED
                             this.settings = { ...this.settings, ...d.settings };
                             this.addLog('State restored from local memory buffer.', 'success');
                         } catch (e) {
@@ -498,7 +492,6 @@
                     // Delay data sync to avoid boot friction
                     setTimeout(() => {
                         this.fetchEvents();
-                        this.fetchTasks();
                     }, 800);
                 },
 
@@ -514,7 +507,7 @@
 
                 persist() {
                     if (this.booting) return;
-                    const state = { links: this.links, serverLinks: this.serverLinks, settings: this.settings };
+                    const state = { links: this.links, serverLinks: this.serverLinks, tasks: this.tasks, settings: this.settings };
                     localStorage.setItem('nexus_full_state', JSON.stringify(state));
                     localStorage.setItem('nexus_sync_key', this.syncKey);
                 },
@@ -530,14 +523,14 @@
 
                 async cloudPush() {
                     this.persist();
-                    if (!this.syncKey) return this.addLog('Error: Terminal ID required.', 'error');
+                    if (!this.syncKey) return this.addLog('Error: Handshake ID required.', 'error');
                     const sb = this.getSupabase();
                     if (!sb) return;
 
                     this.syncing = true;
                     this.addLog(`Action: Pushing local state to node "${this.syncKey}"...`, 'info');
 
-                    const state = { links: this.links, serverLinks: this.serverLinks, settings: this.settings, updatedAt: new Date().toISOString() };
+                    const state = { links: this.links, serverLinks: this.serverLinks, tasks: this.tasks, settings: this.settings, updatedAt: new Date().toISOString() };
 
                     try {
                         const { error } = await sb.from('nexus_backups').upsert({ id: this.syncKey, content: state });
@@ -551,7 +544,7 @@
                 },
 
                 async cloudPull() {
-                    if (!this.syncKey) return this.addLog('Error: Terminal ID required.', 'error');
+                    if (!this.syncKey) return this.addLog('Error: Handshake ID required.', 'error');
                     const sb = this.getSupabase();
                     if (!sb) return;
 
@@ -563,10 +556,10 @@
                             const c = data.content;
                             this.links = c.links || [];
                             this.serverLinks = c.serverLinks || [];
+                            this.tasks = c.tasks || [];
                             this.settings = { ...this.settings, ...c.settings };
                             this.persist();
                             this.addLog('Sync success: Data applied to local buffer.', 'success');
-                            this.fetchTasks();
                         } else {
                             this.addLog('Handshake result: Node empty.', 'warn');
                         }
@@ -614,66 +607,18 @@
                     } finally { this.fetchingEvents = false; }
                 },
 
-                // --- TODOIST REST API INTEGRATION ---
-                async fetchTasks() {
-                    if (this.fetchingTasks) return;
-                    this.fetchingTasks = true;
-                    this.addLog('Todoist: Pulling task stack...', 'info');
-                    try {
-                        const res = await fetch(`${TODOIST_BASE}/tasks`, {
-                            headers: { 'Authorization': `Bearer ${TODOIST_TOKEN}` }
-                        });
-                        if (!res.ok) throw new Error(`Handshake error: ${res.status}`);
-                        const data = await res.json();
-                        
-                        if (Array.isArray(data)) {
-                            this.tasks = data.map(t => ({ id: t.id, content: t.content, completed: false }));
-                            this.addLog(`Todoist: ${this.tasks.length} entries pulled.`, 'success');
-                            this.apiStatus = `Sync: ${this.tasks.length} items.`;
-                        }
-                    } catch (e) {
-                        this.addLog(`Todoist error: ${e.message}`, 'error');
-                        this.apiStatus = 'Handshake: Error';
-                    } finally { this.fetchingTasks = false; }
+                // --- TASK MANAGEMENT (REPLACING TODOIST WITH INTERNAL SYNCED LIST) ---
+                addTaskEntry(e) {
+                    const content = e.target.value.trim();
+                    if (!content) return;
+                    this.tasks.push({ id: Date.now(), content: content, completed: false });
+                    e.target.value = '';
+                    this.persist();
                 },
 
-                async addTodoistTask(e) {
-                    const val = e.target.value.trim();
-                    if (!val) return;
-                    this.addLog(`Todoist: Pushing entry "${val}"...`, 'info');
-                    try {
-                        const res = await fetch(`${TODOIST_BASE}/tasks`, {
-                            method: 'POST',
-                            headers: { 'Authorization': `Bearer ${TODOIST_TOKEN}`, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ content: val })
-                        });
-                        if (res.ok) {
-                            const newTask = await res.json();
-                            this.tasks.unshift({ id: newTask.id, content: newTask.content, completed: false });
-                            e.target.value = '';
-                            this.addLog('Todoist: Entry confirmed.', 'success');
-                        }
-                    } catch (e) { this.addLog('Todoist: Entry failed.', 'error'); }
-                },
-
-                async toggleTask(id) {
-                    const task = this.tasks.find(t => t.id === id);
-                    if (!task) return;
-                    task.completed = true;
-                    this.addLog('Todoist: Terminating entry node...', 'info');
-                    try {
-                        const res = await fetch(`${TODOIST_BASE}/tasks/${id}/close`, {
-                            method: 'POST',
-                            headers: { 'Authorization': `Bearer ${TODOIST_TOKEN}` }
-                        });
-                        if (res.ok) {
-                            setTimeout(() => { this.tasks = this.tasks.filter(t => t.id !== id); }, 400);
-                            this.addLog('Todoist: Entry closed.', 'success');
-                        }
-                    } catch (e) {
-                        task.completed = false;
-                        this.addLog('Todoist: Closure failed.', 'error');
-                    }
+                toggleTask(idx) {
+                    this.tasks[idx].completed = !this.tasks[idx].completed;
+                    this.persist();
                 },
 
                 getIcon(item) {
