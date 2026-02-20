@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus Dash | Terminal Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
@@ -17,33 +18,35 @@
         .bg-overlay { position: fixed; inset: 0; z-index: -1; background-size: cover; background-position: center; transition: background-image 0.8s ease, filter 0.3s ease; }
         .nexus-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1.5rem; transition: all 0.3s ease; }
         
-        /* Link Icons */
+        /* Links & Hover Glow */
         .icon-box { display: flex; align-items: center; justify-content: center; border-radius: 1.2rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); cursor: grab; position: relative; }
         .icon-box img { width: 55%; height: 55%; object-fit: contain; pointer-events: none; transition: all 0.3s ease; }
         .icon-box:hover { transform: translateY(-8px) scale(1.1); background: rgba(255,255,255,0.1); box-shadow: 0 0 30px -5px var(--accent-glow); border-color: var(--accent-glow); }
         .icon-box:hover img { filter: drop-shadow(0 0 12px var(--accent-glow)); }
         
-        /* Animations */
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes pulse-red { 0%, 100% { border-color: rgba(239, 68, 68, 0.2); box-shadow: 0 0 0px red; } 50% { border-color: rgba(239, 68, 68, 1); box-shadow: 0 0 15px red; } }
-        .animate-weather { animation: float 3s ease-in-out infinite; }
-        .animate-sun { animation: rotate 10s linear infinite; }
-        .warning-active { animation: pulse-red 2s infinite !important; border-width: 2px !important; }
+        /* Symmetrical Animations */
+        @keyframes rotate-sun { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes drift { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+        @keyframes pulse-alert { 0%, 100% { border-color: rgba(239, 68, 68, 0.2); box-shadow: 0 0 0px red; } 50% { border-color: rgba(239, 68, 68, 1); box-shadow: 0 0 15px red; } }
+        .animate-sun { animation: rotate-sun 15s linear infinite; }
+        .animate-cloud { animation: drift 4s ease-in-out infinite; }
+        .severe-warning { animation: pulse-alert 2s infinite !important; border-width: 2px !important; }
         
-        .gear-rotate { animation: rotate 20s linear infinite; }
-        input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; cursor: pointer; }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--accent-glow); margin-top: -6px; }
-
-        .context-menu { position: fixed; z-index: 3000; min-width: 180px; background: rgba(10, 15, 28, 0.98); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; padding: 8px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.9); }
-        .context-menu button { width: 100%; text-align: left; padding: 10px 14px; font-size: 10px; font-weight: 700; text-transform: uppercase; border-radius: 10px; color: rgba(255,255,255,0.8); }
-        .context-menu button:hover { background: rgba(255,255,255,0.08); color: var(--accent-glow); }
-
-        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .gear-rotate { animation: rotate-sun 20s linear infinite; }
         .accent-text { color: var(--accent-glow); }
         .accent-bg { background-color: var(--accent-glow); }
         .accent-border { border-color: var(--accent-glow); }
+
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        .context-menu { position: fixed; z-index: 3000; min-width: 180px; background: rgba(10, 15, 28, 0.98); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; padding: 8px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.9); }
+        .context-menu button { width: 100%; text-align: left; padding: 10px 14px; font-size: 10px; font-weight: 700; text-transform: uppercase; border-radius: 10px; color: rgba(255,255,255,0.8); transition: 0.2s; }
+        .context-menu button:hover { background: rgba(255,255,255,0.08); color: var(--accent-glow); }
+
+        input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; cursor: pointer; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--accent-glow); margin-top: -6px; }
     </style>
 </head>
 <body x-data="nexusHandler" x-cloak :style="`--accent-glow: ${settings.accentColor}`" @click="closeContextMenu()" @contextmenu="closeContextMenu()">
@@ -53,7 +56,7 @@
 
     <!-- Context Menu -->
     <div x-show="contextMenu.show" class="context-menu" :style="`top: ${contextMenu.y}px; left: ${contextMenu.x}px;`" x-transition @click.stop @contextmenu.stop.prevent>
-        <button @click="triggerEdit()">Modify Entry</button>
+        <button @click="triggerEdit()">Modify Module</button>
         <div class="h-px bg-white/5 my-1"></div>
         <p class="px-3 py-1 text-[8px] font-black uppercase text-white/20">Transfer Node</p>
         <button x-show="activeTab !== 'links'" @click="moveLink('links')">Home Registry</button>
@@ -74,8 +77,8 @@
                     <p class="text-[9px] uppercase tracking-[0.3em] font-bold text-white/30 mt-1">Symmetrical Network Grid</p>
                 </div>
             </div>
-            <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 shadow-lg transition-all">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 transition-all">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2 2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
         </header>
 
@@ -90,23 +93,21 @@
             </section>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1800px] mx-auto w-full pb-12">
-                
                 <!-- LEFT SIDEBAR -->
                 <aside class="lg:col-span-3 space-y-8 hidden lg:block">
                     <!-- Weather -->
-                    <div class="nexus-card p-6 min-h-[180px] flex flex-col items-center justify-center relative" :class="weather.isWarning ? 'warning-active' : ''">
-                        <div x-show="weather.isWarning" class="absolute top-2 left-2 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest">Severe Alert</div>
+                    <div class="nexus-card p-6 min-h-[180px] flex flex-col items-center justify-center relative" :class="weather.isWarning ? 'severe-warning' : ''">
+                        <div x-show="weather.isWarning" class="absolute top-3 left-3 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest animate-pulse">Severe Alert</div>
                         <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-4">Atmospheric Sync</h4>
                         <div x-show="weather.temp !== null" class="flex flex-col items-center">
-                            <!-- Animated Weather Icon -->
                             <div class="w-16 h-16 mb-2 flex items-center justify-center">
-                                <template x-if="weather.code < 3"> <!-- Sun -->
+                                <template x-if="weather.code < 3">
                                     <svg class="animate-sun w-12 h-12 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
                                 </template>
-                                <template x-if="weather.code >= 3 && weather.code < 50"> <!-- Clouds -->
-                                    <svg class="animate-weather w-12 h-12 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19c2.5 0 4.5-2 4.5-4.5S20 10 17.5 10c-.2 0-.4 0-.6.1C15.8 7.6 13.1 6 10 6c-3.9 0-7 3.1-7 7s3.1 7 7 7c.4 0 .8 0 1.2-.1"/></svg>
+                                <template x-if="weather.code >= 3 && weather.code < 50">
+                                    <svg class="animate-cloud w-12 h-12 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19c2.5 0 4.5-2 4.5-4.5S20 10 17.5 10c-.2 0-.4 0-.6.1C15.8 7.6 13.1 6 10 6c-3.9 0-7 3.1-7 7s3.1 7 7 7c.4 0 .8 0 1.2-.1"/></svg>
                                 </template>
-                                <template x-if="weather.code >= 50"> <!-- Rain/Storm -->
+                                <template x-if="weather.code >= 50">
                                     <svg class="animate-weather w-12 h-12 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 16.2A4.5 4.5 0 0 0 17.5 8h-1.8A7 7 0 1 0 4 14.9"/><path d="M16 14l-2 6"/><path d="M10 14l-2 6"/><path d="M13 14l-2 6"/></svg>
                                 </template>
                             </div>
@@ -119,9 +120,9 @@
                         <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Fox News: Hot Feed</h4>
                         <div class="space-y-4">
                             <template x-for="item in news" :key="item.title">
-                                <a :href="item.link" target="_blank" class="block border-l-2 border-white/5 pl-4 py-1 hover:border-red-500 transition-colors group">
+                                <a :href="item.link" target="_blank" class="block border-l-2 border-white/5 pl-4 py-1 hover:border-red-500 group transition-all">
                                     <p x-text="item.title" class="text-[11px] font-bold text-white/80 leading-tight group-hover:text-white line-clamp-2"></p>
-                                    <p class="text-[8px] text-white/20 font-black mt-1 uppercase">Live Stream</p>
+                                    <p class="text-[8px] text-white/20 font-black mt-1 uppercase">Broadcast Update</p>
                                 </a>
                             </template>
                         </div>
@@ -141,7 +142,7 @@
                             <template x-for="(link, index) in getCurrentLinks()" :key="index">
                                 <div class="flex flex-col items-center gap-2 group relative text-center" draggable="true" @dragstart="dragStart(index)" @dragover.prevent="dragOver(index)" @drop="drop()" @contextmenu.stop.prevent="openContextMenu($event, index)">
                                     <a :href="link.url" target="_blank" class="icon-box shadow-2xl" 
-                                       :style="`width: ${settings.iconSize}px; height: ${settings.iconSize}px; border-bottom: 2px solid ${settings.accentColor}`"
+                                       :style="`width: ${settings.iconSize}px; height: ${settings.iconSize}px; border-bottom: 3px solid ${settings.accentColor}`"
                                        :class="draggedIndex === index ? 'icon-dragging' : ''">
                                         <img :src="getIcon(link)" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'">
                                     </a>
@@ -157,9 +158,9 @@
                 <!-- RIGHT SIDEBAR -->
                 <aside class="lg:col-span-3 space-y-8 hidden lg:block">
                     <div class="nexus-card p-6 min-h-[250px]">
-                         <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Schedule Sync</h4>
+                         <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Family Schedule</h4>
                          <div class="space-y-4 max-h-[300px] overflow-y-auto pr-2 no-scrollbar">
-                            <template x-for="ev in events">
+                            <template x-for="ev in events" :key="ev.id">
                                 <div class="border-l-2 accent-border pl-4 py-1 hover:bg-white/5 rounded-r-lg">
                                     <p x-text="ev.title" class="text-xs font-bold text-white/90 leading-tight truncate"></p>
                                     <p x-text="ev.time" class="text-[9px] text-white/30 uppercase font-bold mt-1"></p>
@@ -168,7 +169,7 @@
                          </div>
                     </div>
                     <div class="nexus-card p-6 min-h-[200px]">
-                        <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Registry Queue</h4>
+                        <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Queue Registry</h4>
                         <div class="space-y-3">
                             <template x-for="(t, i) in tasks" :key="i">
                                 <div class="flex items-center gap-3 p-2 bg-white/5 rounded-xl border border-white/5">
@@ -177,45 +178,36 @@
                                 </div>
                             </template>
                         </div>
-                        <input @keydown.enter="addTask($event)" type="text" placeholder="+ New registry..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full text-white mt-4 placeholder:text-white/20">
                     </div>
                 </aside>
             </div>
         </main>
     </div>
 
-    <!-- System Console -->
+    <!-- Modals -->
     <div x-show="settingsOpen" x-transition.opacity class="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
         <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
-        <div class="nexus-card bg-slate-900 w-full max-w-2xl relative z-10 p-8 border-white/5 shadow-2xl text-left text-white" @click.stop>
-            <h2 class="text-2xl font-black uppercase tracking-tighter mb-8 text-white underline decoration-blue-500">System Console</h2>
-            
+        <div class="nexus-card bg-slate-900 w-full max-w-2xl relative z-10 p-8 border-white/5 text-left text-white" @click.stop>
+            <h2 class="text-2xl font-black uppercase tracking-tighter mb-8 text-white underline decoration-blue-500">System Calibration</h2>
             <div class="space-y-6">
                 <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4">Display Calibration</p>
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4">Grid Control</p>
                     <div class="grid grid-cols-2 gap-x-8 gap-y-6">
                         <div>
-                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-2">Display Name</label>
-                            <input x-model="settings.dashName" @input="persist()" type="text" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
+                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-2">Dashboard Title</label>
+                            <input x-model="settings.dashName" @input="persist()" type="text" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white font-mono">
                         </div>
                         <div>
                             <label class="text-[8px] uppercase font-bold text-white/30 block mb-2">Accent Calibration</label>
-                            <div class="flex items-center gap-3">
-                                <input x-model="settings.accentColor" @input="persist()" type="color" class="w-10 h-10 bg-transparent border-none cursor-pointer">
-                                <span class="text-[10px] font-mono text-white/40" x-text="settings.accentColor"></span>
-                            </div>
+                            <input x-model="settings.accentColor" @input="persist()" type="color" class="w-full h-8 bg-transparent border-none cursor-pointer">
                         </div>
                         <div>
                             <label class="text-[8px] uppercase font-bold text-white/30 block mb-2">Icon Scale: <span x-text="settings.iconSize + 'px'" class="text-white"></span></label>
-                            <input type="range" min="30" max="120" x-model="settings.iconSize" @input="persist()" class="w-full">
+                            <input type="range" min="30" max="150" x-model="settings.iconSize" @input="persist()" class="w-full">
                         </div>
                         <div>
                             <label class="text-[8px] uppercase font-bold text-white/30 block mb-2">Grid Density: <span x-text="settings.iconGap + 'px'" class="text-white"></span></label>
                             <input type="range" min="4" max="60" x-model="settings.iconGap" @input="persist()" class="w-full">
-                        </div>
-                        <div class="col-span-2">
-                            <label class="text-[8px] uppercase font-bold text-white/30 block mb-2">Wallpaper Stream</label>
-                            <input x-model="settings.bg" @input="persist()" type="text" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] focus:outline-none text-white font-mono">
                         </div>
                     </div>
                 </div>
@@ -223,45 +215,13 @@
                 <div class="p-4 bg-blue-600/10 rounded-2xl border border-blue-500/20 shadow-xl">
                     <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Cloud Synchronization</p>
                     <div class="flex gap-2">
-                        <div class="flex-grow">
-                             <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Session ID</label>
-                             <input x-model="syncKey" @input="persist()" type="text" placeholder="e.g. james-77" class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none text-white font-mono">
-                        </div>
-                        <div class="flex items-end gap-2">
-                            <button @click="cloudPush()" class="px-6 py-2 bg-blue-600 rounded-lg text-[10px] font-black uppercase shadow-lg active:scale-95">Push</button>
-                            <button @click="cloudPull()" class="px-6 py-2 bg-slate-700 rounded-lg text-[10px] font-black uppercase shadow-lg active:scale-95">Pull</button>
-                        </div>
+                        <input x-model="syncKey" @input="persist()" type="text" placeholder="Sync ID" class="flex-grow bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white font-mono">
+                        <button @click="cloudPush()" class="px-6 py-2 bg-blue-600 rounded-lg text-[10px] font-black uppercase shadow-lg">Push</button>
+                        <button @click="cloudPull()" class="px-6 py-2 bg-slate-700 rounded-lg text-[10px] font-black uppercase shadow-lg">Pull</button>
                     </div>
                 </div>
             </div>
-            <button @click="settingsOpen = false" class="w-full mt-10 py-4 accent-bg rounded-xl font-black uppercase text-xs shadow-xl transition-all hover:opacity-90">Shutdown Console</button>
-        </div>
-    </div>
-
-    <!-- Modals (Add / Edit) -->
-    <div x-show="addModalOpen" x-transition.scale class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md">
-        <div @click="addModalOpen = false" class="absolute inset-0 bg-black/80"></div>
-        <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl text-left">
-            <h2 class="text-3xl font-black uppercase tracking-tighter mb-6 text-white">Inject Module</h2>
-            <div class="space-y-4">
-                <div><label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Label</label><input x-model="newItem.name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"></div>
-                <div><label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Endpoint</label><input x-model="newItem.url" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"></div>
-                <div><label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Icon Handle</label><input x-model="newItem.icon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"></div>
-            </div>
-            <button @click="addItem()" class="w-full mt-10 py-5 accent-bg rounded-2xl font-black text-xs uppercase shadow-xl">Confirm Injection</button>
-        </div>
-    </div>
-
-    <div x-show="editModalOpen" x-transition.scale class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md">
-        <div @click="editModalOpen = false" class="absolute inset-0 bg-black/80"></div>
-        <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl text-left">
-            <h2 class="text-3xl font-black uppercase tracking-tighter mb-6 text-white">Calibrate Module</h2>
-            <div class="space-y-4">
-                <div><label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Label</label><input x-model="editingItem.name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"></div>
-                <div><label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Path</label><input x-model="editingItem.url" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"></div>
-                <div><label class="text-[10px] font-bold text-white/30 uppercase mb-1 block">Icon Handle</label><input x-model="editingItem.icon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"></div>
-            </div>
-            <button @click="saveEdit()" class="w-full mt-10 py-5 accent-bg rounded-2xl font-black text-xs uppercase shadow-xl">Apply Calibration</button>
+            <button @click="settingsOpen = false" class="w-full mt-10 py-4 accent-bg rounded-xl font-black uppercase text-xs">Shutdown console</button>
         </div>
     </div>
 
@@ -274,22 +234,15 @@
              Alpine.data('nexusHandler', () => ({
                 initialized: false, cloudReady: false, settingsOpen: false, addModalOpen: false, editModalOpen: false,
                 contextMenu: { show: false, x: 0, y: 0, index: null },
-                time: '00:00:00', date: 'BOOTING...', activeTab: 'links',
+                time: '00:00:00', date: 'READY', activeTab: 'links',
                 syncKey: localStorage.getItem('nexus_sync_key') || '',
                 links: [], serverLinks: [], workLinks: [], tasks: [], events: [], news: [],
                 weather: { temp: null, cond: 'Acquiring...', code: 0, isWarning: false },
                 fetchingEvents: false, syncing: false, draggedIndex: null,
                 
                 sbConfig: { url: 'https://tygrcsauitiwwlnpzhei.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5Z3Jjc2F1aXRpd3dsbnB6aGVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NDAxODksImV4cCI6MjA4NzExNjE4OX0.OLiwsqVi9qeltxhgNk42rzgukmOG3gDTDuFacAskZAc' },
-                presets: ['https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1600', 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=1600', 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?auto=format&fit=crop&q=80&w=1600'],
-
-                settings: { 
-                    dashName: 'NexusDash', accentColor: '#3b82f6', bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', 
-                    blur: 0, darken: 50, iconSize: 60, iconGap: 12
-                },
-
-                newItem: { name: '', url: '', icon: '' },
-                editingItem: { name: '', url: '', icon: '' },
+                settings: { dashName: 'NexusDash', accentColor: '#3b82f6', bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', blur: 0, darken: 50, iconSize: 60, iconGap: 12 },
+                newItem: { name: '', url: '', icon: '' }, editingItem: { name: '', url: '', icon: '' },
 
                 init() {
                     this.updateTime();
@@ -305,7 +258,6 @@
                     this.initialized = true;
                     this.cloudReady = true;
                     this.fetchEvents(); this.fetchNews(); this.fetchWeather();
-                    // Auto-refresh loops
                     setInterval(() => { this.fetchNews(); this.fetchWeather(); }, 300000);
                 },
 
@@ -337,21 +289,12 @@
                                 this.weather = { 
                                     temp: Math.round(data.current_weather.temperature), 
                                     code: code,
-                                    cond: this.getWeatherString(code),
-                                    isWarning: code >= 95 // Thunderstorms are severe
+                                    cond: code < 3 ? 'Clear Skies' : code < 50 ? 'Partly Cloudy' : 'Active Precipitation',
+                                    isWarning: code >= 95
                                 };
                             }
                         } catch (e) { }
                     });
-                },
-
-                getWeatherString(code) {
-                    if (code === 0) return 'Clear Skies';
-                    if (code <= 3) return 'Partly Cloudy';
-                    if (code <= 48) return 'Atmospheric Fog';
-                    if (code <= 67) return 'Precipitation';
-                    if (code <= 77) return 'Frozen Particles';
-                    return 'Severe Cell';
                 },
 
                 async fetchNews() {
@@ -407,12 +350,16 @@
                     this.fetchingEvents = true;
                     try {
                         const results = await Promise.all(CAL_IDS.map(async (id) => {
-                            const res = await fetch(`${CAL_API_BASE}?id=${id}`, { headers: { 'Authorization': `Bearer ${CAL_API_KEY}` } });
-                            const data = await res.json(); return data.events || [];
+                            const res = await fetch(`${CAL_API_BASE}?calendar_id=${id}`, {
+                                headers: { "x-api-key": CAL_API_KEY }
+                            });
+                            const data = await res.json();
+                            return data.events || [];
                         }));
-                        this.events = [].concat(...results).sort((a, b) => new Date(a.start) - new Date(b.start)).slice(0, 10).map(e => ({
-                            title: e.summary || e.title || 'Entry',
-                            time: new Date(e.start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+                        this.events = [].concat(...results).sort((a, b) => a.start_ts - b.start_ts).slice(0, 10).map(e => ({
+                            id: Math.random(),
+                            title: e.title || 'Schedule Item',
+                            time: new Date(e.start_ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
                         }));
                     } finally { this.fetchingEvents = false; }
                 },
