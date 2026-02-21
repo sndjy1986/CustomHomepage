@@ -394,7 +394,7 @@
 
                 importData(data) {
                     if (data.links || data.workLinks || data.serverLinks) {
-                        this.addLog('Legacy Signature Detected. Migrating Core...');
+                        this.addLog('Legacy Signature Detected. Performing Core Migration...');
                         this.state.linkData.links = data.links || [];
                         this.state.linkData.work = data.workLinks || [];
                         this.state.linkData.server = data.serverLinks || [];
@@ -490,7 +490,8 @@
                     this.addLog('Initiating Worker Handshake (Worker: misty-paper-029a)...');
                     this.fetchingEvents = true;
                     let upcomingEvents = [];
-                    const workerUrl = "https://misty-paper-029a.joey-sanders.workers.dev";
+                    // Added timestamp to workerUrl to prevent desktop browser CORS caching
+                    const workerUrl = `https://misty-paper-029a.joey-sanders.workers.dev?t=${Date.now()}`;
                     
                     const now = new Date();
                     const sevenDaysFromNow = new Date();
@@ -535,7 +536,7 @@
                         this.events = upcomingEvents.sort((a, b) => a.ts - b.ts);
                         this.addLog(`GCal Sync Verified: ${this.events.length} upcoming events.`);
                     } catch (e) { 
-                        this.addLog(`Worker Sync Failure: ${e.message}`);
+                        this.addLog(`Worker Handshake Fault: Potential CORS or Connectivity snags.`);
                     } finally { 
                         this.fetchingEvents = false; 
                     }
@@ -583,8 +584,8 @@
                 },
 
                 async cloudPush() {
-                    if (!this.syncKey) { this.addLog('Error: Sync ID Missing.'); return; }
-                    this.addLog('Initiating Cloud Commit...');
+                    if (!this.syncKey) { this.addLog('Error: Sync Master Key Missing.'); return; }
+                    this.addLog('Initiating Cloud Commit Sequence...');
                     this.syncing = true;
                     try {
                         const sb = supabase.createClient(this.sbConfig.url, this.sbConfig.key);
