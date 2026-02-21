@@ -159,7 +159,7 @@
                 <h2 x-text="time" 
                     :class="state.settings.clockFont"
                     :style="`color: ${state.settings.clockColor}; font-weight: ${state.settings.clockWeight};`"
-                    class="text-[7rem] md:text-[9rem] tracking-tighter tabular-nums uppercase drop-shadow-2xl leading-none">00:00</h2>
+                    class="text-[7rem] md:text-[8rem] tracking-tighter tabular-nums uppercase drop-shadow-2xl leading-none">00:00</h2>
                 <div class="w-full max-w-2xl mx-auto mt-6">
                     <form action="https://google.com/search" method="GET">
                         <input type="text" name="q" placeholder="Google Search..." 
@@ -268,6 +268,7 @@
                 <!-- UI Tab -->
                 <div x-show="consoleTab === 'ui'" class="grid grid-cols-1 md:grid-cols-2 gap-12">
                     <div class="space-y-8">
+                        <!-- Clock Protocol -->
                         <div class="p-6 bg-slate-950 border border-white/10 rounded-3xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
                             <p class="text-[12px] font-black text-blue-400 uppercase tracking-widest mb-6">Clock Protocol</p>
                             <div class="grid grid-cols-2 gap-6">
@@ -275,6 +276,26 @@
                                 <div><label class="text-[10px] uppercase font-bold text-white/40 mb-2 block">Typography</label><select x-model="state.settings.clockFont" @change="persist()" class="bg-black border border-white/20 text-white rounded-xl py-3 w-full text-[11px] uppercase font-black px-3 focus:border-blue-500 outline-none"><option value="font-sans-dash">Jakarta Sans</option><option value="font-mono-dash">JetBrains Mono</option><option value="font-digital-dash">Orbitron</option><option value="font-impact-dash">Bebas Neue</option><option value="font-wider-dash">Syncopate</option><option value="font-serif-dash">Playfair Display</option></select></div>
                                 <div><label class="text-[10px] uppercase font-bold text-white/40 mb-2 block">Weight</label><input type="range" min="300" max="900" step="100" x-model="state.settings.clockWeight" @input="persist()"></div>
                                 <div class="flex items-center justify-between pt-4"><span class="text-[10px] uppercase font-bold text-white/40">24H Protocol</span><button @click="state.settings.is24Hour = !state.settings.is24Hour; persist()" class="w-12 h-6 rounded-full relative bg-white/10 transition-all" :class="state.settings.is24Hour ? 'bg-blue-600' : ''"><div class="absolute w-5 h-5 bg-white rounded-full top-0.5" :style="state.settings.is24Hour ? 'right:2px' : 'left:2px'"></div></button></div>
+                            </div>
+                        </div>
+
+                        <!-- Aura Sync restored -->
+                        <div class="p-6 bg-slate-950 border border-white/10 rounded-3xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
+                            <p class="text-[12px] font-black text-blue-400 uppercase tracking-widest mb-6">Aura Sync</p>
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Wallpaper URL</label>
+                                    <input x-model="state.settings.bg" @input="persist()" type="text" placeholder="https://..." 
+                                           class="w-full bg-black border border-white/20 rounded-xl py-3 px-4 text-[11px] text-white focus:border-blue-500 outline-none shadow-inner">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Background Blur: <span class="text-white" x-text="state.settings.blur"></span>px</label>
+                                    <input type="range" min="0" max="40" x-model="state.settings.blur" @input="persist()">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Filter Opacity: <span class="text-white" x-text="state.settings.darken"></span>%</label>
+                                    <input type="range" min="0" max="100" x-model="state.settings.darken" @input="persist()">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -291,14 +312,6 @@
                                 <div>
                                     <label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Hover Glow Power: <span class="text-white" x-text="state.settings.hoverGlow"></span>px</label>
                                     <input type="range" min="0" max="100" x-model="state.settings.hoverGlow" @input="persist()">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Background Blur: <span class="text-white" x-text="state.settings.blur"></span>px</label>
-                                    <input type="range" min="0" max="40" x-model="state.settings.blur" @input="persist()">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Darken Filter: <span class="text-white" x-text="state.settings.darken"></span>%</label>
-                                    <input type="range" min="0" max="100" x-model="state.settings.darken" @input="persist()">
                                 </div>
                                 <div>
                                     <label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Headline Font Scale: <span class="text-white" x-text="state.settings.newsFontSize"></span>px</label>
