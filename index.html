@@ -91,8 +91,8 @@
                     </div>
                 </div>
             </div>
-            <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 shadow-lg">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 shadow-lg transition-all">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
         </header>
 
@@ -128,7 +128,7 @@
                             <p class="text-[10px] font-bold uppercase text-white/40 mt-1" x-text="weather.cond"></p>
                         </div>
                     </div>
-                    <!-- News (FLEX GROW TO EVEN OUT BOTTOM) -->
+                    <!-- News (STRETCHED TO MATCH BOTTOM) -->
                     <div class="nexus-card p-6 min-h-[350px] flex-grow">
                         <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Fox News: Hot Feed</h4>
                         <div class="space-y-4">
@@ -183,7 +183,7 @@
                             <div x-show="events.length === 0" class="text-[10px] text-white/20 italic">Scanning nodes...</div>
                          </div>
                     </div>
-                    <!-- Word of the Day (FLEX GROW TO EVEN OUT BOTTOM) -->
+                    <!-- Word of the Day (STRETCHED TO MATCH BOTTOM) -->
                     <div class="nexus-card p-8 min-h-[160px] flex flex-col justify-center flex-grow">
                         <h5 class="text-2xl font-black text-white/90 tracking-tighter uppercase" x-text="wordOfTheDay.word"></h5>
                         <p class="text-xs text-white/50 mt-3 leading-relaxed italic" x-text="wordOfTheDay.definition"></p>
@@ -222,7 +222,7 @@
                         </div>
                     </div>
                     
-                    <!-- DISPLAY CALIBRATION -->
+                    <!-- DISPLAY CALIBRATION Section -->
                     <div class="space-y-6">
                         <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
                             <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Display Calibration</p>
@@ -248,7 +248,7 @@
                     </div>
                 </div>
 
-                <!-- Registry (Pages) Tab -->
+                <!-- Registry Tab -->
                 <div x-show="consoleTab === 'pages'" class="max-w-xl">
                     <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Registry Node Management</p>
                     <div class="space-y-3">
@@ -383,7 +383,7 @@
                             this.addLog('Local Registry Loaded.');
                         } catch (e) { this.addLog('Critical: Registry Fault Detected.'); }
                     } else {
-                        this.state.settings.pages.forEach(p => this.state.linkData[p.id] = []);
+                        this.state.settings.pages.forEach(p => { if (!this.state.linkData[p.id]) this.state.linkData[p.id] = []; });
                     }
 
                     this.initialized = true;
@@ -394,7 +394,7 @@
 
                 importData(data) {
                     if (data.links || data.workLinks || data.serverLinks) {
-                        this.addLog('Legacy Signature Detected. Performing Core Migration...');
+                        this.addLog('Legacy Signature Detected. Migrating Core...');
                         this.state.linkData.links = data.links || [];
                         this.state.linkData.work = data.workLinks || [];
                         this.state.linkData.server = data.serverLinks || [];
@@ -629,6 +629,15 @@
                 getIcon(link) {
                     if (link.icon && (link.icon.startsWith('http') || link.icon.includes('/'))) return link.icon;
                     return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${(link.icon || 'default').toLowerCase().replace(/\s+/g, '-')}.svg`;
+                },
+
+                addItem() {
+                    if (!this.newItem.name) return;
+                    if (!this.state.linkData[this.activeTab]) this.state.linkData[this.activeTab] = [];
+                    this.state.linkData[this.activeTab].push({...this.newItem});
+                    this.newItem = { name: '', url: '', icon: '' };
+                    this.addModalOpen = false; this.persist();
+                    this.addLog('Injection Verified: Module Linked.');
                 },
 
                 openContextMenu(e, idx) { this.contextMenu = { show: true, x: e.clientX, y: e.clientY, index: idx }; },
