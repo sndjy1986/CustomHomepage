@@ -6,6 +6,8 @@
     <title>Nexus Dash | Terminal Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- ICAL.JS Library for professional GCal parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ical.js/1.5.0/ical.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono:wght@400;800&family=Playfair+Display:wght@700;900&display=swap');
@@ -25,28 +27,35 @@
         .icon-box:hover img { filter: drop-shadow(0 0 12px var(--accent-glow)); }
         
         @keyframes rotate-sun { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes drift { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
-        @keyframes pulse-red { 0%, 100% { border-color: rgba(239, 68, 68, 0.2); } 50% { border-color: rgba(239, 68, 68, 1); box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); } }
+        @keyframes drift { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(8px); } }
+        @keyframes fall { 0% { transform: translateY(-10px); opacity: 0; } 100% { transform: translateY(10px); opacity: 0; } }
+        @keyframes pulse-red { 0%, 100% { border-color: rgba(239, 68, 68, 0.2); } 50% { border-color: rgba(239, 68, 68, 1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); } }
+        
+        @keyframes slow-flash { 0%, 100% { opacity: 1; filter: brightness(1.2); } 50% { opacity: 0.4; filter: brightness(0.8); } }
+        .animate-slow-flash { animation: slow-flash 4s ease-in-out infinite; }
         
         .animate-sun { animation: rotate-sun 15s linear infinite; }
         .animate-cloud { animation: drift 4s ease-in-out infinite; }
+        .animate-rain { animation: fall 1.5s linear infinite; }
         .severe-warning { animation: pulse-red 2s infinite !important; border-width: 2px !important; }
         
         .accent-text { color: var(--accent-glow) !important; }
         .accent-bg { background-color: var(--accent-glow) !important; }
         .accent-border { border-color: var(--accent-glow) !important; }
 
-        input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; cursor: pointer; }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--accent-glow); margin-top: -6px; }
-
         .search-tint { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: inset 0 2px 10px rgba(0,0,0,0.3); }
         .font-sans-dash { font-family: 'Plus Jakarta Sans', sans-serif; }
         .font-mono-dash { font-family: 'JetBrains Mono', monospace; }
         .font-serif-dash { font-family: 'Playfair Display', serif; }
-        
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; cursor: pointer; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--accent-glow); margin-top: -6px; box-shadow: 0 0 10px var(--accent-glow); }
+        
+        .terminal-line { border-bottom: 1px solid rgba(255,255,255,0.03); padding: 4px 0; }
+        .terminal-ts { color: rgba(255,255,255,0.2); margin-right: 8px; font-weight: 800; }
     </style>
 </head>
 <body x-data="nexusHandler" x-cloak :style="`--accent-glow: ${state.settings.accentColor}`" @click="closeContextMenu()" @contextmenu="closeContextMenu()">
@@ -55,10 +64,10 @@
     <div class="bg-overlay" :style="initialized ? { backgroundImage: `linear-gradient(rgba(0,0,0,${state.settings.darken / 100}), rgba(0,0,0,${state.settings.darken / 100})), url(${state.settings.bg})`, filter: `blur(${state.settings.blur}px)` } : {}"></div>
 
     <!-- Right-Click Context Menu -->
-    <div x-show="contextMenu.show" class="fixed z-[4000] min-w-[190px] bg-slate-900/95 backdrop-blur-xl border border-white/15 rounded-xl p-2 shadow-2xl" :style="`top: ${contextMenu.y}px; left: ${contextMenu.x}px;`" x-transition @click.stop @contextmenu.stop.prevent>
-        <button @click="triggerEdit()" class="w-full text-left px-3 py-2 text-[10px] font-bold uppercase rounded-lg hover:bg-white/5 text-white/80">Modify Entry</button>
+    <div x-show="contextMenu.show" class="fixed z-[5000] min-w-[190px] bg-slate-900/95 backdrop-blur-xl border border-white/15 rounded-xl p-2 shadow-2xl" :style="`top: ${contextMenu.y}px; left: ${contextMenu.x}px;`" x-transition @click.stop @contextmenu.stop.prevent>
+        <button @click="triggerEdit()" class="w-full text-left px-3 py-2 text-[10px] font-bold uppercase rounded-lg hover:bg-white/5 text-white/80 transition-all">Modify Entry</button>
         <div class="h-px bg-white/5 my-1"></div>
-        <p class="px-3 py-1 text-[8px] font-black uppercase text-white/30 tracking-widest">Transfer To</p>
+        <p class="px-3 py-1 text-[8px] font-black uppercase text-white/30 tracking-widest">Transfer Node</p>
         <template x-for="p in state.settings.pages" :key="p.id">
             <button @click="moveLink(p.id)" class="w-full text-left px-3 py-2 text-[10px] font-bold uppercase rounded-lg hover:bg-white/5 text-white/80" x-text="p.name"></button>
         </template>
@@ -67,6 +76,7 @@
     </div>
 
     <div class="relative z-10 min-h-screen flex flex-col" x-show="initialized" x-transition.opacity>
+        <!-- Header -->
         <header class="p-6 flex justify-between items-center max-w-[1800px] mx-auto w-full">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl accent-bg">
@@ -74,7 +84,11 @@
                 </div>
                 <div>
                     <h1 class="font-extrabold text-2xl tracking-tighter uppercase leading-none" x-text="state.settings.dashName"></h1>
-                    <p class="text-[9px] uppercase tracking-[0.3em] font-bold text-white/30 mt-1">Cross-Legacy Bridge Active</p>
+                    <div class="flex items-center gap-2 mt-1">
+                        <div class="w-1.5 h-1.5 rounded-full animate-slow-flash shadow-[0_0_8px]" 
+                             :class="cloudReady ? 'bg-green-500 shadow-green-500/50' : 'bg-red-500 shadow-red-500/50'"></div>
+                        <p class="text-[9px] uppercase tracking-[0.3em] font-bold text-white/30">Network Status</p>
+                    </div>
                 </div>
             </div>
             <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 shadow-lg">
@@ -83,28 +97,26 @@
         </header>
 
         <main class="flex-grow flex flex-col px-6">
-            <!-- Central Display -->
+            <!-- Clock -->
             <section class="py-4 text-center">
                 <h2 x-text="time" 
                     :class="state.settings.clockFont"
                     :style="`color: ${state.settings.clockColor}; font-weight: ${state.settings.clockWeight};`"
-                    class="text-[7rem] md:text-[9rem] tracking-tighter tabular-nums uppercase drop-shadow-2xl">00:00</h2>
+                    class="text-[7rem] md:text-[8rem] tracking-tighter tabular-nums uppercase drop-shadow-2xl">00:00</h2>
                 <div class="w-full max-w-2xl mx-auto mt-6">
                     <form action="https://google.com/search" method="GET">
-                        <input type="text" name="q" placeholder="Enter Command Registry..." 
+                        <input type="text" name="q" placeholder="Enter Registry Query..." 
                                class="w-full search-tint rounded-[2rem] py-5 px-10 text-xl focus:outline-none focus:ring-4 accent-border transition-all text-center placeholder:text-white/20 text-white">
                     </form>
                 </div>
             </section>
 
-            <!-- Symmetrical Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1800px] mx-auto w-full pb-12">
-                
-                <!-- LEFT SIDEBAR -->
+                <!-- LEFT -->
                 <aside class="lg:col-span-3 space-y-8 hidden lg:block">
                     <!-- Weather -->
                     <div class="nexus-card p-6 min-h-[160px] flex flex-col items-center justify-center relative" :class="weather.isWarning ? 'severe-warning' : ''">
-                        <div x-show="weather.isWarning" class="absolute top-3 left-3 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded uppercase animate-pulse">Severe Alert</div>
+                        <div x-show="weather.isWarning" class="absolute top-3 left-3 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest animate-pulse">Severe Protocol</div>
                         <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-4">Atmospheric Sync</h4>
                         <div x-show="weather.temp !== null" class="flex flex-col items-center">
                             <div class="w-16 h-16 mb-2 flex items-center justify-center">
@@ -121,7 +133,7 @@
                         <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Fox News: Hot Feed</h4>
                         <div class="space-y-4">
                             <template x-for="item in news" :key="item.title">
-                                <a :href="item.link" target="_blank" class="block border-l-2 border-white/5 pl-4 py-1 hover:border-red-500 transition-colors group">
+                                <a :href="item.link" target="_blank" class="block border-l-2 border-white/5 pl-4 py-1 hover:border-red-500 transition-all rounded group">
                                     <p x-text="item.title" :style="`font-size: ${state.settings.newsFontSize}px`" class="font-bold text-white/80 leading-tight group-hover:text-white line-clamp-2"></p>
                                     <p class="text-[8px] text-white/20 uppercase font-black mt-2">Broadcast Update</p>
                                 </a>
@@ -130,19 +142,17 @@
                     </div>
                 </aside>
 
-                <!-- MIDDLE: Links Grid -->
+                <!-- MIDDLE: Dynamic Links -->
                 <main class="lg:col-span-6 flex flex-col gap-6">
                     <div class="nexus-card p-8 md:p-10 flex-grow min-h-[500px]">
-                        <!-- Pages -->
                         <div class="flex items-center gap-6 mb-10 border-b border-white/5 overflow-x-auto no-scrollbar pb-1">
                             <template x-for="p in state.settings.pages" :key="p.id">
                                 <button @click="activeTab = p.id" :class="activeTab === p.id ? 'accent-text border-b-2 accent-border pb-4' : 'text-white/20 pb-4'" class="text-[10px] font-black uppercase tracking-[0.3em] transition-all whitespace-nowrap" x-text="p.name"></button>
                             </template>
                         </div>
 
-                        <!-- Links -->
                         <div class="flex flex-wrap items-start justify-center content-start" :style="`gap: ${state.settings.iconGap}px`">
-                            <template x-for="(link, index) in (state.linkData[activeTab] || [])" :key="index">
+                            <template x-for="(link, index) in getCurrentLinks()" :key="index">
                                 <div class="flex flex-col items-center gap-2 group relative text-center" draggable="true" @dragstart="dragStart(index)" @dragover.prevent="dragOver(index)" @drop="drop()" @contextmenu.stop.prevent="openContextMenu($event, index)">
                                     <a :href="link.url" target="_blank" class="icon-box shadow-2xl" :style="`width: ${state.settings.iconSize}px; height: ${state.settings.iconSize}px; border-bottom: 3px solid ${state.settings.accentColor}`" :class="draggedIndex === index ? 'icon-dragging' : ''">
                                         <img :src="getIcon(link)" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'">
@@ -157,7 +167,6 @@
 
                 <!-- RIGHT SIDEBAR -->
                 <aside class="lg:col-span-3 space-y-8 hidden lg:block">
-                    <!-- Calendar -->
                     <div class="nexus-card p-6 min-h-[300px]">
                          <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Family Schedule</h4>
                          <div class="space-y-4 max-h-[350px] overflow-y-auto pr-2 no-scrollbar">
@@ -167,12 +176,11 @@
                                     <p x-text="ev.time" class="text-[9px] text-white/30 uppercase font-bold mt-1"></p>
                                 </div>
                             </template>
-                            <div x-show="events.length === 0" class="text-[10px] text-white/20 italic">Scanning Google nodes...</div>
+                            <div x-show="events.length === 0" class="text-[10px] text-white/20 italic">Scanning nodes...</div>
                          </div>
                     </div>
-                    <!-- Tasks -->
                     <div class="nexus-card p-6 min-h-[200px]">
-                        <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Queue Registry</h4>
+                        <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Registry Queue</h4>
                         <div class="space-y-3">
                             <template x-for="(t, i) in state.tasks" :key="i">
                                 <div class="flex items-center gap-3 p-2 bg-white/5 rounded-xl border border-white/5">
@@ -181,6 +189,7 @@
                                 </div>
                             </template>
                         </div>
+                        <input @keydown.enter="addTask($event)" type="text" placeholder="+ New entry..." class="bg-transparent border-b border-white/10 py-2 text-xs focus:outline-none w-full text-white mt-4">
                     </div>
                 </aside>
             </div>
@@ -190,53 +199,91 @@
     <!-- System Console -->
     <div x-show="settingsOpen" x-transition.opacity class="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
         <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
-        <div class="nexus-card bg-slate-900 w-full max-w-5xl relative z-10 p-8 border-white/5 shadow-2xl text-left text-white" @click.stop>
-            <h2 class="text-2xl font-black uppercase tracking-tighter mb-8 text-white underline decoration-blue-500 underline-offset-8">Station Calibration</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div class="space-y-6">
-                    <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Clock & Grid</p>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><label class="text-[8px] uppercase font-bold text-white/30 mb-1 block">Color</label><input type="color" x-model="state.settings.clockColor" @input="persist()" class="w-full h-8 bg-transparent"></div>
-                            <div><label class="text-[8px] uppercase font-bold text-white/30 mb-1 block">Font</label><select x-model="state.settings.clockFont" @change="persist()" class="bg-black/40 border-white/10 rounded px-2 py-1 w-full text-white uppercase font-bold"><option value="font-sans-dash">Sans</option><option value="font-mono-dash">Mono</option><option value="font-serif-dash">Serif</option></select></div>
-                            <div><label class="text-[8px] uppercase font-bold text-white/30 mb-1 block">Weight</label><input type="range" min="300" max="900" step="100" x-model="state.settings.clockWeight" @input="persist()"></div>
-                            <div><label class="text-[8px] uppercase font-bold text-white/30 mb-1 block">Icon Size</label><input type="range" min="30" max="150" x-model="state.settings.iconSize" @input="persist()"></div>
+        <div class="nexus-card bg-slate-900 w-full max-w-5xl relative z-10 p-0 border-white/5 shadow-2xl flex flex-col max-h-[90vh]" @click.stop>
+            
+            <div class="flex items-center bg-white/5 border-b border-white/10 p-2">
+                <button @click="consoleTab = 'ui'" :class="consoleTab === 'ui' ? 'bg-blue-600 text-white' : 'text-white/30 hover:bg-white/5'" class="px-4 py-2 text-[10px] font-black uppercase rounded-lg transition-all">Interface</button>
+                <button @click="consoleTab = 'pages'" :class="consoleTab === 'pages' ? 'bg-blue-600 text-white' : 'text-white/30 hover:bg-white/5'" class="px-4 py-2 text-[10px] font-black uppercase rounded-lg transition-all mx-2">Registry</button>
+                <button @click="consoleTab = 'sync'" :class="consoleTab === 'sync' ? 'bg-blue-600 text-white' : 'text-white/30 hover:bg-white/5'" class="px-4 py-2 text-[10px] font-black uppercase rounded-lg transition-all mx-2">Cloud</button>
+                <button @click="consoleTab = 'terminal'" :class="consoleTab === 'terminal' ? 'bg-blue-600 text-white' : 'text-white/30 hover:bg-white/5'" class="px-4 py-2 text-[10px] font-black uppercase rounded-lg transition-all ml-2">Terminal</button>
+                <div class="flex-grow"></div>
+                <button @click="settingsOpen = false" class="p-2 hover:bg-red-500/20 rounded-lg text-red-400"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+
+            <div class="p-8 overflow-y-auto flex-grow text-left">
+                
+                <!-- UI Tab -->
+                <div x-show="consoleTab === 'ui'" class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="space-y-6">
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
+                            <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Clock Protocol</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="text-[8px] uppercase font-bold text-white/30 mb-1 block">Color</label><input type="color" x-model="state.settings.clockColor" @input="persist()" class="w-full h-8 bg-transparent"></div>
+                                <div><label class="text-[8px] uppercase font-bold text-white/30 mb-1 block">Typography</label><select x-model="state.settings.clockFont" @change="persist()" class="bg-black/40 border-white/10 text-white rounded px-2 py-1 w-full text-[10px] uppercase font-bold"><option value="font-sans-dash">Sans</option><option value="font-mono-dash">Mono</option><option value="font-serif-dash">Serif</option></select></div>
+                                <div><label class="text-[8px] uppercase font-bold text-white/30 mb-1 block">Weight</label><input type="range" min="300" max="900" step="100" x-model="state.settings.clockWeight" @input="persist()"></div>
+                                <div class="flex items-center justify-between mt-4"><span class="text-[8px] uppercase font-bold text-white/30">24H</span><button @click="state.settings.is24Hour = !state.settings.is24Hour; persist()" class="w-10 h-5 rounded-full relative bg-white/10" :class="state.settings.is24Hour ? 'bg-blue-600' : ''"><div class="absolute w-4 h-4 bg-white rounded-full top-0.5" :style="state.settings.is24Hour ? 'right:2px' : 'left:2px'"></div></button></div>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
+                            <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Aura Sync</p>
+                            <div class="space-y-4">
+                                <div><label class="text-[8px] font-bold text-white/30 uppercase mb-1 block">Wallpaper URL</label><input x-model="state.settings.bg" @input="persist()" type="text" class="w-full bg-black/40 border border-white/10 rounded px-2 py-1 text-xs text-white"></div>
+                                <div><label class="text-[8px] font-bold text-white/30 uppercase mb-1 block">Aura Blur</label><input type="range" min="0" max="40" x-model="state.settings.blur" @input="persist()"></div>
+                                <div><label class="text-[8px] font-bold text-white/30 uppercase mb-1 block">Darken Filter</label><input type="range" min="0" max="100" x-model="state.settings.darken" @input="persist()"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="p-4 bg-blue-600/10 rounded-2xl border border-blue-500/20">
-                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Page Management</p>
-                        <div class="space-y-2">
-                            <template x-for="(p, i) in state.settings.pages" :key="p.id">
-                                <div class="flex items-center gap-2">
-                                    <input x-model="p.name" @input="persist()" class="flex-grow bg-black/40 border border-white/10 rounded px-2 py-1 text-[10px] font-bold uppercase text-white">
-                                    <button @click="reorderPage(i, -1)" class="p-1 bg-white/5 rounded hover:bg-white/10 transition-colors">▲</button>
-                                    <button @click="reorderPage(i, 1)" class="p-1 bg-white/5 rounded hover:bg-white/10 transition-colors">▼</button>
-                                    <button @click="removePage(i)" class="p-1 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">✖</button>
-                                </div>
-                            </template>
-                            <button @click="addPage()" class="w-full mt-2 py-2 border-dashed border border-white/10 rounded-lg text-[9px] font-black uppercase text-white/40 hover:text-white transition-all">Add Node Page</button>
+                    <div class="space-y-6">
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
+                            <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Grid Control</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Icon Size</label><input type="range" min="30" max="150" x-model="state.settings.iconSize" @input="persist()"></div>
+                                <div><label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Grid Gap</label><input type="range" min="4" max="60" x-model="state.settings.iconGap" @input="persist()"></div>
+                                <div class="col-span-2"><label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Headline Scale</label><input type="range" min="8" max="18" x-model="state.settings.newsFontSize" @input="persist()"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="space-y-6">
-                    <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
-                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Aura Sync</p>
-                        <div class="space-y-4">
-                            <div><label class="text-[8px] uppercase font-bold text-white/30 mb-1 block">Wallpaper URL</label><input x-model="state.settings.bg" @input="persist()" type="text" class="w-full bg-black/40 border border-white/10 rounded px-2 py-1 text-xs text-white"></div>
-                            <div><label class="text-[8px] uppercase font-bold text-white/30 mb-1 block">Aura Blur</label><input type="range" min="0" max="40" x-model="state.settings.blur" @input="persist()"></div>
-                        </div>
+
+                <!-- Pages Tab -->
+                <div x-show="consoleTab === 'pages'" class="max-w-xl">
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Registry Management</p>
+                    <div class="space-y-2">
+                        <template x-for="(p, i) in state.settings.pages" :key="p.id">
+                            <div class="flex items-center gap-2">
+                                <input x-model="p.name" @input="persist()" class="flex-grow bg-black/40 border border-white/10 rounded px-2 py-1 text-[10px] font-bold uppercase text-white">
+                                <button @click="reorderPage(i, -1)" class="p-1 bg-white/5 rounded hover:bg-white/10">▲</button>
+                                <button @click="reorderPage(i, 1)" class="p-1 bg-white/5 rounded hover:bg-white/10">▼</button>
+                                <button @click="removePage(i)" class="p-1 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30">✖</button>
+                            </div>
+                        </template>
+                        <button @click="addPage()" class="w-full mt-2 py-2 border-dashed border border-white/10 rounded-lg text-[9px] font-black uppercase text-white/40 hover:text-white transition-all">Add Node Page</button>
                     </div>
+                </div>
+
+                <!-- Sync Tab -->
+                <div x-show="consoleTab === 'sync'" class="max-w-xl space-y-6">
                     <div class="p-4 bg-blue-600/10 rounded-2xl border border-blue-500/20 shadow-xl">
                         <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Cloud Node</p>
                         <div class="flex gap-2">
-                            <input x-model="syncKey" @input="persist()" type="text" placeholder="Sync ID" class="flex-grow bg-black/40 border border-white/10 rounded px-2 py-1 text-xs text-white">
+                            <input x-model="syncKey" @input="persist()" type="text" placeholder="Sync ID" class="flex-grow bg-black/40 border border-white/10 rounded px-2 py-1 text-xs text-white font-mono">
                             <button @click="cloudPush()" class="px-3 py-1 bg-blue-600 rounded text-[10px] font-black uppercase shadow-lg">Push</button>
                             <button @click="cloudPull()" class="px-3 py-1 bg-slate-700 rounded text-[10px] font-black uppercase shadow-lg">Pull</button>
                         </div>
                     </div>
                 </div>
+
+                <!-- Terminal Tab -->
+                <div x-show="consoleTab === 'terminal'" class="h-full flex flex-col">
+                    <div class="flex-grow bg-black/60 rounded-2xl border border-white/10 p-4 font-mono text-[9px] overflow-y-auto no-scrollbar" id="terminal-scroller">
+                        <template x-for="log in protocolLogs">
+                            <div class="terminal-line"><span class="terminal-ts" x-text="log.ts"></span><span class="text-white/60" x-text="log.msg"></span></div>
+                        </template>
+                        <div x-show="protocolLogs.length === 0" class="text-white/20 italic">No activity registered.</div>
+                    </div>
+                </div>
+
             </div>
-            <button @click="settingsOpen = false" class="w-full mt-10 py-4 accent-bg rounded-xl font-black uppercase text-xs">Shutdown Console</button>
         </div>
     </div>
 
@@ -246,27 +293,30 @@
         <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl text-left">
             <h2 class="text-3xl font-black uppercase tracking-tighter mb-6 text-white">Module Inject</h2>
             <div class="space-y-4">
-                <div><label class="text-[10px] font-bold text-white/30 block mb-1 uppercase">Label</label><input x-model="newItem.name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"></div>
-                <div><label class="text-[10px] font-bold text-white/30 block mb-1 uppercase">Path</label><input x-model="newItem.url" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"></div>
-                <div><label class="text-[10px] font-bold text-white/30 block mb-1 uppercase">Icon Handle</label><input x-model="newItem.icon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"></div>
+                <div><label class="text-[10px] font-bold text-white/30 block mb-1 uppercase tracking-widest">Label</label><input x-model="newItem.name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"></div>
+                <div><label class="text-[10px] font-bold text-white/30 block mb-1 uppercase tracking-widest">Path</label><input x-model="newItem.url" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"></div>
+                <div><label class="text-[10px] font-bold text-white/30 block mb-1 uppercase tracking-widest">Icon Handle</label><input x-model="newItem.icon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white"></div>
             </div>
             <button @click="addItem()" class="w-full mt-10 py-5 accent-bg rounded-2xl font-black text-xs uppercase shadow-xl hover:opacity-90 transition-all">Confirm Injection</button>
         </div>
     </div>
 
     <script>
-        const GCAL_FEEDS = [
-            "https://calendar.google.com/calendar/embed?src=85f6604ee69e3a3eb2673d64c278a893529e0db366b47c96493ff933a36252e6%40group.calendar.google.com&ctz=America%2FNew_York",
+        const GCAL_PRIVATE_ICS = [
+            "https://calendar.google.com/calendar/ical/463214c1bc4698718097fabc64aa7670b519e9250ee6e7992203339af222633d%40group.calendar.google.com/public/basic.ics",
+            "https://calendar.google.com/calendar/ical/sndjy1986%40gmail.com/private-536c2679a9c1c0247bf7e28f825dc93e/basic.ics",
+            "https://calendar.google.com/calendar/ical/85f6604ee69e3a3eb2673d64c278a893529e0db366b47c96493ff933a36252e6%40group.calendar.google.com/public/basic.ics"
         ];
 
         document.addEventListener('alpine:init', () => {
              Alpine.data('nexusHandler', () => ({
                 initialized: false, cloudReady: false, settingsOpen: false, addModalOpen: false, editModalOpen: false,
+                consoleTab: 'ui',
                 contextMenu: { show: false, x: 0, y: 0, index: null },
                 time: '00:00:00', activeTab: 'links',
                 syncKey: localStorage.getItem('nexus_sync_key') || '',
+                protocolLogs: [],
                 
-                // UNIFIED STATE
                 state: {
                     linkData: { 'links': [], 'server': [], 'work': [] },
                     tasks: [],
@@ -284,38 +334,51 @@
                 sbConfig: { url: 'https://tygrcsauitiwwlnpzhei.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5Z3Jjc2F1aXRpd3dsbnB6aGVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NDAxODksImV4cCI6MjA4NzExNjE4OX0.OLiwsqVi9qeltxhgNk42rzgukmOG3gDTDuFacAskZAc' },
                 newItem: { name: '', url: '', icon: '' },
 
+                addLog(msg) {
+                    const ts = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    this.protocolLogs.unshift({ ts, msg });
+                    if (this.protocolLogs.length > 100) this.protocolLogs.pop();
+                },
+
                 init() {
-                    const saved = localStorage.getItem('NEXUS_ULTIMATE_BRIDGE_V1');
+                    this.addLog('Kernel Initialization Sequence Started.');
+                    this.updateTime();
+                    setInterval(() => this.updateTime(), 1000);
+                    
+                    const storageKey = 'NEXUS_PROTOCOL_FINAL_V1';
+                    const saved = localStorage.getItem(storageKey);
+                    
                     if (saved) {
                         try {
-                            this.importData(JSON.parse(saved));
-                        } catch (e) { }
+                            const d = JSON.parse(saved);
+                            this.importData(d);
+                            this.addLog('Local Registry Loaded.');
+                        } catch (e) { this.addLog('Critical: Registry Fault Detected.'); }
                     } else {
+                        this.addLog('Initializing Fresh Registry Nodes.');
                         this.state.settings.pages.forEach(p => this.state.linkData[p.id] = []);
                     }
+
                     this.initialized = true;
-                    setInterval(() => this.updateTime(), 1000);
+                    this.cloudReady = true;
                     this.fetchEvents(); this.fetchNews(); this.fetchWeather();
                     setInterval(() => { this.fetchNews(); this.fetchWeather(); this.fetchEvents(); }, 600000);
                 },
 
                 importData(data) {
                     // LEGACY BRIDGE LOGIC
-                    // Check if OG structure exists (links, workLinks, serverLinks at top level)
                     if (data.links || data.workLinks || data.serverLinks) {
+                        this.addLog('Legacy Signature Detected. Performing Core Migration...');
                         this.state.linkData.links = data.links || [];
                         this.state.linkData.work = data.workLinks || [];
                         this.state.linkData.server = data.serverLinks || [];
                         if (data.settings) this.state.settings = { ...this.state.settings, ...data.settings };
                         if (data.tasks) this.state.tasks = data.tasks;
                     } else if (data.linkData) {
-                        // NEW Structure
                         this.state = data;
                     }
-                    
-                    // Self-Heal: Ensure all defined pages have arrays
                     this.state.settings.pages.forEach(p => { if (!this.state.linkData[p.id]) this.state.linkData[p.id] = []; });
-                    this.activeTab = this.state.settings.pages[0].id;
+                    this.activeTab = this.state.settings.pages[0]?.id || 'links';
                 },
 
                 getCurrentLinks() { return this.state.linkData[this.activeTab] || []; },
@@ -326,11 +389,12 @@
                 },
 
                 persist() {
-                    localStorage.setItem('NEXUS_ULTIMATE_BRIDGE_V1', JSON.stringify(this.state));
+                    localStorage.setItem('NEXUS_PROTOCOL_FINAL_V1', JSON.stringify(this.state));
                     localStorage.setItem('nexus_sync_key', this.syncKey);
                 },
 
                 async fetchWeather() {
+                    this.addLog('Atmospheric Sensor Handshake...');
                     navigator.geolocation.getCurrentPosition(async (pos) => {
                         try {
                             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&current_weather=true&temperature_unit=fahrenheit`);
@@ -338,92 +402,103 @@
                             if (data.current_weather) {
                                 const code = data.current_weather.weathercode;
                                 this.weather = { temp: Math.round(data.current_weather.temperature), code: code, cond: this.getWeatherString(code), isWarning: code >= 95 };
+                                this.addLog(`Atmosphere Stable: ${this.weather.temp}°F / Code ${code}`);
                             }
-                        } catch (e) { }
+                        } catch (e) { this.addLog('Weather Sensor Error.'); }
                     });
                 },
 
                 getWeatherString(code) {
-                    if (code === 0) return 'Sky Clear';
-                    if (code <= 3) return 'Partly Cloudy';
+                    if (code === 0) return 'Atmosphere Clear';
+                    if (code <= 3) return 'Partly Overcast';
                     if (code <= 67) return 'Precipitation Active';
                     return 'Severe Cell Alert';
                 },
 
                 async fetchNews() {
+                    this.addLog('Syncing Media Nodes (Fox News)...');
                     try {
                         const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeeds.foxnews.com%2Ffoxnews%2Flatest');
                         const data = await res.json();
                         this.news = (data.items || []).slice(0, 5).map(i => ({ title: i.title, link: i.link }));
-                    } catch (e) { }
+                        this.addLog(`Broadcast Sync: ${this.news.length} headlines received.`);
+                    } catch (e) { this.addLog('Media Sync Error.'); }
                 },
 
                 async fetchEvents() {
+                    this.addLog('Initiating GCal Uplink Protocol...');
                     this.fetchingEvents = true;
                     let allEvents = [];
                     try {
-                        for (const feed of GCAL_FEEDS) {
+                        for (const [index, feed] of GCAL_PRIVATE_ICS.entries()) {
+                            this.addLog(`Node ${index + 1}: Contacting Registry...`);
                             const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(feed)}`);
                             const wrapped = await res.json();
-                            const rawLines = wrapped.contents.split(/\r?\n/);
-                            let unfolded = [];
-                            rawLines.forEach(line => {
-                                if (line.startsWith(' ') || line.startsWith('\t')) { unfolded[unfolded.length - 1] += line.substring(1); } else { unfolded.push(line); }
-                            });
-                            let currentEvent = null;
-                            unfolded.forEach(line => {
-                                if (line.startsWith('BEGIN:VEVENT')) currentEvent = {};
-                                else if (line.startsWith('END:VEVENT')) {
-                                    if (currentEvent && currentEvent.title && currentEvent.ts > Date.now()) allEvents.push(currentEvent);
-                                    currentEvent = null;
-                                } else if (currentEvent) {
-                                    if (line.startsWith('SUMMARY:')) currentEvent.title = line.replace('SUMMARY:', '').trim().replace(/\\,/g, ',');
-                                    if (line.startsWith('DTSTART')) {
-                                        const datePart = line.split(/[:;]/).pop();
-                                        const y = parseInt(datePart.substring(0, 4)), m = parseInt(datePart.substring(4, 6)) - 1, d = parseInt(datePart.substring(6, 8));
-                                        const h = datePart.includes('T') ? parseInt(datePart.substring(9, 11)) : 0, mn = datePart.includes('T') ? parseInt(datePart.substring(11, 13)) : 0;
-                                        const dateObj = new Date(y, m, d, h, mn);
-                                        currentEvent.ts = dateObj.getTime();
-                                        currentEvent.time = dateObj.toLocaleDateString([], {month:'short', day:'numeric'}) + (datePart.includes('T') ? ' @ ' + dateObj.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : ' (Day)');
+                            const raw = wrapped.contents;
+                            
+                            if (!raw || typeof raw !== 'string') {
+                                this.addLog(`Node ${index + 1}: Empty Payload.`);
+                                continue;
+                            }
+
+                            // Cleaning input for ICAL.js (remove trailing empty lines which cause TypeErrors)
+                            const sanitizedRaw = raw.trim();
+                            if (!sanitizedRaw.includes('BEGIN:VCALENDAR')) {
+                                this.addLog(`Node ${index + 1}: Invalid iCal Signature.`);
+                                continue;
+                            }
+
+                            try {
+                                const jcalData = ICAL.parse(sanitizedRaw);
+                                const comp = new ICAL.Component(jcalData);
+                                const vevents = comp.getAllSubcomponents('vevent');
+                                
+                                this.addLog(`Node ${index + 1}: Analyzing ${vevents.length} events.`);
+                                
+                                vevents.forEach(vevent => {
+                                    const event = new ICAL.Event(vevent);
+                                    if (event.startDate.toJSDate() > Date.now()) {
+                                        const isDateOnly = event.startDate.isDate;
+                                        const jsDate = event.startDate.toJSDate();
+                                        
+                                        allEvents.push({
+                                            id: Math.random(),
+                                            title: event.summary,
+                                            time: jsDate.toLocaleDateString([], {month:'short', day:'numeric'}) + 
+                                                  (isDateOnly ? ' (Day)' : ' @ ' + jsDate.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})),
+                                            ts: jsDate.getTime()
+                                        });
                                     }
-                                }
-                            });
+                                });
+                            } catch (parseErr) {
+                                this.addLog(`Node ${index + 1}: Parser Exception - ${parseErr.message}`);
+                            }
                         }
-                        this.events = allEvents.sort((a,b) => a.ts - b.ts).slice(0, 10).map(e => ({...e, id: Math.random()}));
-                    } catch (e) { } finally { this.fetchingEvents = false; }
-                },
-
-                async cloudPush() {
-                    if (!this.syncKey) return;
-                    this.syncing = true;
-                    try {
-                        const sb = supabase.createClient(this.sbConfig.url, this.sbConfig.key);
-                        await sb.from('nexus_backups').upsert({ id: this.syncKey, content: this.state });
-                    } finally { setTimeout(() => this.syncing = false, 1000); }
-                },
-
-                async cloudPull() {
-                    if (!this.syncKey) return;
-                    try {
-                        const sb = supabase.createClient(this.sbConfig.url, this.sbConfig.key);
-                        const { data } = await sb.from('nexus_backups').select('content').eq('id', this.syncKey).maybeSingle();
-                        if (data?.content) { this.importData(data.content); this.persist(); }
-                    } catch (e) { }
+                        this.events = allEvents.sort((a,b) => a.ts - b.ts).slice(0, 10);
+                        this.addLog(`GCal Sync: ${this.events.length} schedule nodes verified.`);
+                    } catch (e) { 
+                        this.addLog(`GCal Handshake Failure: ${e.message}`);
+                    } finally { 
+                        this.fetchingEvents = false; 
+                    }
                 },
 
                 addPage() {
-                    const newId = 'pg_' + Date.now();
-                    this.state.settings.pages.push({ id: newId, name: 'New Module' });
-                    this.state.linkData[newId] = [];
+                    const nid = 'pg_' + Date.now();
+                    this.state.settings.pages.push({ id: nid, name: 'New Module' });
+                    this.state.linkData[nid] = [];
                     this.persist();
+                    this.addLog('Registry Expansion: Node Created.');
                 },
 
                 removePage(idx) {
                     if (this.state.settings.pages.length <= 1) return;
-                    delete this.state.linkData[this.state.settings.pages[idx].id];
+                    const id = this.state.settings.pages[idx].id;
+                    delete this.state.linkData[id];
                     this.state.settings.pages.splice(idx, 1);
                     this.activeTab = this.state.settings.pages[0].id;
                     this.persist();
+                    this.addLog('Registry Decommission: Node Purged.');
                 },
 
                 reorderPage(idx, dir) {
@@ -432,6 +507,32 @@
                     const item = this.state.settings.pages.splice(idx, 1)[0];
                     this.state.settings.pages.splice(newIdx, 0, item);
                     this.persist();
+                },
+
+                async cloudPush() {
+                    if (!this.syncKey) { this.addLog('Error: Sync ID Missing.'); return; }
+                    this.addLog('Initiating Cloud Commit...');
+                    this.syncing = true;
+                    try {
+                        const sb = supabase.createClient(this.sbConfig.url, this.sbConfig.key);
+                        await sb.from('nexus_backups').upsert({ id: this.syncKey, content: this.state });
+                        this.addLog('Cloud Sync Successful.');
+                    } catch (e) { this.addLog('Handshake Failure.'); }
+                    finally { setTimeout(() => this.syncing = false, 1000); }
+                },
+
+                async cloudPull() {
+                    if (!this.syncKey) return;
+                    this.addLog('Requesting Cloud Registry Pull...');
+                    try {
+                        const sb = supabase.createClient(this.sbConfig.url, this.sbConfig.key);
+                        const { data } = await sb.from('nexus_backups').select('content').eq('id', this.syncKey).maybeSingle();
+                        if (data?.content) { 
+                            this.importData(data.content); 
+                            this.persist(); 
+                            this.addLog('Cloud Recovery Successful.');
+                        } else { this.addLog('Error: Node Not Found.'); }
+                    } catch (e) { this.addLog('Cloud Comm Fault.'); }
                 },
 
                 dragStart(idx) { this.draggedIndex = idx; },
@@ -449,11 +550,12 @@
                     if (!this.state.linkData[toPageId]) this.state.linkData[toPageId] = [];
                     this.state.linkData[toPageId].push(item);
                     this.closeContextMenu(); this.persist();
+                    this.addLog('Module Migration Verified.');
                 },
 
-                getIcon(item) {
-                    if (item.icon && (item.icon.startsWith('http') || item.icon.includes('/'))) return item.icon;
-                    return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${(item.icon || 'default').toLowerCase().replace(/\s+/g, '-')}.svg`;
+                getIcon(link) {
+                    if (link.icon && (link.icon.startsWith('http') || link.icon.includes('/'))) return link.icon;
+                    return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${(link.icon || 'default').toLowerCase().replace(/\s+/g, '-')}.svg`;
                 },
 
                 addItem() {
@@ -461,6 +563,7 @@
                     this.getCurrentLinks().push({...this.newItem});
                     this.newItem = { name: '', url: '', icon: '' };
                     this.addModalOpen = false; this.persist();
+                    this.addLog('Injection Verified: Module Linked.');
                 },
 
                 openContextMenu(e, idx) { this.contextMenu = { show: true, x: e.clientX, y: e.clientY, index: idx }; },
@@ -476,4 +579,3 @@
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
-
