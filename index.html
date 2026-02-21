@@ -212,7 +212,7 @@
             </div>
 
             <div class="p-8 overflow-y-auto flex-grow text-left">
-                <!-- UI Tab -->
+                <!-- Interface Tab -->
                 <div x-show="consoleTab === 'ui'" class="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div class="space-y-6">
                         <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
@@ -222,6 +222,31 @@
                                 <div><label class="text-[8px] uppercase font-bold text-white/30 mb-1 block">Typography</label><select x-model="state.settings.clockFont" @change="persist()" class="bg-black/40 border-white/10 text-white rounded px-2 py-1 w-full text-[10px] uppercase font-bold"><option value="font-sans-dash">Sans</option><option value="font-mono-dash">Mono</option><option value="font-serif-dash">Serif</option></select></div>
                                 <div><label class="text-[8px] uppercase font-bold text-white/30 mb-1 block">Weight</label><input type="range" min="300" max="900" step="100" x-model="state.settings.clockWeight" @input="persist()"></div>
                                 <div class="flex items-center justify-between mt-4"><span class="text-[8px] uppercase font-bold text-white/30">24H</span><button @click="state.settings.is24Hour = !state.settings.is24Hour; persist()" class="w-10 h-5 rounded-full relative bg-white/10" :class="state.settings.is24Hour ? 'bg-blue-600' : ''"><div class="absolute w-4 h-4 bg-white rounded-full top-0.5" :style="state.settings.is24Hour ? 'right:2px' : 'left:2px'"></div></button></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- DISPLAY CALIBRATION Section -->
+                    <div class="space-y-6">
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
+                            <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Display Calibration</p>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Icon & Text Scale: <span x-text="state.settings.iconSize"></span>px</label>
+                                    <input type="range" min="30" max="150" x-model="state.settings.iconSize" @input="persist()">
+                                </div>
+                                <div>
+                                    <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Background Blur: <span x-text="state.settings.blur"></span>px</label>
+                                    <input type="range" min="0" max="40" x-model="state.settings.blur" @input="persist()">
+                                </div>
+                                <div>
+                                    <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Filter Opacity: <span x-text="state.settings.darken"></span>%</label>
+                                    <input type="range" min="0" max="100" x-model="state.settings.darken" @input="persist()">
+                                </div>
+                                <div>
+                                    <label class="text-[8px] uppercase font-bold text-white/30 block mb-1">Headline Scale: <span x-text="state.settings.newsFontSize"></span>px</label>
+                                    <input type="range" min="8" max="18" x-model="state.settings.newsFontSize" @input="persist()">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -424,7 +449,7 @@
                         const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeeds.foxnews.com%2Ffoxnews%2Flatest');
                         const data = await res.json();
                         this.news = (data.items || []).slice(0, 5).map(i => ({ title: i.title, link: i.link }));
-                        this.addLog(`Broadcast Sync: ${this.news.length} headlines received.`);
+                        this.addLog(`Broadcast Sync: ${this.news.length} headlines.`);
                     } catch (e) { this.addLog('Media Sync Error.'); }
                 },
 
@@ -528,7 +553,6 @@
                 },
 
                 async cloudPush() {
-                    if (!this.syncKey) { this.addLog('Error: Sync ID Missing.'); return; }
                     this.addLog('Initiating Cloud Commit...');
                     this.syncing = true;
                     try {
@@ -540,7 +564,6 @@
                 },
 
                 async cloudPull() {
-                    if (!this.syncKey) return;
                     this.addLog('Requesting Cloud Registry Pull...');
                     try {
                         const sb = supabase.createClient(this.sbConfig.url, this.sbConfig.key);
@@ -568,7 +591,6 @@
                     if (!this.state.linkData[toPageId]) this.state.linkData[toPageId] = [];
                     this.state.linkData[toPageId].push(item);
                     this.closeContextMenu(); this.persist();
-                    this.addLog('Module Migration Verified.');
                 },
 
                 getIcon(link) {
