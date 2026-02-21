@@ -36,7 +36,7 @@
         
         .animate-sun { animation: rotate-sun 15s linear infinite; }
         .animate-cloud { animation: drift 4s ease-in-out infinite; }
-        .animate-rain { animation: fall 1.5s linear infinite; }
+        .animate-rain { animation: fall 1.2s linear infinite; }
         .severe-warning { animation: pulse-red 2s infinite !important; border-width: 2px !important; }
         
         .accent-text { color: var(--accent-glow) !important; }
@@ -67,7 +67,7 @@
     <div x-show="contextMenu.show" class="fixed z-[5000] min-w-[190px] bg-slate-900/95 backdrop-blur-xl border border-white/15 rounded-xl p-2 shadow-2xl" :style="`top: ${contextMenu.y}px; left: ${contextMenu.x}px;`" x-transition @click.stop @contextmenu.stop.prevent>
         <button @click="triggerEdit()" class="w-full text-left px-3 py-2 text-[10px] font-bold uppercase rounded-lg hover:bg-white/5 text-white/80 transition-all">Modify Entry</button>
         <div class="h-px bg-white/5 my-1"></div>
-        <p class="px-3 py-1 text-[8px] font-black uppercase text-white/30 tracking-widest">Transfer To</p>
+        <p class="px-3 py-1 text-[8px] font-black uppercase text-white/30 tracking-widest">Transfer Node</p>
         <template x-for="p in state.settings.pages" :key="p.id">
             <button @click="moveLink(p.id)" class="w-full text-left px-3 py-2 text-[10px] font-bold uppercase rounded-lg hover:bg-white/5 text-white/80" x-text="p.name"></button>
         </template>
@@ -76,6 +76,7 @@
     </div>
 
     <div class="relative z-10 min-h-screen flex flex-col" x-show="initialized" x-transition.opacity>
+        <!-- Header -->
         <header class="p-6 flex justify-between items-center max-w-[1800px] mx-auto w-full">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl accent-bg">
@@ -91,7 +92,7 @@
                 </div>
             </div>
             <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:bg-white/10 shadow-lg">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
         </header>
 
@@ -110,11 +111,11 @@
                 </div>
             </section>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1800px] mx-auto w-full pb-12">
-                <!-- LEFT -->
-                <aside class="lg:col-span-3 space-y-8 hidden lg:block">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1800px] mx-auto w-full pb-12 items-stretch">
+                <!-- LEFT SIDEBAR -->
+                <aside class="lg:col-span-3 flex flex-col gap-8 hidden lg:flex">
                     <!-- Weather -->
-                    <div class="nexus-card p-6 min-h-[160px] flex flex-col items-center justify-center relative" :class="weather.isWarning ? 'severe-warning' : ''">
+                    <div class="nexus-card p-6 min-h-[160px] flex flex-col items-center justify-center relative flex-shrink-0" :class="weather.isWarning ? 'severe-warning' : ''">
                         <div x-show="weather.isWarning" class="absolute top-3 left-3 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest animate-pulse">Severe Protocol</div>
                         <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-4">Atmospheric Sync</h4>
                         <div x-show="weather.temp !== null" class="flex flex-col items-center">
@@ -127,8 +128,8 @@
                             <p class="text-[10px] font-bold uppercase text-white/40 mt-1" x-text="weather.cond"></p>
                         </div>
                     </div>
-                    <!-- News -->
-                    <div class="nexus-card p-6 min-h-[350px]">
+                    <!-- News (FLEX GROW TO EVEN OUT BOTTOM) -->
+                    <div class="nexus-card p-6 min-h-[350px] flex-grow">
                         <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Fox News: Hot Feed</h4>
                         <div class="space-y-4">
                             <template x-for="item in news" :key="item.title">
@@ -165,10 +166,11 @@
                 </main>
 
                 <!-- RIGHT SIDEBAR -->
-                <aside class="lg:col-span-3 space-y-8 hidden lg:block">
-                    <div class="nexus-card p-6 min-h-[300px]">
+                <aside class="lg:col-span-3 flex flex-col gap-8 hidden lg:flex">
+                    <!-- Calendar -->
+                    <div class="nexus-card p-6 min-h-[250px] flex-shrink-0">
                          <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Family Schedule</h4>
-                         <div class="space-y-4 max-h-[350px] overflow-y-auto pr-2 no-scrollbar" id="calendar-container">
+                         <div class="space-y-4 max-h-[300px] overflow-y-auto pr-2 no-scrollbar" id="calendar-container">
                             <template x-for="ev in events" :key="ev.id">
                                 <div class="border-l-2 accent-border pl-4 py-1 hover:bg-white/5 transition-all rounded-r-lg">
                                     <div class="flex items-center gap-1.5 mb-0.5">
@@ -181,16 +183,10 @@
                             <div x-show="events.length === 0" class="text-[10px] text-white/20 italic">Scanning nodes...</div>
                          </div>
                     </div>
-                    <div class="nexus-card p-6 min-h-[200px]">
-                        <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Registry Queue</h4>
-                        <div class="space-y-3">
-                            <template x-for="(t, i) in state.tasks" :key="i">
-                                <div class="flex items-center gap-3 p-2 bg-white/5 rounded-xl border border-white/5">
-                                    <div @click="t.done = !t.done; persist()" class="w-4 h-4 rounded-lg border-2 border-white/10 flex items-center justify-center cursor-pointer transition-colors" :class="t.done ? 'accent-bg accent-border' : ''"><svg x-show="t.done" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg></div>
-                                    <span x-text="t.text" class="text-[10px] font-medium truncate" :class="t.done ? 'text-white/20 line-through' : ''"></span>
-                                </div>
-                            </template>
-                        </div>
+                    <!-- Word of the Day (FLEX GROW TO EVEN OUT BOTTOM) -->
+                    <div class="nexus-card p-8 min-h-[160px] flex flex-col justify-center flex-grow">
+                        <h5 class="text-2xl font-black text-white/90 tracking-tighter uppercase" x-text="wordOfTheDay.word"></h5>
+                        <p class="text-xs text-white/50 mt-3 leading-relaxed italic" x-text="wordOfTheDay.definition"></p>
                     </div>
                 </aside>
             </div>
@@ -212,7 +208,7 @@
             </div>
 
             <div class="p-8 overflow-y-auto flex-grow text-left">
-                <!-- Interface Tab -->
+                <!-- UI Tab -->
                 <div x-show="consoleTab === 'ui'" class="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div class="space-y-6">
                         <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
@@ -226,7 +222,7 @@
                         </div>
                     </div>
                     
-                    <!-- DISPLAY CALIBRATION Section -->
+                    <!-- DISPLAY CALIBRATION -->
                     <div class="space-y-6">
                         <div class="p-4 bg-white/5 rounded-2xl border border-white/10">
                             <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Display Calibration</p>
@@ -348,6 +344,7 @@
                 protocolLogs: [],
                 newItem: { name: '', url: '', icon: '' },
                 editingItem: { name: '', url: '', icon: '' },
+                wordOfTheDay: { word: 'Loading...', definition: '' },
                 
                 state: {
                     linkData: { 'links': [], 'server': [], 'work': [] },
@@ -376,7 +373,7 @@
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
                     
-                    const storageKey = 'NEXUS_ULTIMATE_BRIDGE_V25';
+                    const storageKey = 'NEXUS_PROTOCOL_FINAL_V1';
                     const saved = localStorage.getItem(storageKey);
                     
                     if (saved) {
@@ -384,19 +381,20 @@
                             const d = JSON.parse(saved);
                             this.importData(d);
                             this.addLog('Local Registry Loaded.');
-                        } catch (e) { this.addLog('Kernel Error: Corrupt Registry.'); }
+                        } catch (e) { this.addLog('Critical: Registry Fault Detected.'); }
                     } else {
                         this.state.settings.pages.forEach(p => this.state.linkData[p.id] = []);
                     }
 
                     this.initialized = true;
                     this.cloudReady = true;
-                    this.fetchEvents(); this.fetchNews(); this.fetchWeather();
-                    setInterval(() => { this.fetchNews(); this.fetchWeather(); this.fetchEvents(); }, 600000);
+                    this.fetchEvents(); this.fetchNews(); this.fetchWeather(); this.loadWordOfTheDay();
+                    setInterval(() => { this.fetchNews(); this.fetchWeather(); this.fetchEvents(); this.loadWordOfTheDay(); }, 600000);
                 },
 
                 importData(data) {
                     if (data.links || data.workLinks || data.serverLinks) {
+                        this.addLog('Legacy Signature Detected. Performing Core Migration...');
                         this.state.linkData.links = data.links || [];
                         this.state.linkData.work = data.workLinks || [];
                         this.state.linkData.server = data.serverLinks || [];
@@ -417,8 +415,43 @@
                 },
 
                 persist() {
-                    localStorage.setItem('NEXUS_ULTIMATE_BRIDGE_V25', JSON.stringify(this.state));
+                    localStorage.setItem('NEXUS_PROTOCOL_FINAL_V1', JSON.stringify(this.state));
                     localStorage.setItem('nexus_sync_key', this.syncKey);
+                },
+
+                async loadWordOfTheDay() {
+                    this.addLog('Vocab Node Handshake...');
+                    const cacheKey = 'wordOfTheDayCache';
+                    const cacheDuration = 24 * 60 * 60 * 1000;
+
+                    const cached = localStorage.getItem(cacheKey);
+                    if (cached) {
+                        try {
+                            const { word, definition, timestamp } = JSON.parse(cached);
+                            if (Date.now() - timestamp < cacheDuration) {
+                                this.wordOfTheDay = { word, definition };
+                                this.addLog(`Vocab Sync: ${word} buffered from cache.`);
+                                return;
+                            }
+                        } catch(e) {}
+                    }
+
+                    try {
+                        const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent('https://wordsmith.org/awad/rss1.xml')}`);
+                        const str = await res.text();
+                        const data = new DOMParser().parseFromString(str, "application/xml");
+                        const item = data.querySelector("item");
+                        const word = item.querySelector("title").textContent;
+                        const desc = item.querySelector("description").textContent;
+                        const definition = desc.split('<br>')[0].trim();
+
+                        this.wordOfTheDay = { word, definition };
+                        localStorage.setItem(cacheKey, JSON.stringify({ word, definition, timestamp: Date.now() }));
+                        this.addLog(`Vocab Sync: ${word} buffered from uplink.`);
+                    } catch (e) {
+                        this.addLog('Vocab Handshake Fault.');
+                        this.wordOfTheDay = { word: 'Word of the Day', definition: 'Vocab Uplink Offline.' };
+                    }
                 },
 
                 async fetchWeather() {
@@ -449,7 +482,7 @@
                         const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeeds.foxnews.com%2Ffoxnews%2Flatest');
                         const data = await res.json();
                         this.news = (data.items || []).slice(0, 5).map(i => ({ title: i.title, link: i.link }));
-                        this.addLog(`Broadcast Sync: ${this.news.length} headlines.`);
+                        this.addLog(`Broadcast Sync: ${this.news.length} headlines received.`);
                     } catch (e) { this.addLog('Media Sync Error.'); }
                 },
 
@@ -483,7 +516,6 @@
                                     const event = new ICAL.Event(vevent);
                                     const eventDate = event.startDate.toJSDate();
                                     
-                                    // Filter for next 7 days
                                     if (eventDate >= now && eventDate <= sevenDaysFromNow) {
                                         upcomingEvents.push({
                                             id: Math.random(),
@@ -496,12 +528,12 @@
                                     }
                                 });
                             } catch (parseErr) {
-                                this.addLog(`Node ${cal.name}: ICAL Parsing Exception.`);
+                                this.addLog(`Node ${cal.name}: ICAL Exception.`);
                             }
                         });
 
                         this.events = upcomingEvents.sort((a, b) => a.ts - b.ts);
-                        this.addLog(`GCal Sync Verified: ${this.events.length} upcoming events buffered.`);
+                        this.addLog(`GCal Sync Verified: ${this.events.length} upcoming events.`);
                     } catch (e) { 
                         this.addLog(`Worker Sync Failure: ${e.message}`);
                     } finally { 
@@ -513,10 +545,8 @@
                     const now = new Date();
                     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                     const eventDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
                     const diffDays = Math.round((eventDay - today) / (1000 * 60 * 60 * 24));
                     const timeStr = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-
                     if (diffDays === 0) return `Today - ${timeStr}`;
                     if (diffDays === 1) return `Tomorrow - ${timeStr}`;
                     if (diffDays > 1 && diffDays < 7) {
@@ -553,6 +583,7 @@
                 },
 
                 async cloudPush() {
+                    if (!this.syncKey) { this.addLog('Error: Sync ID Missing.'); return; }
                     this.addLog('Initiating Cloud Commit...');
                     this.syncing = true;
                     try {
@@ -564,6 +595,7 @@
                 },
 
                 async cloudPull() {
+                    if (!this.syncKey) return;
                     this.addLog('Requesting Cloud Registry Pull...');
                     try {
                         const sb = supabase.createClient(this.sbConfig.url, this.sbConfig.key);
@@ -591,19 +623,12 @@
                     if (!this.state.linkData[toPageId]) this.state.linkData[toPageId] = [];
                     this.state.linkData[toPageId].push(item);
                     this.closeContextMenu(); this.persist();
+                    this.addLog('Module Migration Verified.');
                 },
 
                 getIcon(link) {
                     if (link.icon && (link.icon.startsWith('http') || link.icon.includes('/'))) return link.icon;
                     return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${(link.icon || 'default').toLowerCase().replace(/\s+/g, '-')}.svg`;
-                },
-
-                addItem() {
-                    if (!this.newItem.name) return;
-                    this.getCurrentLinks().push({...this.newItem});
-                    this.newItem = { name: '', url: '', icon: '' };
-                    this.addModalOpen = false; this.persist();
-                    this.addLog('Injection Verified: Module Linked.');
                 },
 
                 openContextMenu(e, idx) { this.contextMenu = { show: true, x: e.clientX, y: e.clientY, index: idx }; },
