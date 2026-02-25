@@ -2,130 +2,718 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Nexus Dash | Persistent</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Dash | Terminal Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- ICAL.JS Library for professional GCal parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ical.js/1.5.0/ical.min.js"></script>
+    
     <style>
-        :root {
-            --bg-bright: 100%;
-            --icon-size: 60px;
-            --text-opacity: 1;
-            --accent-color: #58a6ff;
-        }
-        body {
-            background-color: #0d1117;
-            filter: brightness(var(--bg-bright));
-            color: rgba(201, 209, 217, var(--text-opacity));
-            font-family: sans-serif;
-            transition: filter 0.3s;
-        }
-        /* Settings Sidebar */
-        #settings-panel {
-            position: fixed;
-            right: -300px;
-            top: 0;
-            width: 250px;
-            height: 100%;
-            background: #161b22;
-            border-left: 1px solid #30363d;
-            padding: 20px;
-            transition: 0.3s;
-            z-index: 100;
-        }
-        #settings-panel.open { right: 0; }
-        .control-group { margin-bottom: 15px; }
-        .control-group label { display: block; font-size: 12px; margin-bottom: 5px; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono:wght@400;800&family=Playfair+Display:wght@700;900&family=Orbitron:wght@400;800&family=Bebas+Neue&family=Syncopate:wght@400;700&display=swap');
+        [x-cloak] { display: none !important; }
         
-        /* Icons/Links */
-        .icon-grid { display: flex; gap: 20px; padding: 20px; flex-wrap: wrap; }
-        .icon-link {
-            width: var(--icon-size);
-            height: var(--icon-size);
-            background: #21262d;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            color: white;
-            font-weight: bold;
+        :root { --accent-glow: #3b82f6; --glow-strength: 20px; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020617; color: #f8fafc; overflow-x: hidden; margin: 0; }
+        
+        .bg-animate { background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #020617 100%); position: fixed; inset: 0; z-index: -1; }
+        .bg-overlay { position: fixed; inset: 0; z-index: -1; background-size: cover; background-position: center; transition: background-image 0.8s ease, filter 0.3s ease; }
+        
+        /* 3D Depth Nexus Cards */
+        .nexus-card { 
+            background: rgba(15, 23, 42, 0.65); 
+            backdrop-filter: blur(25px); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-top-color: rgba(255,255,255,0.15);
+            border-left-color: rgba(255,255,255,0.1);
+            border-radius: 1.5rem; 
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.7), inset 0 1px 1px rgba(255,255,255,0.05);
+            transition: all 0.3s ease; 
         }
-        #toggle-settings { position: fixed; top: 10px; right: 10px; cursor: pointer; z-index: 101; }
+        
+        /* 3D Tactical Settings Button */
+        .tactile-btn {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-top: 1.5px solid rgba(255,255,255,0.15);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .tactile-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.5), inset 0 2px 4px rgba(0,0,0,0.4);
+        }
+        
+        .icon-box { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 1.2rem; 
+            background: rgba(255,255,255,0.04); 
+            border: 1px solid rgba(255,255,255,0.08); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            cursor: grab; 
+            position: relative; 
+        }
+        .icon-box img { width: 55%; height: 55%; object-fit: contain; pointer-events: none; transition: all 0.3s ease; }
+        .icon-box:hover { 
+            transform: translateY(-8px) scale(1.05); 
+            background: rgba(255,255,255,0.1); 
+            box-shadow: 0 0 var(--glow-strength) -2px var(--accent-glow); 
+            border-color: var(--accent-glow); 
+        }
+        
+        @keyframes rotate-sun { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes drift { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+        @keyframes fall { 0% { transform: translateY(-10px); opacity: 0; } 100% { transform: translateY(10px); opacity: 0; } }
+        @keyframes pulse-red { 0%, 100% { border-color: rgba(239, 68, 68, 0.2); } 50% { border-color: rgba(239, 68, 68, 1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); } }
+        @keyframes slow-flash { 0%, 100% { opacity: 1; filter: brightness(1.2); } 50% { opacity: 0.4; filter: brightness(0.8); } }
+        
+        .animate-slow-flash { animation: slow-flash 4s ease-in-out infinite; }
+        .animate-sun { animation: rotate-sun 15s linear infinite; }
+        .animate-cloud { animation: drift 4s ease-in-out infinite; }
+        .animate-rain { animation: fall 1.2s linear infinite; }
+        .severe-warning { animation: pulse-red 2s infinite !important; border-width: 2px !important; }
+        
+        .accent-text { color: var(--accent-glow) !important; }
+        .accent-bg { background-color: var(--accent-glow) !important; }
+        .accent-border { border-color: var(--accent-glow) !important; }
+
+        /* 3D Recessed Search Box */
+        .search-tint { 
+            background: rgba(2, 6, 23, 0.4); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-bottom: 2px solid rgba(255,255,255,0.15);
+            box-shadow: inset 0 4px 12px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.05); 
+            transition: all 0.3s ease;
+        }
+        .search-tint:focus-within {
+            background: rgba(2, 6, 23, 0.6);
+            border-color: var(--accent-glow);
+            box-shadow: inset 0 4px 12px rgba(0,0,0,0.8), 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Clock Font Classes */
+        .font-sans-dash { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .font-mono-dash { font-family: 'JetBrains Mono', monospace; }
+        .font-serif-dash { font-family: 'Playfair Display', serif; }
+        .font-digital-dash { font-family: 'Orbitron', sans-serif; letter-spacing: -2px; }
+        .font-impact-dash { font-family: 'Bebas Neue', cursive; }
+        .font-wider-dash { font-family: 'Syncopate', sans-serif; letter-spacing: -4px; text-transform: uppercase; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* Larger Settings Sliders */
+        input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; cursor: pointer; height: 30px; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; background: rgba(0,0,0,0.4); border-radius: 3px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: var(--accent-glow); margin-top: -9px; box-shadow: 0 2px 8px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.4); border: 2px solid white; transition: transform 0.2s ease; }
+        input[type=range]:active::-webkit-slider-thumb { transform: scale(1.2); }
+        
+        .terminal-line { border-bottom: 1px solid rgba(255,255,255,0.03); padding: 4px 0; }
+        .terminal-ts { color: rgba(255,255,255,0.2); margin-right: 8px; font-weight: 800; }
     </style>
 </head>
-<body>
+<body x-data="nexusHandler" x-cloak :style="`--accent-glow: ${state.settings.accentColor}; --glow-strength: ${state.settings.hoverGlow}px;`" @click="closeContextMenu()" @contextmenu="closeContextMenu()">
 
-    <button id="toggle-settings">⚙️</button>
+    <div class="bg-animate"></div>
+    <div class="bg-overlay" :style="initialized ? { backgroundImage: `linear-gradient(rgba(0,0,0,${state.settings.darken / 100}), rgba(0,0,0,${state.settings.darken / 100})), url(${state.settings.bg})`, filter: `blur(${state.settings.blur}px)` } : {}"></div>
 
-    <div id="settings-panel">
-        <h3>Customization</h3>
-        <div class="control-group">
-            <label>NexusKey (Persistence ID)</label>
-            <input type="text" id="nexuskey-input" placeholder="Enter key...">
-        </div>
-        <div class="control-group">
-            <label>Brightness</label>
-            <input type="range" id="bright-slider" min="20" max="100" value="100">
-        </div>
-        <div class="control-group">
-            <label>Icon Size</label>
-            <input type="range" id="size-slider" min="40" max="120" value="60">
-        </div>
-        <div class="control-group">
-            <label>Text Opacity</label>
-            <input type="range" id="opacity-slider" min="10" max="100" value="100">
-        </div>
-        <button onclick="saveSettings()">Save & Apply</button>
+    <!-- Right-Click Context Menu -->
+    <div x-show="contextMenu.show" class="fixed z-[5000] min-w-[190px] bg-slate-900/95 backdrop-blur-xl border border-white/15 rounded-xl p-2 shadow-2xl" :style="`top: ${contextMenu.y}px; left: ${contextMenu.x}px;`" x-transition @click.stop @contextmenu.stop.prevent>
+        <button @click="triggerEdit()" class="w-full text-left px-3 py-2 text-[10px] font-bold uppercase rounded-lg hover:bg-white/5 text-white/80 transition-all">Modify Entry</button>
+        <div class="h-px bg-white/5 my-1"></div>
+        <p class="px-3 py-1 text-[8px] font-black uppercase text-white/30 tracking-widest">Transfer Node</p>
+        <template x-for="p in state.settings.pages" :key="p.id">
+            <button @click="moveLink(p.id)" class="w-full text-left px-3 py-2 text-[10px] font-bold uppercase rounded-lg hover:bg-white/5 text-white/80" x-text="p.name"></button>
+        </template>
+        <div class="h-px bg-white/5 my-1"></div>
+        <button @click="removeShortcut(contextMenu.index)" class="w-full text-left px-3 py-2 text-[10px] font-bold uppercase rounded-lg hover:bg-red-500/10 text-red-400">Delete</button>
     </div>
 
-    <div id="header">
-        <h1 id="clock">00:00</h1>
-        <p>NexusKey: <span id="current-key">None</span></p>
+    <div class="relative z-10 min-h-screen flex flex-col" x-show="initialized" x-transition.opacity>
+        <!-- Header -->
+        <header class="p-6 flex justify-between items-center max-w-[1800px] mx-auto w-full">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl accent-bg border-b-2 border-black/40">
+                    <svg class="animate-sun w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-2xl tracking-tighter uppercase leading-none" x-text="state.settings.dashName"></h1>
+                    <div class="flex items-center gap-2 mt-1">
+                        <div class="w-1.5 h-1.5 rounded-full animate-slow-flash shadow-[0_0_8px]" 
+                             :class="cloudReady ? 'bg-green-500 shadow-green-500/50' : 'bg-red-500 shadow-red-500/50'"></div>
+                        <p class="text-[9px] uppercase tracking-[0.3em] font-bold text-white/30">Network Status</p>
+                    </div>
+                </div>
+            </div>
+            <button @click="settingsOpen = true" class="w-14 h-14 tactile-btn rounded-2xl flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+        </header>
+
+        <main class="flex-grow flex flex-col px-6">
+            <!-- Clock -->
+            <section class="py-4 text-center">
+                <h2 x-text="time" 
+                    :class="state.settings.clockFont"
+                    :style="`color: ${state.settings.clockColor}; font-weight: ${state.settings.clockWeight};`"
+                    class="text-[7rem] md:text-[8rem] tracking-tighter tabular-nums uppercase drop-shadow-2xl leading-none">00:00</h2>
+                <div class="w-full max-w-2xl mx-auto mt-6">
+                    <form action="https://google.com/search" method="GET">
+                        <input type="text" name="q" placeholder="Google Search..." 
+                               class="w-full search-tint rounded-[2.5rem] py-6 px-10 text-2xl focus:outline-none focus:ring-4 accent-border transition-all text-center placeholder:text-white/20 text-white font-medium">
+                    </form>
+                </div>
+            </section>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1800px] mx-auto w-full pb-12 items-stretch">
+                <!-- LEFT SIDEBAR -->
+                <aside class="lg:col-span-3 flex flex-col gap-8 hidden lg:flex">
+                    <!-- Weather -->
+                    <div class="nexus-card p-6 min-h-[160px] flex flex-col items-center justify-center relative flex-shrink-0" :class="weather.isWarning ? 'severe-warning' : ''">
+                        <div x-show="weather.isWarning" class="absolute top-3 left-3 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest animate-pulse">Severe Protocol</div>
+                        <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-4">Atmospheric Sync</h4>
+                        <div x-show="weather.temp !== null" class="flex flex-col items-center">
+                            <div class="w-16 h-16 mb-2 flex items-center justify-center">
+                                <template x-if="weather.code < 3"><svg class="animate-sun w-12 h-12 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></template>
+                                <template x-if="weather.code >= 3 && weather.code < 50"><svg class="animate-cloud w-12 h-12 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19c2.5 0 4.5-2 4.5-4.5S20 10 17.5 10c-.2 0-.4 0-.6.1C15.8 7.6 13.1 6 10 6c-3.9 0-7 3.1-7 7s3.1 7 7 7c.4 0 .8 0 1.2-.1"/></svg></template>
+                                <template x-if="weather.code >= 50"><svg class="w-12 h-12 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path class="animate-cloud" d="M20 16.2A4.5 4.5 0 0 0 17.5 8h-1.8A7 7 0 1 0 4 14.9"/><path class="animate-rain" d="M16 14l-2 6"/><path class="animate-rain" d="M10 14l-2 6" style="animation-delay: 0.5s"/></svg></template>
+                            </div>
+                            <span class="text-5xl font-black tracking-tighter" x-text="weather.temp + '°F'"></span>
+                            <p class="text-[10px] font-bold uppercase text-white/40 mt-1" x-text="weather.cond"></p>
+                        </div>
+                    </div>
+                    <!-- News -->
+                    <div class="nexus-card p-6 min-h-[350px] flex-grow">
+                        <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Fox News: Hot Feed</h4>
+                        <div class="space-y-4">
+                            <template x-for="item in news" :key="item.title">
+                                <a :href="item.link" target="_blank" class="block border-l-2 border-white/5 pl-4 py-1 hover:border-red-500 transition-all rounded group">
+                                    <p x-text="item.title" :style="`font-size: ${state.settings.newsFontSize}px`" class="font-bold text-white/80 leading-tight group-hover:text-white line-clamp-2"></p>
+                                    <p class="text-[8px] text-white/20 uppercase font-black mt-2">Broadcast Update</p>
+                                </a>
+                            </template>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- MIDDLE: Dynamic Links -->
+                <main class="lg:col-span-6 flex flex-col gap-6">
+                    <div class="nexus-card p-8 md:p-10 flex-grow min-h-[500px]">
+                        <div class="flex items-center gap-6 mb-10 border-b border-white/5 overflow-x-auto no-scrollbar pb-1">
+                            <template x-for="p in state.settings.pages" :key="p.id">
+                                <button @click="activeTab = p.id" :class="activeTab === p.id ? 'accent-text border-b-2 accent-border pb-4' : 'text-white/20 pb-4'" class="text-[10px] font-black uppercase tracking-[0.3em] transition-all whitespace-nowrap" x-text="p.name"></button>
+                            </template>
+                        </div>
+
+                        <div class="flex flex-wrap items-start justify-center content-start" :style="`gap: ${state.settings.iconGap}px`">
+                            <template x-for="(link, index) in getCurrentLinks()" :key="index">
+                                <div class="flex flex-col items-center gap-2 group relative text-center" draggable="true" @dragstart="dragStart(index)" @dragover.prevent="dragOver(index)" @drop="drop()" @contextmenu.stop.prevent="openContextMenu($event, index)">
+                                    <a :href="link.url" target="_blank" class="icon-box shadow-2xl" :style="`width: ${state.settings.iconSize}px; height: ${state.settings.iconSize}px; border-bottom: 3px solid ${state.settings.accentColor}`" :class="draggedIndex === index ? 'icon-dragging' : ''">
+                                        <img :src="getIcon(link)" onerror="this.src='https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/default.svg'">
+                                    </a>
+                                    <span x-text="link.name" class="font-black uppercase text-white/40 truncate mt-1" :style="`max-width: ${parseInt(state.settings.iconSize) + 20}px; font-size: ${Math.max(8, state.settings.iconSize * 0.14)}px`"></span>
+                                </div>
+                            </template>
+                            <button @click="addModalOpen = true" class="icon-box border-dashed border-2 border-white/10 text-white/20 hover:text-white transition-all shadow-md" :style="`width: ${state.settings.iconSize}px; height: ${state.settings.iconSize}px;`"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg></button>
+                        </div>
+                    </div>
+                </main>
+
+                <!-- RIGHT SIDEBAR -->
+                <aside class="lg:col-span-3 flex flex-col gap-8 hidden lg:flex">
+                    <!-- Calendar -->
+                    <div class="nexus-card p-6 min-h-[250px] flex-shrink-0">
+                         <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-6">Family Schedule</h4>
+                         <div class="space-y-4 max-h-[300px] overflow-y-auto pr-2 no-scrollbar" id="calendar-container">
+                            <template x-for="ev in events" :key="ev.id">
+                                <div class="border-l-2 accent-border pl-4 py-1 hover:bg-white/5 transition-all rounded-r-lg">
+                                    <div class="flex items-center gap-1.5 mb-0.5">
+                                        <span class="text-[8px] font-black uppercase tracking-widest text-blue-400" x-text="ev.source"></span>
+                                    </div>
+                                    <p x-text="ev.title" class="text-xs font-bold text-white/90 leading-tight truncate"></p>
+                                    <p x-text="ev.relativeTime" class="text-[9px] text-white/30 uppercase font-bold mt-1"></p>
+                                </div>
+                            </template>
+                            <div x-show="events.length === 0" class="text-[10px] text-white/20 italic">Scanning nodes...</div>
+                         </div>
+                    </div>
+                    <!-- Word of the Day -->
+                    <div class="nexus-card p-8 min-h-[160px] flex flex-col justify-center flex-grow">
+                        <h5 class="text-2xl font-black text-white/90 tracking-tighter uppercase" x-text="wordOfTheDay.word"></h5>
+                        <p class="text-xs text-white/50 mt-3 leading-relaxed italic" x-text="wordOfTheDay.definition"></p>
+                    </div>
+                </aside>
+            </div>
+        </main>
     </div>
 
-    <div class="icon-grid">
-        <a href="#" class="icon-link">A</a>
-        <a href="#" class="icon-link">B</a>
-        <a href="#" class="icon-link">C</a>
+    <!-- System Console -->
+    <div x-show="settingsOpen" x-transition.opacity class="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
+        <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
+        <div class="nexus-card bg-slate-900 w-full max-w-5xl relative z-10 p-0 border-white/5 shadow-2xl flex flex-col max-h-[90vh]" @click.stop>
+            
+            <div class="flex items-center bg-white/5 border-b border-white/10 p-3">
+                <button @click="consoleTab = 'ui'" :class="consoleTab === 'ui' ? 'bg-blue-600 text-white shadow-lg' : 'text-white/30 hover:bg-white/5'" class="px-6 py-3 text-[11px] font-black uppercase rounded-xl transition-all">Interface</button>
+                <button @click="consoleTab = 'pages'" :class="consoleTab === 'pages' ? 'bg-blue-600 text-white shadow-lg' : 'text-white/30 hover:bg-white/5'" class="px-6 py-3 text-[11px] font-black uppercase rounded-xl transition-all mx-2">Registry</button>
+                <button @click="consoleTab = 'sync'" :class="consoleTab === 'sync' ? 'bg-blue-600 text-white shadow-lg' : 'text-white/30 hover:bg-white/5'" class="px-6 py-3 text-[11px] font-black uppercase rounded-xl transition-all mx-2">Cloud Sync</button>
+                <button @click="consoleTab = 'terminal'" :class="consoleTab === 'terminal' ? 'bg-blue-600 text-white shadow-lg' : 'text-white/30 hover:bg-white/5'" class="px-6 py-3 text-[11px] font-black uppercase rounded-xl transition-all ml-2">Terminal</button>
+                <div class="flex-grow"></div>
+                <button @click="settingsOpen = false" class="p-3 hover:bg-red-500/20 rounded-xl text-red-400"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+
+            <div class="p-10 overflow-y-auto flex-grow text-left">
+                <!-- UI Tab -->
+                <div x-show="consoleTab === 'ui'" class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div class="space-y-8">
+                        <!-- Clock Protocol -->
+                        <div class="p-6 bg-slate-950 border border-white/10 rounded-3xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
+                            <p class="text-[12px] font-black text-blue-400 uppercase tracking-widest mb-6">Clock Protocol</p>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div><label class="text-[10px] uppercase font-bold text-white/40 mb-2 block">Color</label><input type="color" x-model="state.settings.clockColor" @input="persist()" class="w-full h-12 bg-transparent cursor-pointer rounded-lg"></div>
+                                <div><label class="text-[10px] uppercase font-bold text-white/40 mb-2 block">Typography</label><select x-model="state.settings.clockFont" @change="persist()" class="bg-black border border-white/20 text-white rounded-xl py-3 w-full text-[11px] uppercase font-black px-3 focus:border-blue-500 outline-none"><option value="font-sans-dash">Jakarta Sans</option><option value="font-mono-dash">JetBrains Mono</option><option value="font-digital-dash">Orbitron</option><option value="font-impact-dash">Bebas Neue</option><option value="font-wider-dash">Syncopate</option><option value="font-serif-dash">Playfair Display</option></select></div>
+                                <div><label class="text-[10px] uppercase font-bold text-white/40 mb-2 block">Weight</label><input type="range" min="300" max="900" step="100" x-model="state.settings.clockWeight" @input="persist()"></div>
+                                <div class="flex items-center justify-between pt-4"><span class="text-[10px] uppercase font-bold text-white/40">24H Protocol</span><button @click="state.settings.is24Hour = !state.settings.is24Hour; persist()" class="w-12 h-6 rounded-full relative bg-white/10 transition-all" :class="state.settings.is24Hour ? 'bg-blue-600' : ''"><div class="absolute w-5 h-5 bg-white rounded-full top-0.5" :style="state.settings.is24Hour ? 'right:2px' : 'left:2px'"></div></button></div>
+                            </div>
+                        </div>
+
+                        <!-- Aura Sync restored -->
+                        <div class="p-6 bg-slate-950 border border-white/10 rounded-3xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
+                            <p class="text-[12px] font-black text-blue-400 uppercase tracking-widest mb-6">Aura Sync</p>
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Wallpaper URL</label>
+                                    <input x-model="state.settings.bg" @input="persist()" type="text" placeholder="https://..." 
+                                           class="w-full bg-black border border-white/20 rounded-xl py-3 px-4 text-[11px] text-white focus:border-blue-500 outline-none shadow-inner">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Background Blur: <span class="text-white" x-text="state.settings.blur"></span>px</label>
+                                    <input type="range" min="0" max="40" x-model="state.settings.blur" @input="persist()">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Filter Opacity: <span class="text-white" x-text="state.settings.darken"></span>%</label>
+                                    <input type="range" min="0" max="100" x-model="state.settings.darken" @input="persist()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- DISPLAY CALIBRATION Section -->
+                    <div class="space-y-8">
+                        <div class="p-6 bg-slate-950 border border-white/10 rounded-3xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
+                            <p class="text-[12px] font-black text-blue-400 uppercase tracking-widest mb-6">Display Calibration</p>
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Icon & Text Scale: <span class="text-white" x-text="state.settings.iconSize"></span>px</label>
+                                    <input type="range" min="30" max="150" x-model="state.settings.iconSize" @input="persist()">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Hover Glow Power: <span class="text-white" x-text="state.settings.hoverGlow"></span>px</label>
+                                    <input type="range" min="0" max="100" x-model="state.settings.hoverGlow" @input="persist()">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Headline Font Scale: <span class="text-white" x-text="state.settings.newsFontSize"></span>px</label>
+                                    <input type="range" min="8" max="18" x-model="state.settings.newsFontSize" @input="persist()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Registry Tab -->
+                <div x-show="consoleTab === 'pages'" class="max-w-xl">
+                    <p class="text-[12px] font-black text-blue-400 uppercase tracking-widest mb-6">Registry Node Management</p>
+                    <div class="space-y-4">
+                        <template x-for="(p, i) in state.settings.pages" :key="p.id">
+                            <div class="flex items-center gap-3 p-4 bg-slate-950 border border-white/10 rounded-2xl shadow-[inset_0_2px_6px_rgba(0,0,0,0.4)]">
+                                <input x-model="p.name" @input="persist()" class="flex-grow bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold uppercase text-white outline-none focus:border-blue-500 shadow-inner">
+                                <div class="flex gap-2">
+                                    <button @click="reorderPage(i, -1)" class="w-10 h-10 tactile-btn rounded-lg flex items-center justify-center">▲</button>
+                                    <button @click="reorderPage(i, 1)" class="w-10 h-10 tactile-btn rounded-lg flex items-center justify-center">▼</button>
+                                    <button @click="removePage(i)" class="w-10 h-10 bg-red-950/20 text-red-500 border border-red-500/20 rounded-lg hover:bg-red-500/10 transition-all">✖</button>
+                                </div>
+                            </div>
+                        </template>
+                        <button @click="addPage()" class="w-full mt-6 py-4 border-dashed border-2 border-white/10 rounded-2xl text-[10px] font-black uppercase text-white/40 hover:text-white hover:border-white/30 transition-all">Initialize New Registry Node</button>
+                    </div>
+                </div>
+
+                <!-- Cloud Sync Tab -->
+                <div x-show="consoleTab === 'sync'" class="max-w-xl space-y-8">
+                    <div class="p-8 bg-blue-600/5 border border-blue-500/20 rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                        <p class="text-[12px] font-black text-blue-400 uppercase tracking-widest mb-6">Central Sync Registry</p>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="text-[9px] uppercase font-black text-white/30 block mb-2 ml-1">Nexus Master Key (Sync ID)</label>
+                                <input x-model="syncKey" @input="persist()" type="text" placeholder="Enter nexus-key-id..." 
+                                       class="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-xs text-white font-mono outline-none focus:border-blue-500 shadow-inner">
+                            </div>
+                            <div class="flex gap-4">
+                                <button @click="cloudPush()" 
+                                        class="flex-grow py-5 bg-blue-600 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 border-b-4 border-blue-800">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                                    Push to Cloud
+                                </button>
+                                <button @click="cloudPull()" 
+                                        class="flex-grow py-5 bg-slate-800 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 border-b-4 border-slate-950">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                                    Pull from Cloud
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terminal Tab -->
+                <div x-show="consoleTab === 'terminal'" class="h-full flex flex-col">
+                    <p class="text-[12px] font-black text-blue-400 uppercase tracking-widest mb-6">Kernel Activity Log</p>
+                    <div class="flex-grow bg-slate-950 rounded-3xl border border-white/10 p-6 font-mono text-[10px] overflow-y-auto no-scrollbar shadow-[inset_0_4px_20px_rgba(0,0,0,0.7)]" id="terminal-scroller">
+                        <template x-for="log in protocolLogs">
+                            <div class="terminal-line"><span class="terminal-ts" x-text="log.ts"></span><span class="text-white/60" x-text="log.msg"></span></div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inject Modal -->
+    <div x-show="addModalOpen" x-transition.scale class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md">
+        <div @click="addModalOpen = false" class="absolute inset-0 bg-black/80"></div>
+        <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl text-left">
+            <h2 class="text-3xl font-black uppercase tracking-tighter mb-6 text-white underline decoration-blue-500 underline-offset-8">Module Inject</h2>
+            <div class="space-y-4 pt-4">
+                <div><label class="text-[10px] font-bold text-white/30 block mb-1 uppercase tracking-widest">Label</label><input x-model="newItem.name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white shadow-inner"></div>
+                <div><label class="text-[10px] font-bold text-white/30 block mb-1 uppercase tracking-widest">Path</label><input x-model="newItem.url" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white shadow-inner"></div>
+                <div><label class="text-[10px] font-bold text-white/30 block mb-1 uppercase tracking-widest">Icon Handle</label><input x-model="newItem.icon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white shadow-inner"></div>
+            </div>
+            <button @click="addItem()" class="w-full mt-10 py-5 accent-bg rounded-2xl font-black text-xs uppercase shadow-xl hover:opacity-90 transition-all border-b-4 border-black/40">Confirm Injection</button>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div x-show="editModalOpen" x-transition.scale class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md">
+        <div @click="editModalOpen = false" class="absolute inset-0 bg-black/80"></div>
+        <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-10 border-white/5 shadow-2xl text-left">
+            <h2 class="text-3xl font-black uppercase tracking-tighter mb-6 text-white underline decoration-blue-500 underline-offset-8">Calibrate Module</h2>
+            <div class="space-y-4 pt-4">
+                <div><label class="text-[10px] font-bold text-white/30 block mb-1 uppercase tracking-widest">Label</label><input x-model="editingItem.name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white shadow-inner"></div>
+                <div><label class="text-[10px] font-bold text-white/30 block mb-1 uppercase tracking-widest">Path</label><input x-model="editingItem.url" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white shadow-inner"></div>
+                <div><label class="text-[10px] font-bold text-white/30 block mb-1 uppercase tracking-widest">Icon Handle</label><input x-model="editingItem.icon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white shadow-inner"></div>
+            </div>
+            <button @click="saveEdit()" class="w-full mt-10 py-5 accent-bg rounded-2xl font-black text-xs uppercase shadow-xl border-b-4 border-black/40">Apply Changes</button>
+        </div>
     </div>
 
     <script>
-        // Toggle Panel
-        const panel = document.getElementById('settings-panel');
-        document.getElementById('toggle-settings').onclick = () => panel.classList.toggle('open');
+        document.addEventListener('alpine:init', () => {
+             Alpine.data('nexusHandler', () => ({
+                initialized: false, cloudReady: false, settingsOpen: false, addModalOpen: false, editModalOpen: false,
+                consoleTab: 'ui',
+                contextMenu: { show: false, x: 0, y: 0, index: null },
+                time: '00:00:00', activeTab: 'links',
+                syncKey: localStorage.getItem('nexus_sync_key') || '',
+                protocolLogs: [],
+                newItem: { name: '', url: '', icon: '' },
+                editingItem: { name: '', url: '', icon: '' },
+                wordOfTheDay: { word: 'Loading...', definition: '' },
+                
+                state: {
+                    linkData: { 'links': [], 'server': [], 'work': [] },
+                    tasks: [],
+                    settings: { 
+                        dashName: 'Nexus-Dash', accentColor: '#3b82f6', bg: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=1600', 
+                        blur: 0, darken: 50, iconSize: 85, iconGap: 20, hoverGlow: 30,
+                        clockColor: '#ffffff', clockFont: 'font-sans-dash', clockWeight: 800, is24Hour: false, newsFontSize: 13,
+                        pages: [{id: 'links', name: 'Home'}, {id: 'server', name: 'Server'}, {id: 'work', name: 'Work'}]
+                    }
+                },
 
-        // Load Persistence
-        function loadSettings() {
-            const settings = JSON.parse(localStorage.getItem('nexusSettings')) || {};
-            if (settings.nexuskey) {
-                document.getElementById('nexuskey-input').value = settings.nexuskey;
-                document.getElementById('current-key').innerText = settings.nexuskey;
-            }
-            if (settings.brightness) applyStyle('--bg-bright', settings.brightness + '%', 'bright-slider', settings.brightness);
-            if (settings.iconSize) applyStyle('--icon-size', settings.iconSize + 'px', 'size-slider', settings.iconSize);
-            if (settings.opacity) applyStyle('--text-opacity', settings.opacity / 100, 'opacity-slider', settings.opacity);
-        }
+                events: [], news: [], weather: { temp: null, cond: 'Searching...', code: 0, isWarning: false },
+                fetchingEvents: false, syncing: false, draggedIndex: null,
+                
+                sbConfig: { url: 'https://tygrcsauitiwwlnpzhei.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5Z3Jjc2F1aXRpd3dsbnB6aGVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NDAxODksImV4cCI6MjA4NzExNjE4OX0.OLiwsqVi9qeltxhgNk42rzgukmOG3gDTDuFacAskZAc' },
 
-        function applyStyle(variable, value, sliderId, rawValue) {
-            document.documentElement.style.setProperty(variable, value);
-            document.getElementById(sliderId).value = rawValue;
-        }
+                addLog(msg) {
+                    const ts = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    this.protocolLogs.unshift({ ts, msg });
+                    if (this.protocolLogs.length > 100) this.protocolLogs.pop();
+                },
 
-        function saveSettings() {
-            const settings = {
-                nexuskey: document.getElementById('nexuskey-input').value,
-                brightness: document.getElementById('bright-slider').value,
-                iconSize: document.getElementById('size-slider').value,
-                opacity: document.getElementById('opacity-slider').value
-            };
-            localStorage.setItem('nexusSettings', JSON.stringify(settings));
-            location.reload(); // Refresh to apply all
-        }
+                init() {
+                    this.addLog('Kernel Initialization Sequence Started.');
+                    this.updateTime();
+                    setInterval(() => this.updateTime(), 1000);
+                    
+                    const storageKey = 'NEXUS_PROTOCOL_FINAL_V1';
+                    const saved = localStorage.getItem(storageKey);
+                    
+                    if (saved) {
+                        try {
+                            const d = JSON.parse(saved);
+                            this.importData(d);
+                            this.addLog('Local Registry Loaded.');
+                        } catch (e) { this.addLog('Critical: Registry Fault Detected.'); }
+                    } else {
+                        this.state.settings.pages.forEach(p => { if (!this.state.linkData[p.id]) this.state.linkData[p.id] = []; });
+                    }
 
-        // Initialize
-        loadSettings();
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.getHours() + ":" + String(now.getMinutes()).padStart(2, '0');
-        }, 1000);
+                    this.initialized = true;
+                    this.cloudReady = true;
+                    this.fetchEvents(); this.fetchNews(); this.fetchWeather(); this.loadWordOfTheDay();
+                    setInterval(() => { this.fetchNews(); this.fetchWeather(); this.fetchEvents(); this.loadWordOfTheDay(); }, 600000);
+                },
+
+                importData(data) {
+                    if (data.links || data.workLinks || data.serverLinks) {
+                        this.addLog('Legacy Signature Detected. Performing Core Migration...');
+                        this.state.linkData.links = data.links || [];
+                        this.state.linkData.work = data.workLinks || [];
+                        this.state.linkData.server = data.serverLinks || [];
+                        if (data.settings) this.state.settings = { ...this.state.settings, ...data.settings };
+                        if (data.tasks) this.state.tasks = data.tasks;
+                    } else if (data.linkData) {
+                        this.state = data;
+                    }
+                    if (this.state.settings.hoverGlow === undefined) this.state.settings.hoverGlow = 30;
+                    this.state.settings.pages.forEach(p => { if (!this.state.linkData[p.id]) this.state.linkData[p.id] = []; });
+                    this.activeTab = this.state.settings.pages[0]?.id || 'links';
+                },
+
+                getCurrentLinks() { return this.state.linkData[this.activeTab] || []; },
+
+                updateTime() {
+                    const now = new Date();
+                    this.time = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: !this.state.settings.is24Hour }).replace(' AM','').replace(' PM','');
+                },
+
+                persist() {
+                    localStorage.setItem('NEXUS_PROTOCOL_FINAL_V1', JSON.stringify(this.state));
+                    localStorage.setItem('nexus_sync_key', this.syncKey);
+                },
+
+                async loadWordOfTheDay() {
+                    this.addLog('Vocab Node Handshake...');
+                    const cacheKey = 'wordOfTheDayCache';
+                    const cacheDuration = 24 * 60 * 60 * 1000;
+                    const cached = localStorage.getItem(cacheKey);
+                    if (cached) {
+                        try {
+                            const { word, definition, timestamp } = JSON.parse(cached);
+                            if (Date.now() - timestamp < cacheDuration) {
+                                this.wordOfTheDay = { word, definition };
+                                this.addLog(`Vocab Sync: ${word} buffered from cache.`);
+                                return;
+                            }
+                        } catch(e) {}
+                    }
+                    try {
+                        const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent('https://wordsmith.org/awad/rss1.xml')}`);
+                        const str = await res.text();
+                        const data = new DOMParser().parseFromString(str, "application/xml");
+                        const item = data.querySelector("item");
+                        const word = item.querySelector("title").textContent;
+                        const desc = item.querySelector("description").textContent;
+                        const definition = desc.split('<br>')[0].trim();
+                        this.wordOfTheDay = { word, definition };
+                        localStorage.setItem(cacheKey, JSON.stringify({ word, definition, timestamp: Date.now() }));
+                        this.addLog(`Vocab Sync: ${word} buffered from uplink.`);
+                    } catch (e) {
+                        this.addLog('Vocab Handshake Fault.');
+                        this.wordOfTheDay = { word: 'Word of the Day', definition: 'Vocab Uplink Offline.' };
+                    }
+                },
+
+                async fetchWeather() {
+                    this.addLog('Atmospheric Sensor Handshake...');
+                    navigator.geolocation.getCurrentPosition(async (pos) => {
+                        try {
+                            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&current_weather=true&temperature_unit=fahrenheit`);
+                            const data = await res.json();
+                            if (data.current_weather) {
+                                const code = data.current_weather.weathercode;
+                                this.weather = { temp: Math.round(data.current_weather.temperature), code: code, cond: this.getWeatherString(code), isWarning: code >= 95 };
+                                this.addLog(`Atmosphere Stable: ${this.weather.temp}°F / Code ${code}`);
+                            }
+                        } catch (e) { this.addLog('Weather Node Offline.'); }
+                    });
+                },
+
+                getWeatherString(code) {
+                    if (code === 0) return 'Atmosphere Clear';
+                    if (code <= 3) return 'Partly Overcast';
+                    if (code <= 67) return 'Precipitation Active';
+                    return 'Severe Cell Alert';
+                },
+
+                async fetchNews() {
+                    this.addLog('Syncing Media Nodes (Fox News)...');
+                    try {
+                        const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeeds.foxnews.com%2Ffoxnews%2Flatest');
+                        const data = await res.json();
+                        this.news = (data.items || []).slice(0, 5).map(i => ({ title: i.title, link: i.link }));
+                        this.addLog(`Broadcast Sync: ${this.news.length} headlines received.`);
+                    } catch (e) { this.addLog('Media Sync Error.'); }
+                },
+
+                async fetchEvents() {
+                    this.addLog('Initiating Worker Handshake (Worker: call.sndjy.us)...');
+                    this.fetchingEvents = true;
+                    let upcomingEvents = [];
+                    const workerUrl = `https://call.sndjy.us?t=${Date.now()}`;
+                    const now = new Date();
+                    const sevenDaysFromNow = new Date();
+                    sevenDaysFromNow.setDate(now.getDate() + 7);
+                    try {
+                        const response = await fetch(workerUrl);
+                        const calendarData = await response.json(); 
+                        this.addLog('Worker payload received. Applying 7-day rolling filter...');
+                        calendarData.forEach(cal => {
+                            if (!cal.success) {
+                                this.addLog(`Node ${cal.name}: Fault - ${cal.error}`);
+                                return;
+                            }
+                            try {
+                                const jcalData = ICAL.parse(cal.data);
+                                const comp = new ICAL.Component(jcalData);
+                                const vevents = comp.getAllSubcomponents('vevent');
+                                vevents.forEach(vevent => {
+                                    const event = new ICAL.Event(vevent);
+                                    const eventDate = event.startDate.toJSDate();
+                                    if (eventDate >= now && eventDate <= sevenDaysFromNow) {
+                                        upcomingEvents.push({
+                                            id: Math.random(),
+                                            title: event.summary,
+                                            start: eventDate,
+                                            relativeTime: this.formatRelativeDate(eventDate),
+                                            source: cal.name,
+                                            ts: eventDate.getTime()
+                                        });
+                                    }
+                                });
+                            } catch (parseErr) {
+                                this.addLog(`Node ${cal.name}: ICAL Exception.`);
+                            }
+                        });
+                        this.events = upcomingEvents.sort((a, b) => a.ts - b.ts);
+                        this.addLog(`GCal Sync Verified: ${this.events.length} upcoming events.`);
+                    } catch (e) { 
+                        this.addLog(`Worker Handshake Fault: Potential CORS or Connectivity snags.`);
+                    } finally { 
+                        this.fetchingEvents = false; 
+                    }
+                },
+
+                formatRelativeDate(date) {
+                    const now = new Date();
+                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    const eventDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                    const diffDays = Math.round((eventDay - today) / (1000 * 60 * 60 * 24));
+                    const timeStr = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                    if (diffDays === 0) return `Today - ${timeStr}`;
+                    if (diffDays === 1) return `Tomorrow - ${timeStr}`;
+                    if (diffDays > 1 && diffDays < 7) {
+                        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                        return `${days[date.getDay()]} - ${timeStr}`;
+                    }
+                    return date.toLocaleDateString();
+                },
+
+                addPage() {
+                    const nid = 'pg_' + Date.now();
+                    this.state.settings.pages.push({ id: nid, name: 'New Module' });
+                    this.state.linkData[nid] = [];
+                    this.persist();
+                    this.addLog('Registry Expansion: Node Created.');
+                },
+
+                removePage(idx) {
+                    if (this.state.settings.pages.length <= 1) return;
+                    const id = this.state.settings.pages[idx].id;
+                    delete this.state.linkData[id];
+                    this.state.settings.pages.splice(idx, 1);
+                    this.activeTab = this.state.settings.pages[0].id;
+                    this.persist();
+                    this.addLog('Registry Decommission: Node Purged.');
+                },
+
+                reorderPage(idx, dir) {
+                    const newIdx = idx + dir;
+                    if (newIdx < 0 || newIdx >= this.state.settings.pages.length) return;
+                    const item = this.state.settings.pages.splice(idx, 1)[0];
+                    this.state.settings.pages.splice(newIdx, 0, item);
+                    this.persist();
+                },
+
+                async cloudPush() {
+                    if (!this.syncKey) { this.addLog('Error: Sync Master Key Missing.'); return; }
+                    this.addLog('Initiating Cloud Commit Sequence...');
+                    this.syncing = true;
+                    try {
+                        const sb = supabase.createClient(this.sbConfig.url, this.sbConfig.key);
+                        await sb.from('nexus_backups').upsert({ id: this.syncKey, content: this.state });
+                        this.addLog('Cloud Sync Successful.');
+                    } catch (e) { this.addLog('Handshake Failure.'); }
+                    finally { setTimeout(() => this.syncing = false, 1000); }
+                },
+
+                async cloudPull() {
+                    if (!this.syncKey) return;
+                    this.addLog('Requesting Cloud Registry Pull...');
+                    try {
+                        const sb = supabase.createClient(this.sbConfig.url, this.sbConfig.key);
+                        const { data } = await sb.from('nexus_backups').select('content').eq('id', this.syncKey).maybeSingle();
+                        if (data?.content) { 
+                            this.importData(data.content); 
+                            this.persist(); 
+                            this.addLog('Cloud Recovery Successful.');
+                        } else { this.addLog('Error: Node Not Found.'); }
+                    } catch (e) { this.addLog('Cloud Comm Fault.'); }
+                },
+
+                dragStart(idx) { this.draggedIndex = idx; },
+                dragOver(idx) {
+                    if (this.draggedIndex === idx) return;
+                    const list = this.getCurrentLinks();
+                    const item = list.splice(this.draggedIndex, 1)[0];
+                    list.splice(idx, 0, item);
+                    this.draggedIndex = idx;
+                },
+                drop() { this.draggedIndex = null; this.persist(); },
+
+                moveLink(toPageId) {
+                    const item = this.getCurrentLinks().splice(this.contextMenu.index, 1)[0];
+                    if (!this.state.linkData[toPageId]) this.state.linkData[toPageId] = [];
+                    this.state.linkData[toPageId].push(item);
+                    this.closeContextMenu(); this.persist();
+                    this.addLog('Module Migration Verified.');
+                },
+
+                getIcon(link) {
+                    if (link.icon && (link.icon.startsWith('http') || link.icon.includes('/'))) return link.icon;
+                    return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${(link.icon || 'default').toLowerCase().replace(/\s+/g, '-')}.svg`;
+                },
+
+                addItem() {
+                    if (!this.newItem.name) return;
+                    if (!this.state.linkData[this.activeTab]) this.state.linkData[this.activeTab] = [];
+                    this.state.linkData[this.activeTab].push({...this.newItem});
+                    this.newItem = { name: '', url: '', icon: '' };
+                    this.addModalOpen = false; this.persist();
+                    this.addLog('Injection Verified: Module Linked.');
+                },
+
+                openContextMenu(e, idx) { this.contextMenu = { show: true, x: e.clientX, y: e.clientY, index: idx }; },
+                closeContextMenu() { this.contextMenu.show = false; },
+                triggerEdit() { this.editingItem = { ...this.getCurrentLinks()[this.contextMenu.index] }; this.editModalOpen = true; this.closeContextMenu(); },
+                saveEdit() { this.getCurrentLinks()[this.contextMenu.index] = { ...this.editingItem }; this.editModalOpen = false; this.persist(); },
+                removeShortcut(idx) { this.getCurrentLinks().splice(idx, 1); this.closeContextMenu(); this.persist(); },
+                addTask(e) { if (!e.target.value.trim()) return; this.state.tasks.push({ text: e.target.value, done: false }); e.target.value = ''; this.persist(); }
+            }));
+        });
     </script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
