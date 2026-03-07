@@ -163,7 +163,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1800px] mx-auto w-full pb-12 items-stretch mt-8">
                 <aside class="lg:col-span-3 flex flex-col gap-8 hidden lg:flex">
                     <div class="nexus-card group relative p-6 min-h-[160px] flex flex-col items-center justify-center flex-shrink-0" :class="weather.isWarning ? 'severe-warning' : ''" :style="`background: rgba(15, 23, 42, ${state.settings.widgets.weather.bgOpacity / 100})`">
-                        <button @click="openWidgetConfig('weather')" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-white/30 hover:text-white z-20"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
+                        <button @click="openWidgetConfig('weather')" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-white/30 hover:text-white z-20"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
                         <div x-show="weather.isWarning" x-transition class="absolute top-3 left-3 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest animate-pulse">Severe Protocol</div>
                         <h4 class="text-[10px] font-black uppercase tracking-widest accent-text mb-4">Atmospheric Sync</h4>
                         
@@ -198,7 +198,7 @@
 
                 <main class="lg:col-span-6 flex flex-col gap-6">
                     <div class="nexus-card group relative p-8 md:p-10 flex-grow min-h-[500px]" :style="`background: rgba(15, 23, 42, ${state.settings.widgets.links.bgOpacity / 100})`">
-                        <button @click="openWidgetConfig('links')" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-white/30 hover:text-white z-20"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
+                        <button @click="openWidgetConfig('links')" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-white/30 hover:text-white z-20"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
                         
                         <div class="flex items-center gap-6 mb-10 border-b border-white/5 overflow-x-auto no-scrollbar pb-1">
                             <template x-for="p in state.settings.pages" :key="p.id">
@@ -248,7 +248,7 @@
                          </div>
                     </div>
                     <div class="nexus-card group relative p-8 min-h-[160px] flex flex-col justify-center flex-grow" :style="`background: rgba(15, 23, 42, ${state.settings.widgets.wotd.bgOpacity / 100})`">
-                        <button @click="openWidgetConfig('wotd')" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-white/30 hover:text-white z-20"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
+                        <button @click="openWidgetConfig('wotd')" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-white/30 hover:text-white z-20"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
                         <h5 class="text-2xl text-white/90 tracking-tighter uppercase" :style="`font-weight: ${state.settings.widgets.wotd.weight}`" x-text="wordOfTheDay.word"></h5>
                         <p class="text-xs text-white/50 mt-3 leading-relaxed italic" x-text="wordOfTheDay.definition"></p>
                     </div>
@@ -512,7 +512,7 @@
                 sbConfig: { url: 'https://tygrcsauitiwwlnpzhei.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5Z3Jjc2F1aXRpd3dsbnB6aGVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NDAxODksImV4cCI6MjA4NzExNjE4OX0.OLiwsqVi9qeltxhgNk42rzgukmOG3gDTDuFacAskZAc' },
 
                 addLog(msg) {
-                    console.log(`[Nexus Dash] ${msg}`); // Mirrored to browser console for easy F12 debugging
+                    console.log(`[Nexus Dash] ${msg}`);
                     const ts = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
                     this.protocolLogs.unshift({ ts, msg });
                     if (this.protocolLogs.length > 100) this.protocolLogs.pop();
@@ -536,7 +536,6 @@
                         this.state.settings.pages.forEach(p => { if (!this.state.linkData[p.id]) this.state.linkData[p.id] = []; });
                     }
 
-                    // Enforce IDs for reliable rendering/dragging
                     Object.values(this.state.linkData).forEach(arr => {
                         arr.forEach(link => { if(!link.id) link.id = 'lnk_' + Math.random().toString(36).substr(2, 9); });
                     });
@@ -549,14 +548,12 @@
                     this.fetchWeather(); 
                     this.loadWordOfTheDay();
                     
-                    // Polling intervals
-                    setInterval(() => { this.fetchNews(); }, 15 * 60000); // 15m
-                    setInterval(() => { this.fetchWeather(); }, 30 * 60000); // 30m
-                    setInterval(() => { this.fetchEvents(); this.loadWordOfTheDay(); }, 60 * 60000); // 1h
+                    setInterval(() => { this.fetchNews(); }, 15 * 60000);
+                    setInterval(() => { this.fetchWeather(); }, 30 * 60000);
+                    setInterval(() => { this.fetchEvents(); this.loadWordOfTheDay(); }, 60 * 60000);
                 },
 
                 importData(data) {
-                    // Core migration
                     if (data.links || data.workLinks || data.serverLinks) {
                         this.state.linkData.links = data.links || [];
                         this.state.linkData.work = data.workLinks || [];
@@ -565,7 +562,6 @@
                         this.state.linkData = data.linkData;
                     }
 
-                    // Settings Migration
                     if(data.settings) {
                         this.state.settings.dashName = data.settings.dashName || this.state.settings.dashName;
                         this.state.settings.accentColor = data.settings.accentColor || this.state.settings.accentColor;
@@ -585,7 +581,6 @@
                                 wotd: { ...this.state.settings.widgets.wotd, ...data.settings.widgets.wotd }
                             };
                         } else {
-                            // First time migration from flat to nested
                             this.state.settings.widgets.clock.weight = data.settings.clockWeight || 800;
                             this.state.settings.widgets.clock.font = data.settings.clockFont || 'font-sans-dash';
                             this.state.settings.widgets.clock.color = data.settings.clockColor || '#ffffff';
@@ -777,7 +772,6 @@
                         const rawText = await response.text();
                         let calendarData = [];
                         
-                        // Fix for the "Wall of Text" - If the user's endpoint returns raw .ics instead of JSON
                         try {
                             calendarData = JSON.parse(rawText);
                             if (!Array.isArray(calendarData)) calendarData = [calendarData];
@@ -801,18 +795,17 @@
                                 vevents.forEach(vevent => {
                                     const event = new ICAL.Event(vevent);
                                     
-                                    // Fix for the "Missing Recurring Events" bug
                                     if (event.isRecurring()) {
                                         const iterator = event.iterator();
                                         let next;
-                                        let loopGuard = 0; // Prevent infinite loops on malformed RRULEs
+                                        let loopGuard = 0;
                                         while ((next = iterator.next()) && loopGuard++ < 50) {
                                             const jsDate = next.toJSDate();
-                                            if (jsDate > sevenDaysFromNow) break; // Exceeds our 7-day window
+                                            if (jsDate > sevenDaysFromNow) break;
                                             if (jsDate >= now) {
                                                 upcomingEvents.push({
-                                                    id: event.summary + jsDate.getTime(),
-                                                    title: event.summary,
+                                                    id: 'evt_' + Math.random().toString(36).substr(2, 9),
+                                                    title: event.summary || 'Busy',
                                                     start: jsDate,
                                                     relativeTime: this.formatRelativeDate(jsDate),
                                                     source: cal.name || 'Calendar',
@@ -824,8 +817,8 @@
                                         const eventDate = event.startDate.toJSDate();
                                         if (eventDate >= now && eventDate <= sevenDaysFromNow) {
                                             upcomingEvents.push({
-                                                id: event.summary + eventDate.getTime(),
-                                                title: event.summary,
+                                                id: 'evt_' + Math.random().toString(36).substr(2, 9),
+                                                title: event.summary || 'Busy',
                                                 start: eventDate,
                                                 relativeTime: this.formatRelativeDate(eventDate),
                                                 source: cal.name || 'Calendar',
