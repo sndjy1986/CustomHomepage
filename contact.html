@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact | [YOUR NAME]</title>
+    <title>Contact | Joseph Sanders</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/lucide.min.js"></script>
     <style>
         :root {
@@ -119,34 +119,38 @@
             <i data-lucide="user" size="48"></i>
         </div>
 
-        <h1>[YOUR NAME]</h1>
-        <p class="subtitle">[YOUR TITLE / TAGLINE]</p>
+        <h1>Joseph Sanders</h1>
+        <p class="subtitle">C-Shift Team Lead / EMS Dispatcher</p>
 
         <div class="links-container">
-            <a href="tel:[YOUR PHONE]" class="link-item">
+            <a href="tel:(864) 791-7911" class="link-item">
                 <i data-lucide="phone"></i>
                 <span class="link-text">Call Me</span>
             </a>
 
-            <a href="mailto:[YOUR EMAIL]" class="link-item">
+            <a href="mailto:sndjy1986@gmail.com" class="link-item">
                 <i data-lucide="mail"></i>
                 <span class="link-text">Email Me</span>
             </a>
 
-            <a href="https://[YOUR WEBSITE]" target="_blank" class="link-item">
+            <a href="https://sndjy.us" target="_blank" class="link-item">
                 <i data-lucide="globe"></i>
                 <span class="link-text">Visit Website</span>
             </a>
 
-            <a href="https://github.com/[YOUR USERNAME]" target="_blank" class="link-item">
+            <a href="https://github.com/sndjy1986" target="_blank" class="link-item">
                 <i data-lucide="github"></i>
                 <span class="link-text">GitHub Profile</span>
             </a>
 
-            <a href="https://linkedin.com/in/[YOUR PROFILE]" target="_blank" class="link-item">
+            <a href="https://www.linkedin.com/in/joey-sanders-272565148/" target="_blank" class="link-item">
                 <i data-lucide="linkedin"></i>
                 <span class="link-text">LinkedIn</span>
             </a>
+            <a href="https://www.facebook.com/sndjy" target="_blank" class="link-item">
+                <i data-lucide="Facebook"></i>
+                <span class="link-text">Facebook</span>
+            </a>            
         </div>
 
         <a href="#" class="save-btn" onclick="generateVCard()">
@@ -165,7 +169,7 @@
             const blob = new Blob([vcard], { type: "text/vcard" });
             const url = window.URL.createObjectURL(blob);
             const newLink = document.createElement("a");
-            newLink.download = "[YOUR NAME].vcf";
+            newLink.download = "JosephSanders.vcf";
             newLink.href = url;
             newLink.click();
         }
