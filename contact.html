@@ -25,7 +25,6 @@
             padding: 20px;
         }
 
-        /* Glass Card Container */
         .card {
             background: var(--glass);
             backdrop-filter: blur(15px);
@@ -45,23 +44,45 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Profile Section */
-        .profile-img {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--primary), #3b82f6);
+        /* Elaborate Profile Image Styling */
+        .profile-container {
+            position: relative;
+            width: 130px;
+            height: 130px;
             margin: 0 auto 20px;
-            border: 4px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        }
+
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--glass-border);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .profile-ring {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            border: 2px dashed var(--primary);
+            animation: rotate 10s linear infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         h1 { font-size: 1.8rem; margin-bottom: 8px; letter-spacing: -0.5px; }
         p.subtitle { color: #94a3b8; margin-bottom: 30px; font-size: 0.95rem; }
 
-        /* Contact Grid/Links */
         .links-container {
             display: grid;
             gap: 12px;
@@ -88,7 +109,6 @@
         .link-item i { margin-right: 15px; color: var(--primary); }
         .link-text { flex-grow: 1; text-align: left; font-weight: 500; }
 
-        /* V-Card Download Button */
         .save-btn {
             margin-top: 30px;
             background: var(--primary);
@@ -101,35 +121,37 @@
             gap: 10px;
             font-weight: 600;
             transition: transform 0.2s;
+            cursor: pointer;
+            border: none;
         }
 
         .save-btn:active { transform: scale(0.95); }
 
-        /* Mobile Adjustments */
         @media (max-width: 480px) {
-            .card { padding: 30px 20px; border-radius: 0; background: transparent; border: none; box-shadow: none; }
             body { align-items: flex-start; background: #0f172a; }
+            .card { padding: 30px 20px; border-radius: 0; background: transparent; border: none; box-shadow: none; }
         }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <div class="profile-img">
-            <i data-lucide="user" size="48"></i>
+        <div class="profile-container">
+            <div class="profile-ring"></div>
+            <img src="https://via.placeholder.com/150" alt="Joseph Sanders" class="profile-img">
         </div>
 
         <h1>Joseph Sanders</h1>
         <p class="subtitle">C-Shift Team Lead / EMS Dispatcher</p>
 
         <div class="links-container">
-            <a href="tel:(864) 791-7911" class="link-item">
+            <a href="tel:8647917911" class="link-item">
                 <i data-lucide="phone"></i>
                 <span class="link-text">Personal Number</span>
             </a>
-        <div class="links-container">
-            <a href="tel:(821)777-1158" class="link-item">
-                <i data-lucide="phone"></i>
+
+            <a href="tel:8217771158" class="link-item">
+                <i data-lucide="phone-forwarded"></i>
                 <span class="link-text">Work Number</span>
             </a>            
 
@@ -152,29 +174,37 @@
                 <i data-lucide="linkedin"></i>
                 <span class="link-text">LinkedIn</span>
             </a>
+
             <a href="https://www.facebook.com/sndjy" target="_blank" class="link-item">
-                <i data-lucide="Facebook"></i>
+                <i data-lucide="facebook"></i>
                 <span class="link-text">Facebook</span>
             </a>            
         </div>
 
-        <a href="#" class="save-btn" onclick="generateVCard()">
+        <button class="save-btn" onclick="generateVCard()">
             <i data-lucide="download"></i>
             Save Contact
-        </a>
+        </button>
     </div>
 
     <script>
-        // Initialize Icons
         lucide.createIcons();
 
-        // Optional: Simple V-Card Generator
         function generateVCard() {
-            const vcard = "BEGIN:VCARD\nVERSION:3.0\nFN:[YOUR NAME]\nTEL:[YOUR PHONE]\nEMAIL:[YOUR EMAIL]\nURL:https://[YOUR WEBSITE]\nEND:VCARD";
+            const vcard = "BEGIN:VCARD\n" +
+                          "VERSION:3.0\n" +
+                          "FN:Joseph Sanders\n" +
+                          "TITLE:C-Shift Team Lead / EMS Dispatcher\n" +
+                          "TEL;TYPE=CELL:(864) 791-7911\n" +
+                          "TEL;TYPE=WORK:(821) 777-1158\n" +
+                          "EMAIL:sndjy1986@gmail.com\n" +
+                          "URL:https://sndjy.us\n" +
+                          "END:VCARD";
+            
             const blob = new Blob([vcard], { type: "text/vcard" });
             const url = window.URL.createObjectURL(blob);
             const newLink = document.createElement("a");
-            newLink.download = "JosephSanders.vcf";
+            newLink.download = "Joseph_Sanders.vcf";
             newLink.href = url;
             newLink.click();
         }
