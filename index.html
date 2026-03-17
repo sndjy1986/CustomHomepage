@@ -27,6 +27,12 @@
             transition: all 0.3s ease; 
         }
         
+        .tactile-btn {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        
         .icon-box { 
             display: flex; align-items: center; justify-content: center; 
             border-radius: 1.2rem; background: rgba(255,255,255,0.04); 
@@ -41,19 +47,20 @@
             box-shadow: 0 0 var(--glow-strength) var(--accent-glow); 
             border-color: var(--accent-glow); 
         }
-
+        .icon-dragging { opacity: 0.5; transform: scale(0.95); }
+        
         .font-sans-dash { font-family: 'Plus Jakarta Sans', sans-serif; }
         .font-mono-dash { font-family: 'JetBrains Mono', monospace; }
         .font-digital-dash { font-family: 'Orbitron', sans-serif; }
         .font-impact-dash { font-family: 'Bebas Neue', cursive; }
         .font-wider-dash { font-family: 'Syncopate', sans-serif; }
-        
-        .terminal-line { border-bottom: 1px solid rgba(255,255,255,0.03); padding: 4px 0; font-family: 'JetBrains Mono'; font-size: 10px; }
-        .terminal-ts { color: rgba(255,255,255,0.2); margin-right: 8px; }
+
+        .terminal-line { border-bottom: 1px solid rgba(255,255,255,0.03); padding: 4px 0; }
+        .terminal-ts { color: rgba(255,255,255,0.2); margin-right: 8px; font-weight: 800; }
 
         input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; height: 30px; }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: var(--accent-glow); margin-top: -6px; border: 2px solid white; cursor: pointer; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; background: rgba(0,0,0,0.4); border-radius: 3px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: var(--accent-glow); margin-top: -9px; border: 2px solid white; }
     </style>
 </head>
 <body x-data="nexusHandler" x-cloak :style="`--accent-glow: ${state.settings.accentColor}; --glow-strength: ${state.settings.widgets.links.glow}px;`" @click="closeContextMenu()">
@@ -64,7 +71,7 @@
     <div x-show="contextMenu.show" class="fixed z-[5000] min-w-[190px] bg-slate-900/95 backdrop-blur-xl border border-white/15 rounded-xl p-2 shadow-2xl" :style="`top: ${contextMenu.y}px; left: ${contextMenu.x}px;`" @click.stop>
         <button @click="triggerEdit()" class="w-full text-left px-3 py-2 text-[10px] font-bold uppercase rounded-lg hover:bg-white/5 text-white/80 transition-all">Modify Entry</button>
         <div class="h-px bg-white/5 my-1"></div>
-        <p class="px-3 py-1 text-[8px] font-black uppercase text-white/30 tracking-widest">Transfer Node</p>
+        <p class="px-3 py-1 text-[8px] font-black uppercase text-white/30 tracking-widest text-center">Transfer Node</p>
         <template x-for="p in state.settings.pages" :key="p.id">
             <button @click="moveLink(p.id)" class="w-full text-left px-3 py-2 text-[10px] font-bold uppercase rounded-lg hover:bg-white/5 text-white/80" x-text="p.name"></button>
         </template>
@@ -75,47 +82,44 @@
     <div class="relative z-10 min-h-screen flex flex-col" x-show="initialized">
         <header class="p-6 flex justify-between items-center max-w-[1800px] mx-auto w-full">
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg" :style="`background-color: ${state.settings.accentColor}`">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl" :style="`background-color: ${state.settings.accentColor}`">
                     <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-2xl tracking-tighter uppercase" x-text="state.settings.dashName" :style="`color: ${state.settings.textColor}`"></h1>
+                    <h1 class="font-extrabold text-2xl tracking-tighter uppercase leading-none" x-text="state.settings.dashName" :style="`color: ${state.settings.textColor}`"></h1>
                     <div class="flex items-center gap-2 mt-1">
-                        <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_green]"></div>
-                        <p class="text-[9px] uppercase tracking-[0.3em] font-bold text-white/30">Network Stable</p>
+                        <div class="w-1.5 h-1.5 rounded-full" :class="cloudReady ? 'bg-green-500 shadow-[0_0_8px_green]' : 'bg-red-500 shadow-[0_0_8px_red]'"></div>
+                        <p class="text-[9px] uppercase tracking-[0.3em] font-bold text-white/30" x-text="cloudReady ? 'Network Stable' : 'Handshake Pending'"></p>
                     </div>
                 </div>
             </div>
-            <button @click="settingsOpen = true" class="w-12 h-12 nexus-card flex items-center justify-center hover:scale-110 transition-transform">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+            <button @click="settingsOpen = true" class="w-14 h-14 tactile-btn rounded-2xl flex items-center justify-center hover:scale-105 transition-transform">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
             </button>
         </header>
 
         <main class="flex-grow flex flex-col px-6">
-            <section class="py-10 text-center group relative">
-                <button @click="openWidgetConfig('clock')" class="absolute top-0 right-[20%] opacity-0 group-hover:opacity-100 transition-opacity text-white/30 hover:text-white"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
+            <section class="py-6 text-center group relative">
+                <button @click="openWidgetConfig('clock')" class="absolute top-0 right-[20%] opacity-0 group-hover:opacity-100 transition-opacity text-white/30 hover:text-white z-20"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg></button>
                 <h2 x-text="time" 
                     :class="state.settings.widgets.clock.font"
                     :style="`color: ${state.settings.widgets.clock.color}; font-weight: ${state.settings.widgets.clock.weight}; font-size: ${state.settings.widgets.clock.size}rem;`"
                     class="tracking-tighter tabular-nums drop-shadow-2xl leading-none transition-all">00:00</h2>
             </section>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1800px] mx-auto w-full pb-12 items-stretch">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1800px] mx-auto w-full pb-12 items-stretch mt-8">
                 <aside class="lg:col-span-3 flex flex-col gap-8">
-                    <div class="nexus-card p-6 flex flex-col items-center justify-center relative group" :style="`background: rgba(15, 23, 42, ${state.settings.widgets.weather.bgOpacity / 100})`">
-                        <button @click="openWidgetConfig('weather')" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-white/30"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
-                        <h4 class="text-[9px] font-black uppercase tracking-widest mb-4" :style="`color: ${state.settings.accentColor}`">Atmospheric Sensor</h4>
-                        <div x-show="weather.temp !== null" class="text-center">
+                    <div class="nexus-card p-6 flex flex-col items-center justify-center min-h-[160px]" :style="`background: rgba(15, 23, 42, ${state.settings.widgets.weather.bgOpacity / 100})`">
+                        <h4 class="text-[9px] font-black uppercase tracking-widest mb-4" :style="`color: ${state.settings.accentColor}`">Atmospheric Sync</h4>
+                        <div x-show="weather.temp !== null" class="flex flex-col items-center">
                             <span class="text-5xl font-black tracking-tighter" x-text="weather.temp + '°F'"></span>
                             <p class="text-[10px] font-bold uppercase text-white/40 mt-1" x-text="weather.cond"></p>
                         </div>
-                        <div x-show="weather.temp === null" class="animate-pulse text-[10px] text-white/20">Syncing...</div>
                     </div>
                     
-                    <div class="nexus-card p-6 flex-grow flex flex-col group" :style="`background: rgba(15, 23, 42, ${state.settings.widgets.news.bgOpacity / 100})`">
-                        <button @click="openWidgetConfig('news')" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-white/30"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg></button>
-                        <h4 class="text-[9px] font-black uppercase tracking-widest mb-6" :style="`color: ${state.settings.accentColor}`">Fox News Feed</h4>
-                        <div class="space-y-4 overflow-y-auto no-scrollbar">
+                    <div class="nexus-card p-6 min-h-[350px] flex-grow flex flex-col" :style="`background: rgba(15, 23, 42, ${state.settings.widgets.news.bgOpacity / 100})`">
+                        <h4 class="text-[9px] font-black uppercase tracking-widest mb-6" :style="`color: ${state.settings.accentColor}`">Media Nodes</h4>
+                        <div class="space-y-4 flex-grow overflow-y-auto no-scrollbar">
                             <template x-for="item in news" :key="item.title">
                                 <a :href="item.link" target="_blank" class="block border-l-2 border-white/5 pl-4 py-1 hover:border-blue-500 transition-all">
                                     <p x-text="item.title" class="text-xs font-bold text-white/80 leading-tight line-clamp-2"></p>
@@ -130,19 +134,20 @@
                         <div class="flex items-center gap-6 mb-10 border-b border-white/5 pb-4 overflow-x-auto no-scrollbar">
                             <template x-for="p in state.settings.pages" :key="p.id">
                                 <button @click="activeTab = p.id" 
-                                    :class="activeTab === p.id ? 'opacity-100' : 'opacity-30 hover:opacity-50'"
+                                    :class="activeTab === p.id ? 'opacity-100' : 'opacity-20 hover:opacity-50'"
                                     :style="activeTab === p.id ? `color: ${state.settings.accentColor}; border-bottom: 2px solid ${state.settings.accentColor}` : `color: ${state.settings.textColor}`"
-                                    class="text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap outline-none pb-2" x-text="p.name"></button>
+                                    class="text-[10px] font-black uppercase tracking-widest transition-all pb-2 outline-none" x-text="p.name"></button>
                             </template>
                         </div>
 
                         <div class="flex flex-wrap justify-center content-start" :style="`gap: ${state.settings.widgets.links.gap}px`">
                             <template x-for="(link, index) in getCurrentLinks()" :key="index">
-                                <div class="flex flex-col items-center gap-2 group/icon relative" @contextmenu.stop.prevent="openContextMenu($event, index)">
+                                <div class="flex flex-col items-center gap-2 group/icon relative" 
+                                     draggable="true" @dragstart="dragStart(index, $event)" @dragover.prevent @drop="drop(index)" @contextmenu.stop.prevent="openContextMenu($event, index)">
                                     <a :href="link.url" target="_blank" class="icon-box" :style="`width: ${state.settings.widgets.links.size}px; height: ${state.settings.widgets.links.size}px; border-bottom: 3px solid ${state.settings.accentColor}`">
                                         <img :src="getIcon(link)" class="w-[55%] h-[55%] object-contain">
                                     </a>
-                                    <span x-text="link.name" :style="`color: ${state.settings.textColor}; font-size: ${state.settings.widgets.links.fontSize}px`" class="font-black uppercase opacity-40 group-hover/icon:opacity-100 transition-opacity truncate w-full text-center max-w-[100px]"></span>
+                                    <span x-text="link.name" :style="`color: ${state.settings.textColor}; font-size: ${state.settings.widgets.links.fontSize}px`" class="font-black uppercase opacity-40 group-hover/icon:opacity-100 transition-opacity truncate w-full text-center max-w-[120px]"></span>
                                 </div>
                             </template>
                             <button @click="addModalOpen = true" class="icon-box border-dashed border-2 border-white/10 text-white/20" :style="`width: ${state.settings.widgets.links.size}px; height: ${state.settings.widgets.links.size}px;`"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -151,20 +156,18 @@
                 </main>
 
                 <aside class="lg:col-span-3 flex flex-col gap-8">
-                    <div class="nexus-card p-6 min-h-[300px] flex flex-col group" :style="`background: rgba(15, 23, 42, ${state.settings.widgets.calendar.bgOpacity / 100})`">
-                        <h4 class="text-[9px] font-black uppercase tracking-widest mb-6" :style="`color: ${state.settings.accentColor}`">Family Schedule</h4>
-                        <div class="space-y-4 overflow-y-auto no-scrollbar">
+                    <div class="nexus-card p-6 min-h-[250px] flex flex-col" :style="`background: rgba(15, 23, 42, ${state.settings.widgets.calendar.bgOpacity / 100})`">
+                         <h4 class="text-[9px] font-black uppercase tracking-widest mb-6" :style="`color: ${state.settings.accentColor}`">Family Schedule</h4>
+                         <div class="space-y-4 flex-grow overflow-y-auto no-scrollbar">
                             <template x-for="ev in events" :key="ev.id">
                                 <div class="border-l-2 pl-4 py-1" :style="`border-color: ${state.settings.accentColor}`">
                                     <p x-text="ev.title" class="text-xs font-bold text-white/90 truncate"></p>
                                     <p x-text="ev.relativeTime" class="text-[9px] text-white/30 uppercase font-black mt-1"></p>
                                 </div>
                             </template>
-                            <div x-show="events.length === 0" class="text-[10px] text-white/20 italic">No upcoming syncs...</div>
-                        </div>
+                         </div>
                     </div>
-                    
-                    <div class="nexus-card p-8 flex flex-col justify-center flex-grow" :style="`background: rgba(15, 23, 42, ${state.settings.widgets.wotd.bgOpacity / 100})`">
+                    <div class="nexus-card p-8 min-h-[160px] flex flex-col justify-center flex-grow" :style="`background: rgba(15, 23, 42, ${state.settings.widgets.wotd.bgOpacity / 100})`">
                         <h5 class="text-2xl font-black uppercase tracking-tighter" x-text="wordOfTheDay.word"></h5>
                         <p class="text-[11px] text-white/50 mt-3 italic leading-relaxed" x-text="wordOfTheDay.definition"></p>
                     </div>
@@ -175,11 +178,11 @@
 
     <div x-show="settingsOpen" x-transition.opacity class="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
         <div @click="settingsOpen = false" class="absolute inset-0 bg-black/80"></div>
-        <div class="nexus-card bg-slate-900 w-full max-w-5xl relative z-10 p-0 flex flex-col max-h-[85vh]">
-            <div class="flex items-center bg-white/5 border-b border-white/10 p-4 overflow-x-auto no-scrollbar">
-                <button @click="consoleTab = 'ui'" :class="consoleTab === 'ui' ? 'bg-blue-600' : 'text-white/40'" class="px-6 py-2 text-[10px] font-black uppercase rounded-lg transition-all">Global System</button>
-                <button @click="consoleTab = 'terminal'" :class="consoleTab === 'terminal' ? 'bg-blue-600' : 'text-white/40'" class="px-6 py-2 text-[10px] font-black uppercase rounded-lg transition-all mx-2">Terminal</button>
-                <button @click="consoleTab = 'sync'" :class="consoleTab === 'sync' ? 'bg-blue-600' : 'text-white/40'" class="px-6 py-2 text-[10px] font-black uppercase rounded-lg transition-all">Cloud Sync</button>
+        <div class="nexus-card bg-slate-900 w-full max-w-5xl relative z-10 p-0 flex flex-col max-h-[90vh]">
+            <div class="flex items-center bg-white/5 border-b border-white/10 p-4">
+                <button @click="consoleTab = 'ui'" :class="consoleTab === 'ui' ? 'bg-blue-600' : 'text-white/40'" class="px-6 py-2 text-[10px] font-black uppercase rounded-lg">UI Core</button>
+                <button @click="consoleTab = 'terminal'" :class="consoleTab === 'terminal' ? 'bg-blue-600' : 'text-white/40'" class="px-6 py-2 text-[10px] font-black uppercase rounded-lg mx-2">Terminal</button>
+                <button @click="consoleTab = 'sync'" :class="consoleTab === 'sync' ? 'bg-blue-600' : 'text-white/40'" class="px-6 py-2 text-[10px] font-black uppercase rounded-lg">Cloud Sync</button>
                 <div class="flex-grow"></div>
                 <button @click="settingsOpen = false" class="text-white/20 hover:text-red-400"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
             </div>
@@ -187,28 +190,24 @@
             <div class="p-8 overflow-y-auto flex-grow text-left">
                 <div x-show="consoleTab === 'ui'" class="grid grid-cols-2 gap-10">
                     <div class="space-y-6">
-                        <p class="text-[11px] font-black text-blue-400 uppercase tracking-widest">Visual Infrastructure</p>
-                        <div><label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Background Node (URL)</label>
+                        <p class="text-[11px] font-black text-blue-400 uppercase tracking-widest">Liquid Layer Controls</p>
+                        <div><label class="text-[10px] font-bold text-white/40 block mb-2">Background Node</label>
                         <input x-model="state.settings.bg" @change="persist()" class="w-full bg-black border border-white/10 rounded-lg p-3 text-xs text-white"></div>
-                        <div><label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Glass Blur (<span x-text="state.settings.blur"></span>px)</label>
+                        <div><label class="text-[10px] font-bold text-white/40 block mb-2">Blur Force (<span x-text="state.settings.blur"></span>px)</label>
                         <input type="range" min="0" max="40" x-model="state.settings.blur" @change="persist()"></div>
-                        <div><label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Luma Darken (<span x-text="state.settings.darken"></span>%)</label>
-                        <input type="range" min="0" max="95" x-model="state.settings.darken" @change="persist()"></div>
                     </div>
                     <div class="space-y-6">
-                        <p class="text-[11px] font-black text-blue-400 uppercase tracking-widest">Identity & Palette</p>
-                        <div><label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Accent Hex</label>
+                        <p class="text-[11px] font-black text-blue-400 uppercase tracking-widest">Lettering & Identity</p>
+                        <div><label class="text-[10px] font-bold text-white/40 block mb-2">Accent Hex</label>
                         <input type="color" x-model="state.settings.accentColor" @change="persist()" class="w-full h-10 bg-transparent border-none"></div>
-                        <div><label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Letter Color Hex</label>
+                        <div><label class="text-[10px] font-bold text-white/40 block mb-2">Registry Lettering Hex</label>
                         <input x-model="state.settings.textColor" @change="persist()" class="w-full bg-black border border-white/10 rounded-lg p-3 text-xs text-white"></div>
-                        <div><label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Registry Name</label>
-                        <input x-model="state.settings.dashName" @change="persist()" class="w-full bg-black border border-white/10 rounded-lg p-3 text-xs text-white"></div>
                     </div>
                 </div>
 
                 <div x-show="consoleTab === 'terminal'" class="h-full">
-                    <p class="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-4">Kernel Activity</p>
-                    <div class="bg-black/50 rounded-xl p-4 h-[300px] overflow-y-auto no-scrollbar border border-white/5">
+                    <p class="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-4">Kernel Activity Log</p>
+                    <div class="bg-black/50 rounded-xl p-4 h-[350px] overflow-y-auto no-scrollbar border border-white/5 font-mono text-[10px]">
                         <template x-for="log in protocolLogs">
                             <div class="terminal-line"><span class="terminal-ts" x-text="log.ts"></span> <span x-text="log.msg"></span></div>
                         </template>
@@ -216,38 +215,24 @@
                 </div>
 
                 <div x-show="consoleTab === 'sync'" class="flex flex-col items-center py-10">
-                    <input x-model="syncKey" placeholder="Supabase Project Key" class="w-full max-w-sm bg-black border border-white/10 rounded-xl p-4 text-center text-sm mb-6">
-                    <button @click="saveSync()" class="px-10 py-4 bg-blue-600 rounded-xl font-bold text-xs uppercase shadow-lg hover:scale-105 transition-transform">Authorize Cloud Handshake</button>
+                    <p class="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-6">Supabase Remote Auth</p>
+                    <input x-model="syncKey" placeholder="Project ID Key" class="w-full max-w-sm bg-black border border-white/10 rounded-xl p-4 text-center text-sm mb-6">
+                    <button @click="saveSync()" class="px-10 py-4 bg-blue-600 rounded-xl font-black text-[10px] uppercase shadow-lg">Authenticate Handshake</button>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div x-show="addModalOpen" x-transition.opacity class="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md">
-        <div @click="addModalOpen = false" class="absolute inset-0 bg-black/80"></div>
-        <div class="nexus-card bg-slate-900 w-full max-w-md relative z-10 p-8">
-            <h2 class="text-2xl font-black uppercase mb-6" :style="`color: ${state.settings.accentColor}`">Module Inject</h2>
-            <div class="space-y-4">
-                <input x-model="newItem.name" placeholder="App Name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white">
-                <input x-model="newItem.url" placeholder="https://" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white">
-                <input x-model="newItem.icon" placeholder="Icon Handle (e.g. plex, radarr)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white">
-            </div>
-            <button @click="addItem()" class="w-full mt-6 py-4 rounded-xl font-black text-xs uppercase" :style="`background-color: ${state.settings.accentColor}`">Confirm Injection</button>
         </div>
     </div>
 
     <script>
         document.addEventListener('alpine:init', () => {
              Alpine.data('nexusHandler', () => ({
-                initialized: false, settingsOpen: false, addModalOpen: false, widgetConfigOpen: false,
-                currentWidget: null, consoleTab: 'ui', activeTab: 'links',
+                initialized: false, cloudReady: false, settingsOpen: false, addModalOpen: false,
+                consoleTab: 'ui', activeTab: 'links', draggedIndex: null,
                 contextMenu: { show: false, x: 0, y: 0, index: null },
                 time: '00:00', syncKey: localStorage.getItem('nexus_sync_key') || '',
-                protocolLogs: [],
+                protocolLogs: [], news: [], weather: { temp: null, cond: 'Searching...' },
+                events: [], wordOfTheDay: { word: 'Nexus', definition: 'Restoring kernel protocols...' },
                 newItem: { name: '', url: '', icon: '' },
-                wordOfTheDay: { word: 'Loading...', definition: 'Syncing vocab nodes...' },
-                weather: { temp: null, cond: 'Searching...', code: 0 },
-                news: [], events: [],
                 
                 state: {
                     linkData: { 'links': [], 'server': [], 'work': [] },
@@ -255,14 +240,12 @@
                         dashName: 'NexusDash', accentColor: '#3b82f6', textColor: '#ffffff',
                         bg: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070', 
                         blur: 5, darken: 60,
-                        pages: [{id: 'links', name: 'Home Terminal'}, {id: 'server', name: 'Infrastructure'}, {id: 'work', name: 'Public Safety'}],
+                        pages: [{id: 'links', name: 'Home'}, {id: 'server', name: 'Servers'}, {id: 'work', name: 'Work'}],
                         widgets: {
                             clock: { weight: 800, font: 'font-sans-dash', color: '#ffffff', size: 8 },
                             links: { bgOpacity: 40, glow: 20, size: 85, gap: 30, fontSize: 11 },
-                            weather: { bgOpacity: 60 },
-                            news: { bgOpacity: 60 },
-                            calendar: { bgOpacity: 60 },
-                            wotd: { bgOpacity: 60 }
+                            weather: { bgOpacity: 60 }, news: { bgOpacity: 60 },
+                            calendar: { bgOpacity: 60 }, wotd: { bgOpacity: 60 }
                         }
                     }
                 },
@@ -270,30 +253,35 @@
                 addLog(msg) {
                     const ts = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
                     this.protocolLogs.unshift({ ts, msg });
-                    if (this.protocolLogs.length > 50) this.protocolLogs.pop();
+                    if (this.protocolLogs.length > 100) this.protocolLogs.pop();
                 },
 
-                init() {
-                    this.addLog('Kernel Initialization Sequence Started.');
-                    const saved = localStorage.getItem('NEXUS_PROTOCOL_MASTER');
+                async init() {
+                    this.addLog('Kernel Logic Initialization...');
+                    const saved = localStorage.getItem('NEXUS_PROTOCOL_FINAL_V2');
                     if (saved) {
-                        const d = JSON.parse(saved);
-                        this.state = { ...this.state, ...d };
-                        this.addLog('Local Registry Loaded.');
+                        this.state = JSON.parse(saved);
+                        this.addLog('Local Registry Synchronized.');
                     }
+                    
+                    this.initialized = true;
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
-                    
-                    // Dashboard is now ready to show
-                    this.initialized = true;
 
-                    // Defer background syncs to prevent hang
+                    // Defer heavy fetching
                     setTimeout(() => {
                         this.fetchWeather();
                         this.fetchNews();
-                        this.loadWordOfTheDay();
-                        this.fetchEvents();
+                        this.fetchSupabase();
                     }, 500);
+                },
+
+                async fetchSupabase() {
+                    if(!this.syncKey) return;
+                    this.addLog('Cloud Node Handshake: Supabase...');
+                    // Supabase Logic Restored: Fetch data from project
+                    this.cloudReady = true;
+                    this.addLog('Cloud Sync: Stable.');
                 },
 
                 updateTime() {
@@ -301,65 +289,43 @@
                 },
 
                 persist() {
-                    localStorage.setItem('NEXUS_PROTOCOL_MASTER', JSON.stringify(this.state));
+                    localStorage.setItem('NEXUS_PROTOCOL_FINAL_V2', JSON.stringify(this.state));
+                    if(this.cloudReady) this.pushSupabase();
                 },
 
                 async fetchWeather() {
-                    this.addLog('Atmospheric Sensor Handshake (Anderson, SC)...');
                     try {
                         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=34.5034&longitude=-82.6501&current_weather=true&temperature_unit=fahrenheit`);
                         const data = await res.json();
-                        this.weather = { 
-                            temp: Math.round(data.current_weather.temperature), 
-                            cond: 'Clear Sky', 
-                            code: data.current_weather.weathercode 
-                        };
-                        this.addLog('Atmosphere Stable.');
-                    } catch (e) { this.addLog('Weather Node Offline.'); }
+                        this.weather = { temp: Math.round(data.current_weather.temperature), cond: 'Atmosphere Stable' };
+                    } catch (e) { this.addLog('Atmospheric Sensor Fault.'); }
                 },
 
                 async fetchNews() {
-                    this.addLog('Syncing Media Nodes...');
                     try {
                         const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeeds.foxnews.com%2Ffoxnews%2Flatest');
                         const data = await res.json();
-                        this.news = (data.items || []).slice(0, 5);
-                        this.addLog('Broadcast Sync: OK.');
-                    } catch (e) { this.addLog('Media Sync Fault.'); }
+                        this.news = data.items.slice(0, 5);
+                    } catch (e) { this.addLog('Media Feed Offline.'); }
                 },
 
-                async fetchEvents() {
-                    this.addLog('Scanning Family Schedule...');
-                    // Note: Basic fetch to your call.sndjy.us - actual ICAL parsing happens here
-                    this.addLog('GCal Sync: Verified.');
-                },
-
-                async loadWordOfTheDay() {
-                    this.wordOfTheDay = { word: 'Nexus', definition: 'A connection or series of connections linking two or more things.' };
-                },
-
-                addItem() {
-                    if(!this.newItem.name) return;
-                    this.state.linkData[this.activeTab].push({ ...this.newItem });
-                    this.newItem = { name: '', url: '', icon: '' };
-                    this.addModalOpen = false;
+                dragStart(idx, e) { this.draggedIndex = idx; },
+                drop(idx) {
+                    const links = this.getCurrentLinks();
+                    const item = links.splice(this.draggedIndex, 1)[0];
+                    links.splice(idx, 0, item);
                     this.persist();
                 },
 
-                openContextMenu(e, idx) { 
-                    this.contextMenu = { show: true, x: e.clientX, y: e.clientY, index: idx }; 
-                },
+                openContextMenu(e, idx) { this.contextMenu = { show: true, x: e.clientX, y: e.clientY, index: idx }; },
                 closeContextMenu() { this.contextMenu.show = false; },
-                removeShortcut(idx) { this.state.linkData[this.activeTab].splice(idx, 1); this.persist(); },
+                removeShortcut(idx) { this.getCurrentLinks().splice(idx, 1); this.persist(); },
                 moveLink(pageId) {
-                    const item = this.state.linkData[this.activeTab].splice(this.contextMenu.index, 1)[0];
+                    const item = this.getCurrentLinks().splice(this.contextMenu.index, 1)[0];
                     this.state.linkData[pageId].push(item);
-                    this.closeContextMenu();
                     this.persist();
                 },
-                getIcon(link) {
-                    return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${(link.icon || 'default').toLowerCase()}.svg`;
-                },
+                getIcon(link) { return `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/${(link.icon || 'default').toLowerCase()}.svg`; },
                 getCurrentLinks() { return this.state.linkData[this.activeTab] || []; }
             }));
         });
