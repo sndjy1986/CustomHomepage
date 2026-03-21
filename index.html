@@ -116,13 +116,15 @@
         .terminal-line { border-bottom: 1px solid rgba(255,255,255,0.03); padding: 4px 0; }
         .terminal-ts { color: rgba(255,255,255,0.2); margin-right: 8px; font-weight: 800; }
 
-        /* Mascot Container */
-        .mascot-overlay {
-            width: 100px;
-            height: auto;
-            margin: 0 auto;
-            display: block;
+        /* Status Icon Video Calibration */
+        .status-mascot {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 1rem;
             image-rendering: pixelated;
+            /* Essential for background-free look */
+            mix-blend-mode: color-dodge; 
         }
     </style>
 </head>
@@ -145,9 +147,13 @@
     <div class="relative z-10 min-h-screen flex flex-col" x-show="initialized" x-transition.opacity.duration.500ms>
         <header class="p-6 flex justify-between items-center max-w-[1800px] mx-auto w-full">
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl accent-bg border-b-2 border-black/40">
-                    <svg class="animate-sun w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl accent-bg border-b-2 border-black/40 overflow-hidden">
+                    <video class="status-mascot" autoplay loop muted playsinline>
+                        <source src="Mario Walk Jump.mp4" type="video/mp4">
+                    </video>
                 </div>
+
                 <div>
                     <h1 class="font-extrabold text-2xl tracking-tighter uppercase leading-none" x-text="state.settings.dashName"></h1>
                     <div class="flex items-center gap-2 mt-1">
@@ -158,12 +164,6 @@
                 </div>
             </div>
             
-            <div class="hidden md:block">
-                <video class="mascot-overlay" autoplay loop muted playsinline>
-                    <source src="Mario Walk Jump.mp4" type="video/mp4">
-                </video>
-            </div>
-
             <button @click="settingsOpen = true" class="w-14 h-14 tactile-btn rounded-2xl flex items-center justify-center focus:outline-none hover:text-blue-400 transition-colors">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
             </button>
