@@ -10,6 +10,15 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono:wght@400;800&family=Playfair+Display:wght@700;900&family=Orbitron:wght@400;800&family=Bebas+Neue&family=Syncopate:wght@400;700&display=swap');
+        
+        /* Integrated Super Mario 256 Font */
+        @font-face {
+            font-family: 'SuperMario256';
+            src: url('https://cdn.jsdelivr.net/gh/Sndjy/fonts/super_mario_256.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         [x-cloak] { display: none !important; }
         
         :root { --accent-glow: #3b82f6; --glow-strength: 20px; }
@@ -93,6 +102,7 @@
         .font-digital-dash { font-family: 'Orbitron', sans-serif; letter-spacing: -2px; }
         .font-impact-dash { font-family: 'Bebas Neue', cursive; }
         .font-wider-dash { font-family: 'Syncopate', sans-serif; letter-spacing: -4px; text-transform: uppercase; }
+        .font-mario-dash { font-family: 'SuperMario256', sans-serif; }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -105,6 +115,15 @@
         
         .terminal-line { border-bottom: 1px solid rgba(255,255,255,0.03); padding: 4px 0; }
         .terminal-ts { color: rgba(255,255,255,0.2); margin-right: 8px; font-weight: 800; }
+
+        /* Mascot Container */
+        .mascot-overlay {
+            width: 100px;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+            image-rendering: pixelated;
+        }
     </style>
 </head>
 <body x-data="nexusHandler" x-cloak :style="`--accent-glow: ${state.settings.accentColor}; --glow-strength: ${state.settings.widgets.links.glow}px;`" @click="closeContextMenu()" @contextmenu="closeContextMenu()">
@@ -138,8 +157,15 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="hidden md:block">
+                <video class="mascot-overlay" autoplay loop muted playsinline>
+                    <source src="Mario Walk Jump.mp4" type="video/mp4">
+                </video>
+            </div>
+
             <button @click="settingsOpen = true" class="w-14 h-14 tactile-btn rounded-2xl flex items-center justify-center focus:outline-none hover:text-blue-400 transition-colors">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
             </button>
         </header>
 
@@ -150,8 +176,8 @@
                 </button>
                 <h2 x-text="time" 
                     :class="state.settings.widgets.clock.font"
-                    :style="`color: ${state.settings.widgets.clock.color}; font-weight: ${state.settings.widgets.clock.weight};`"
-                    class="text-[7rem] md:text-[8rem] tracking-tighter tabular-nums uppercase drop-shadow-2xl leading-none transition-colors duration-300">00:00</h2>
+                    :style="`color: ${state.settings.widgets.clock.color}; font-weight: ${state.settings.widgets.clock.weight}; font-size: ${state.settings.widgets.clock.size}rem;`"
+                    class="tracking-tighter tabular-nums uppercase drop-shadow-2xl leading-none transition-all duration-300">00:00</h2>
                 <div class="w-full max-w-2xl mx-auto mt-6">
                     <form action="https://google.com/search" method="GET">
                         <input type="text" name="q" placeholder="Google Search..." autocomplete="off" 
@@ -271,7 +297,23 @@
             <div class="space-y-6">
                 <template x-if="currentWidget === 'clock'">
                     <div class="space-y-6">
-                        <div><label class="text-[10px] uppercase font-bold text-white/40 mb-2 block">Typography</label><select x-model="state.settings.widgets.clock.font" @change="persist()" class="bg-black border border-white/20 text-white rounded-xl py-3 w-full text-[11px] uppercase font-black px-3 focus:border-blue-500 outline-none"><option value="font-sans-dash">Jakarta Sans</option><option value="font-mono-dash">JetBrains Mono</option><option value="font-digital-dash">Orbitron</option><option value="font-impact-dash">Bebas Neue</option><option value="font-wider-dash">Syncopate</option><option value="font-serif-dash">Playfair Display</option></select></div>
+                        <div><label class="text-[10px] uppercase font-bold text-white/40 mb-2 block">Typography</label><select x-model="state.settings.widgets.clock.font" @change="persist()" class="bg-black border border-white/20 text-white rounded-xl py-3 w-full text-[11px] uppercase font-black px-3 focus:border-blue-500 outline-none">
+                            <option value="font-sans-dash">Jakarta Sans</option>
+                            <option value="font-mario-dash">Super Mario 256</option>
+                            <option value="font-mono-dash">JetBrains Mono</option>
+                            <option value="font-digital-dash">Orbitron</option>
+                            <option value="font-impact-dash">Bebas Neue</option>
+                            <option value="font-wider-dash">Syncopate</option>
+                            <option value="font-serif-dash">Playfair Display</option>
+                        </select></div>
+                        <div><label class="text-[10px] uppercase font-bold text-white/40 mb-2 block">Font Size (rem): <span x-text="state.settings.widgets.clock.size"></span></label><input type="range" min="3" max="14" step="0.5" x-model="state.settings.widgets.clock.size" @change="persist()"></div>
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-white/40 block mb-2">Clock Aura Color</label>
+                            <div class="flex gap-4">
+                                <input type="color" x-model="state.settings.widgets.clock.color" @change="persist()" class="w-16 h-12 bg-transparent cursor-pointer rounded-lg outline-none flex-shrink-0">
+                                <input type="text" x-model="state.settings.widgets.clock.color" @change="persist()" class="w-full bg-black border border-white/20 rounded-xl py-2 px-4 text-[11px] text-white focus:border-blue-500 outline-none shadow-inner uppercase font-mono">
+                            </div>
+                        </div>
                         <div><label class="text-[10px] uppercase font-bold text-white/40 mb-2 block">Font Weight: <span x-text="state.settings.widgets.clock.weight"></span></label><input type="range" min="300" max="900" step="100" x-model="state.settings.widgets.clock.weight" @change="persist()"></div>
                         <div class="flex items-center justify-between"><span class="text-[10px] uppercase font-bold text-white/40">24H Protocol</span><button @click="state.settings.is24Hour = !state.settings.is24Hour; persist()" class="w-12 h-6 rounded-full relative bg-white/10 transition-all outline-none" :class="state.settings.is24Hour ? 'bg-blue-600' : ''"><div class="absolute w-5 h-5 bg-white rounded-full top-0.5 transition-all duration-300" :style="state.settings.is24Hour ? 'right:2px' : 'left:2px'"></div></button></div>
                     </div>
@@ -480,7 +522,7 @@
                 
                 consoleTab: 'ui',
                 contextMenu: { show: false, x: 0, y: 0, index: null },
-                time: '00:00:00', activeTab: 'links',
+                time: '00:00:00', activeTab: '', 
                 syncKey: localStorage.getItem('nexus_sync_key') || '',
                 protocolLogs: [],
                 newItem: { name: '', url: '', icon: '', id: '' },
@@ -496,7 +538,7 @@
                         pages: [{id: 'links', name: 'Home'}, {id: 'server', name: 'Server'}, {id: 'work', name: 'Work'}],
                         
                         widgets: {
-                            clock: { weight: 800, font: 'font-sans-dash', color: '#ffffff' },
+                            clock: { weight: 800, font: 'font-sans-dash', color: '#ffffff', size: 8 },
                             weather: { bgOpacity: 65, animate: true },
                             news: { bgOpacity: 65, fontSize: 13, textOpacity: 80 },
                             links: { bgOpacity: 65, glow: 30, size: 85, gap: 20 },
@@ -522,7 +564,7 @@
                     this.addLog('Kernel Initialization Sequence Started.');
                     
                     const storageKey = 'NEXUS_PROTOCOL_FINAL_V2';
-                    const saved = localStorage.getItem(storageKey) || localStorage.getItem('NEXUS_PROTOCOL_FINAL_V1');
+                    const saved = localStorage.getItem(storageKey);
                     
                     if (saved) {
                         try {
@@ -533,6 +575,10 @@
                     } else {
                         this.state.settings.pages.forEach(p => { if (!this.state.linkData[p.id]) this.state.linkData[p.id] = []; });
                     }
+
+                    // Default Node Boot Logic: Always open first page on load
+                    this.activeTab = this.state.settings.pages[0]?.id || 'links';
+                    this.addLog(`Primary Registry Node Mounted: ${this.activeTab}`);
 
                     Object.values(this.state.linkData).forEach(arr => {
                         arr.forEach(link => { if(!link.id) link.id = 'lnk_' + Math.random().toString(36).substr(2, 9); });
@@ -581,21 +627,10 @@
                                 calendar: { ...this.state.settings.widgets.calendar, ...data.settings.widgets.calendar },
                                 wotd: { ...this.state.settings.widgets.wotd, ...data.settings.widgets.wotd }
                             };
-                        } else {
-                            this.state.settings.widgets.clock.weight = data.settings.clockWeight || 800;
-                            this.state.settings.widgets.clock.font = data.settings.clockFont || 'font-sans-dash';
-                            this.state.settings.widgets.clock.color = data.settings.clockColor || '#ffffff';
-                            this.state.settings.widgets.news.fontSize = data.settings.newsFontSize || 13;
-                            this.state.settings.widgets.links.size = data.settings.iconSize || 85;
-                            this.state.settings.widgets.links.gap = data.settings.iconGap || 20;
-                            this.state.settings.widgets.links.glow = data.settings.hoverGlow || 30;
                         }
                     }
 
                     this.state.settings.pages.forEach(p => { if (!this.state.linkData[p.id]) this.state.linkData[p.id] = []; });
-                    if (!this.state.settings.pages.find(p => p.id === this.activeTab)) {
-                        this.activeTab = this.state.settings.pages[0]?.id || 'links';
-                    }
                 },
 
                 getCurrentLinks() { return this.state.linkData[this.activeTab] || []; },
