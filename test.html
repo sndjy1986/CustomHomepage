@@ -2,133 +2,112 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Ink Dashboard Mockup</title>
+    <title>E-Ink Prototyper</title>
     <style>
-        :root {
-            --bg-color: #FFFFFF;
-            --text-color: #000000;
-            --accent-red: #FF0000; /* Traditional e-ink red */
-            --border-thick: 3px solid #000;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* Adjust width/height to match your specific e-ink resolution */
-        .container {
+        body { font-family: sans-serif; background: #222; color: #fff; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Left Side: Editor */
+        #editor-pane { width: 40%; padding: 20px; display: flex; flex-direction: column; border-right: 2px solid #444; }
+        textarea { flex-grow: 1; background: #111; color: #00ff00; font-family: monospace; padding: 10px; border: 1px solid #555; resize: none; }
+        .controls { margin-top: 10px; display: flex; gap: 10px; align-items: center; }
+        
+        /* Right Side: Preview */
+        #preview-pane { width: 60%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #333; }
+        
+        /* The Simulated E-Ink Screen (Match your hardware resolution here) */
+        #eink-screen { 
             width: 800px; 
-            height: 480px;
-            border: var(--border-thick);
-            display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            gap: 15px;
-            padding: 15px;
-            box-sizing: border-box;
-        }
-
-        .box {
-            border: 2px solid #000;
-            padding: 10px;
+            height: 480px; 
+            background: #fff; 
+            color: #000; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
             overflow: hidden;
-        }
-
-        h2 {
-            margin-top: 0;
-            font-size: 1.2rem;
-            border-bottom: 2px solid var(--accent-red);
-            text-transform: uppercase;
-        }
-
-        /* Schedule Section */
-        .schedule {
-            grid-row: span 2;
-        }
-        .event {
-            margin-bottom: 10px;
-            border-left: 4px solid var(--accent-red);
-            padding-left: 8px;
-        }
-        .event-time { font-weight: bold; font-size: 0.9rem; }
-        .event-title { font-size: 1.1rem; }
-
-        /* Weather Section */
-        .weather {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .temp { font-size: 3rem; font-weight: bold; }
-        .condition { color: var(--accent-red); font-weight: bold; }
-
-        /* Photo Section */
-        .photo-display {
-            background: #eee;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             position: relative;
         }
-        .photo-placeholder {
-            text-align: center;
-            font-style: italic;
-            color: #555;
-        }
 
-        /* Info Bar */
-        .footer {
-            grid-column: span 2;
-            text-align: right;
-            font-size: 0.8rem;
-            border: none;
-        }
+        button { padding: 10px 20px; cursor: pointer; background: #444; color: white; border: 1px solid #666; }
+        button:hover { background: #555; }
+        .active-btn { background: #007bff; border-color: #0056b3; }
+        .status { font-size: 0.8rem; color: #aaa; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="box schedule">
-            <h2>Today's Schedule</h2>
-            <div class="event">
-                <div class="event-time">08:00 AM</div>
-                <div class="event-title">Shift Start - Dispatch</div>
-            </div>
-            <div class="event">
-                <div class="event-time">12:30 PM</div>
-                <div class="event-title">Lunch Break</div>
-            </div>
-            <div class="event">
-                <div class="event-time">04:00 PM</div>
-                <div class="event-title">Radio System Check</div>
-            </div>
-        </div>
-
-        <div class="box weather">
-            <h2>Anderson, SC</h2>
-            <div class="temp">72°F</div>
-            <div class="condition">PARTLY CLOUDY</div>
-            <div>H: 78° L: 62°</div>
-        </div>
-
-        <div class="box photo-display">
-            <div class="photo-placeholder">
-                [ Photo from Gallery ]
-            </div>
-        </div>
-
-        <div class="footer">
-            Last Updated: Mar 28, 2026 | 14:24
-        </div>
+<div id="editor-pane">
+    <h2>E-Ink Code Lab</h2>
+    <p class="status">Paste your HTML/CSS here. Use 800x480 resolution.</p>
+    <textarea id="code-input">
+<div style="padding: 20px; height: 100%;">
+    <h1 style="border-bottom: 3px solid red;">CALENDAR</h1>
+    <div style="font-size: 24px; margin-top: 20px;">
+        <p>• 08:00 - Dispatch Shift</p>
+        <p>• 14:00 - Radio Maintenance</p>
+        <p>• 19:00 - Dinner in Anderson</p>
     </div>
+</div>
+
+<div style="padding: 20px; text-align: center; height: 100%;">
+    <h1 style="color: red;">WEATHER</h1>
+    <div style="font-size: 80px; font-weight: bold;">72°F</div>
+    <div style="font-size: 30px;">Partly Cloudy</div>
+    <p>Anderson, SC</p>
+</div>
+    </textarea>
+    
+    <div class="controls">
+        <button onclick="updatePreview()" class="active-btn">Refresh Preview</button>
+        <button id="rotate-btn" onclick="toggleRotation()">Start Rotation</button>
+        <span id="timer-display"></span>
+    </div>
+</div>
+
+<div id="preview-pane">
+    <div id="eink-screen">
+        </div>
+    <p class="status" style="margin-top: 15px;">Resolution: 800 x 480 (Color E-Ink Simulation)</p>
+</div>
+
+<script>
+    let pages = [];
+    let currentPage = 0;
+    let rotationInterval = null;
+
+    function updatePreview() {
+        const rawCode = document.getElementById('code-input').value;
+        // We use "" as a delimiter to separate screens
+        pages = rawCode.split('');
+        renderPage(0);
+    }
+
+    function renderPage(index) {
+        const screen = document.getElementById('eink-screen');
+        if(pages[index]) {
+            screen.innerHTML = pages[index];
+            currentPage = index;
+        }
+    }
+
+    function toggleRotation() {
+        const btn = document.getElementById('rotate-btn');
+        if (rotationInterval) {
+            clearInterval(rotationInterval);
+            rotationInterval = null;
+            btn.innerText = "Start Rotation";
+            btn.classList.remove('active-btn');
+        } else {
+            updatePreview();
+            btn.innerText = "Stop Rotation";
+            btn.classList.add('active-btn');
+            rotationInterval = setInterval(() => {
+                currentPage = (currentPage + 1) % pages.length;
+                renderPage(currentPage);
+            }, 5000); // Rotates every 5 seconds
+        }
+    }
+
+    // Initial load
+    updatePreview();
+</script>
 
 </body>
 </html>
