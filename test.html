@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Ink Dashboard Mockup</title>
+    <style>
+        :root {
+            --bg-color: #FFFFFF;
+            --text-color: #000000;
+            --accent-red: #FF0000; /* Traditional e-ink red */
+            --border-thick: 3px solid #000;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Adjust width/height to match your specific e-ink resolution */
+        .container {
+            width: 800px; 
+            height: 480px;
+            border: var(--border-thick);
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 15px;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .box {
+            border: 2px solid #000;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            border-bottom: 2px solid var(--accent-red);
+            text-transform: uppercase;
+        }
+
+        /* Schedule Section */
+        .schedule {
+            grid-row: span 2;
+        }
+        .event {
+            margin-bottom: 10px;
+            border-left: 4px solid var(--accent-red);
+            padding-left: 8px;
+        }
+        .event-time { font-weight: bold; font-size: 0.9rem; }
+        .event-title { font-size: 1.1rem; }
+
+        /* Weather Section */
+        .weather {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .temp { font-size: 3rem; font-weight: bold; }
+        .condition { color: var(--accent-red); font-weight: bold; }
+
+        /* Photo Section */
+        .photo-display {
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .photo-placeholder {
+            text-align: center;
+            font-style: italic;
+            color: #555;
+        }
+
+        /* Info Bar */
+        .footer {
+            grid-column: span 2;
+            text-align: right;
+            font-size: 0.8rem;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="box schedule">
+            <h2>Today's Schedule</h2>
+            <div class="event">
+                <div class="event-time">08:00 AM</div>
+                <div class="event-title">Shift Start - Dispatch</div>
+            </div>
+            <div class="event">
+                <div class="event-time">12:30 PM</div>
+                <div class="event-title">Lunch Break</div>
+            </div>
+            <div class="event">
+                <div class="event-time">04:00 PM</div>
+                <div class="event-title">Radio System Check</div>
+            </div>
+        </div>
+
+        <div class="box weather">
+            <h2>Anderson, SC</h2>
+            <div class="temp">72°F</div>
+            <div class="condition">PARTLY CLOUDY</div>
+            <div>H: 78° L: 62°</div>
+        </div>
+
+        <div class="box photo-display">
+            <div class="photo-placeholder">
+                [ Photo from Gallery ]
+            </div>
+        </div>
+
+        <div class="footer">
+            Last Updated: Mar 28, 2026 | 14:24
+        </div>
+    </div>
+
+</body>
+</html>
