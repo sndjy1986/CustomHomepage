@@ -1,0 +1,46 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const app = express();
+const PORT = 3000;
+
+app.use(cors());
+app.use(bodyParser.json());
+
+// This variable holds the latest data in memory
+let latestStats = {
+    temp: "N/A",
+    speed: "N/A",
+    memory: "N/A",
+    ip: "N/A",
+    lastUpdated: "Never"
+};
+
+// Endpoint for Page One to "Push" data to
+app.post('/update', (req, res) => {
+    latestStats = { ...req.body, lastUpdated: new Date().toLocaleTimeString() };
+    console.log("Received update:", latestStats);
+    res.sendStatus(200);
+});
+
+// The "Webpage" the e-paper display will actually look at
+app.get('/display', (req, res) => {
+    res.send(`
+        <html>
+        <body style="font-family:monospace; font-size: 24px; width: 400px; height: 300px;">
+            <div style="border: 2px solid black; padding: 10px;">
+                <b>SYS MONITOR</b><hr>
+                TEMP: ${latestStats.temp}<br>
+                SPD:  ${latestStats.speed}<br>
+                MEM:  ${latestStats.memory}<br>
+                IP:   ${latestStats.ip}<br>
+                <small style="font-size: 12px;">Update: ${latestStats.lastUpdated}</small>
+            </div>
+        </body>
+        </html>
+    `);
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Bridge server running on port ${PORT}`);
+});
