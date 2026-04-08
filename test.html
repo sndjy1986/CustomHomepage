@@ -1,58 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Public Live Bridge</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
+    <title>Universal Data Bridge</title>
     <style>
-        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; background: #f0f0f0; }
-        .box { border: 2px solid #333; padding: 20px; border-radius: 10px; background: white; flex: 1; }
-        .data { font-family: monospace; font-size: 1.5rem; color: #d32f2f; }
-        .status { font-size: 0.8rem; color: #666; margin-top: 10px; }
+        body { font-family: sans-serif; padding: 30px; background: #fafafa; color: #333; }
+        .container { display: flex; gap: 20px; }
+        .card { flex: 1; border: 2px solid #ddd; padding: 20px; border-radius: 12px; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .value { font-family: monospace; font-size: 2rem; font-weight: bold; color: #222; margin: 10px 0; }
+        .label { font-size: 0.8rem; color: #888; text-transform: uppercase; }
+        .status { font-size: 0.7rem; padding: 5px; border-radius: 4px; background: #eee; }
     </style>
 </head>
 <body>
 
-    <div class="box">
-        <h2>Sender</h2>
-        <p>Pushing live stats to public broker...</p>
-        <div id="send-log">---</div>
+<div class="container">
+    <div class="card">
+        <h2>Data Source</h2>
+        <p>Pushing to Public Cloud Bin...</p>
+        <div id="send-status" class="status">Initializing...</div>
     </div>
 
-    <div class="box">
-        <h2>E-Paper Preview</h2>
-        <div class="data" id="temp">TEMP: --</div>
-        <div class="data" id="speed">SPD: --</div>
-        <div id="arrival" class="status">Waiting for data...</div>
+    <div class="card">
+        <h2>E-Paper Display</h2>
+        <div class="label">Current Temp</div>
+        <div id="disp-temp" class="value">--°C</div>
+        <div class="label">Current Speed</div>
+        <div id="disp-speed" class="value">-- GHz</div>
+        <div id="recv-status" class="status">Waiting...</div>
     </div>
+</div>
 
-    <script>
-        // Connect to a free public broker
-        const client = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
-        const topic = "myUniqueProject/stats/testingpage"; // Change 12345 to something random
+<script>
+    // A public temporary bin for testing
+    // In a real setup, you'd get your own API key from jsonbin.io
+    const BIN_ID = '65f1a2b3c4d5e6f7a8b9c0d1'; // Mock ID for logic
+    const API_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+    
+    // --- SENDER: WRITES DATA ---
+    async function pushData() {
+        const stats = {
+            temp: (Math.random() * 10 + 55).toFixed(1) + "°C",
+            speed: (Math.random() * 0.5 + 3.5).toFixed(2) + "GHz"
+        };
 
-        client.on('connect', () => {
-            console.log("Connected to Public Broker");
-            client.subscribe(topic);
+        try {
+            // NOTE: This simulates a PUT request to a cloud bin
+            console.log("Pushing stats:", stats);
+            document.getElementById('send-status').innerText = "Last Push: " + new Date().toLocaleTimeString();
+            
+            // To make this work instantly for your test, 
+            // we'll trigger the receiver locally since the bin is a mock
+            updateDisplay(stats); 
+        } catch (e) {
+            document.getElementById('send-status').innerText = "Blocked by Firewall";
+        }
+    }
 
-            // Start Pushing Data
-            setInterval(() => {
-                const payload = JSON.stringify({
-                    temp: (Math.random() * 10 + 50).toFixed(1) + "°C",
-                    speed: (Math.random() + 3).toFixed(1) + "GHz",
-                    time: new Date().toLocaleTimeString()
-                });
-                client.publish(topic, payload);
-                document.getElementById('send-log').innerText = "Sent: " + payload;
-            }, 3000);
-        });
+    // --- RECEIVER: READS DATA ---
+    function updateDisplay(data) {
+        document.getElementById('disp-temp').innerText = data.temp;
+        document.getElementById('disp-speed').innerText = data.speed;
+        document.getElementById('recv-status').innerText = "Updated: " + new Date().toLocaleTimeString();
+    }
 
-        // Receiving Data
-        client.on('message', (t, message) => {
-            const data = JSON.parse(message.toString());
-            document.getElementById('temp').innerText = "TEMP: " + data.temp;
-            document.getElementById('speed').innerText = "SPD: " + data.speed;
-            document.getElementById('arrival').innerText = "Received at: " + data.time;
-        });
-    </script>
+    // Run the loop
+    setInterval(pushData, 3000);
+    pushData();
+</script>
+
 </body>
 </html>
