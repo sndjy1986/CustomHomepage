@@ -1,130 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>E-Ink Prototyper - Live API Test</title>
+    <title>Telemetry Sender</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: #eee; margin: 0; display: flex; height: 100vh; }
-        #editor-pane { width: 40%; padding: 20px; display: flex; flex-direction: column; border-right: 2px solid #333; }
-        textarea { flex-grow: 1; background: #000; color: #00ff00; font-family: 'Cascadia Code', monospace; padding: 15px; border: 1px solid #444; resize: none; border-radius: 4px; }
-        .controls { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; }
-        #preview-pane { width: 60%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #252525; }
-        
-        /* Simulated 7-Color E-Ink Screen */
-        #eink-screen { 
-            width: 800px; height: 480px; background: #fff; color: #000; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; position: relative; border: 8px solid #000;
-        }
-
-        button { padding: 10px 15px; cursor: pointer; background: #333; color: white; border: 1px solid #555; border-radius: 4px; }
-        button:hover { background: #444; }
-        .active-btn { background: #d32f2f; border-color: #b71c1c; }
-        .status { font-size: 0.85rem; color: #888; margin-bottom: 5px; }
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 400px; }
+        input { width: 100%; margin: 10px 0; padding: 8px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; padding: 10px; width: 100%; cursor: pointer; }
     </style>
 </head>
 <body>
-
-<div id="editor-pane">
-    <h2>E-Ink Code Lab</h2>
-    <div class="status">Paste your layouts below. Use <code>&lt;!-- BREAK:PAGE --&gt;</code> to separate screens.</div>
-    <textarea id="code-input">
-<div style="padding: 30px; height: 100%; box-sizing: border-box;">
-    <h1 style="border-bottom: 4px solid #d32f2f; padding-bottom: 10px; margin-top: 0;">UPCOMING EVENTS</h1>
-    <div id="calendar-list" style="font-size: 22px; line-height: 1.6;">
-        Loading data from call.sndjy.us...
+    <div class="card">
+        <h2>System Stats Pusher</h2>
+        <input type="text" id="cpuTemp" placeholder="CPU Temp (e.g. 55C)">
+        <input type="text" id="cpuSpeed" placeholder="CPU Speed (e.g. 3.2GHz)">
+        <input type="text" id="memUsage" placeholder="Memory Usage (e.g. 45%)">
+        <input type="text" id="netIP" placeholder="Tailscale IP">
+        <button onclick="sendData()">Push to E-Paper Bridge</button>
     </div>
-</div>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; height: 100%;">
-    <div style="padding: 20px; border-right: 2px solid #000; text-align: center;">
-        <h2 style="color: #d32f2f;">ANDERSON, SC</h2>
-        <div style="font-size: 80px; font-weight: bold; margin: 20px 0;">74°</div>
-        <div style="font-size: 24px; text-transform: uppercase;">Clear Skies</div>
-    </div>
-    <div style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-style: italic;">
-        [ Photo Placeholder ]
-    </div>
-</div>
-    </textarea>
-    
-    <div class="controls">
-        <button onclick="updatePreview()" class="active-btn">Refresh Preview</button>
-        <button id="rotate-btn" onclick="toggleRotation()">Start Rotation</button>
-        <button onclick="fetchCalendar()">Test API Fetch</button>
-    </div>
-</div>
+    <script>
+        async function sendData() {
+            const stats = {
+                temp: document.getElementById('cpuTemp').value,
+                speed: document.getElementById('cpuSpeed').value,
+                memory: document.getElementById('memUsage').value,
+                ip: document.getElementById('netIP').value
+            };
 
-<div id="preview-pane">
-    <div id="eink-screen"></div>
-</div>
+            // Replace with the Tailscale IP of the receiver machine
+            const receiverIP = "http://100.x.y.z:3000/update"; 
 
-<script>
-    let pages = [];
-    let currentPage = 0;
-    let rotationInterval = null;
-    const API_URL = 'https://call.sndjy.us/';
-
-    async function fetchCalendar() {
-        const listContainer = document.getElementById('calendar-list');
-        if (!listContainer) return;
-
-        try {
-            const response = await fetch(API_URL);
-            const data = await response.json();
-            
-            // Assuming your API returns an array of events
-            // Adjust "event.summary" and "event.start" based on your actual API keys
-            let html = "";
-            data.slice(0, 5).forEach(event => {
-                html += `<div style="margin-bottom: 15px;">
-                            <strong style="color: #d32f2f;">${event.time || 'All Day'}</strong> - ${event.title || event.summary}
-                         </div>`;
-            });
-            listContainer.innerHTML = html || "No upcoming events found.";
-        } catch (err) {
-            listContainer.innerHTML = `<span style="color: red;">API Error: ${err.message}</span><br>
-            <small>Note: If this is a CORS issue, you may need to allow your test domain in your API settings.</small>`;
+            try {
+                const response = await fetch(receiverIP, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(stats)
+                });
+                alert("Data Pushed!");
+            } catch (err) {
+                console.error("Error:", err);
+                alert("Failed to reach Tailscale IP.");
+            }
         }
-    }
-
-    function updatePreview() {
-        const rawCode = document.getElementById('code-input').value;
-        pages = rawCode.split('');
-        renderPage(0);
-        // If the first page contains the calendar list, trigger the fetch
-        if (pages[0].includes('calendar-list')) {
-            setTimeout(fetchCalendar, 100);
-        }
-    }
-
-    function renderPage(index) {
-        const screen = document.getElementById('eink-screen');
-        if(pages[index]) {
-            screen.innerHTML = pages[index];
-            currentPage = index;
-            if (screen.querySelector('#calendar-list')) fetchCalendar();
-        }
-    }
-
-    function toggleRotation() {
-        const btn = document.getElementById('rotate-btn');
-        if (rotationInterval) {
-            clearInterval(rotationInterval);
-            rotationInterval = null;
-            btn.innerText = "Start Rotation";
-            btn.classList.remove('active-btn');
-        } else {
-            btn.innerText = "Stop Rotation";
-            btn.classList.add('active-btn');
-            rotationInterval = setInterval(() => {
-                currentPage = (currentPage + 1) % pages.length;
-                renderPage(currentPage);
-            }, 8000); 
-        }
-    }
-
-    updatePreview();
-</script>
-
+    </script>
 </body>
 </html>
