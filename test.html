@@ -28,7 +28,7 @@
     <script>
         // Connect to a free public broker
         const client = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
-        const topic = "myUniqueProject/stats/12345"; // Change 12345 to something random
+        const topic = "myUniqueProject/stats/testingpage"; // Change 12345 to something random
 
         client.on('connect', () => {
             console.log("Connected to Public Broker");
