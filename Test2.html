@@ -2,45 +2,41 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
-const PORT = 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
 
-// This variable holds the latest data in memory
-let latestStats = {
-    temp: "N/A",
-    speed: "N/A",
-    memory: "N/A",
-    ip: "N/A",
-    lastUpdated: "Never"
-};
+let latestStats = { temp: "--", speed: "--", memory: "--", ip: "--", lastUpdated: "Waiting..." };
 
-// Endpoint for Page One to "Push" data to
+// Receiver Endpoint
 app.post('/update', (req, res) => {
     latestStats = { ...req.body, lastUpdated: new Date().toLocaleTimeString() };
-    console.log("Received update:", latestStats);
+    console.log(`[${latestStats.lastUpdated}] Data Received`);
     res.sendStatus(200);
 });
 
-// The "Webpage" the e-paper display will actually look at
+// The Minimalist E-Paper Webview
 app.get('/display', (req, res) => {
     res.send(`
         <html>
-        <body style="font-family:monospace; font-size: 24px; width: 400px; height: 300px;">
-            <div style="border: 2px solid black; padding: 10px;">
-                <b>SYS MONITOR</b><hr>
-                TEMP: ${latestStats.temp}<br>
-                SPD:  ${latestStats.speed}<br>
-                MEM:  ${latestStats.memory}<br>
-                IP:   ${latestStats.ip}<br>
-                <small style="font-size: 12px;">Update: ${latestStats.lastUpdated}</small>
+        <head>
+            <meta http-equiv="refresh" content="5">
+        </head>
+        <body style="font-family:sans-serif; width: 400px; height: 300px; padding: 20px;">
+            <div style="border: 5px solid black; padding: 15px;">
+                <h1 style="margin:0">SYSTEM STATS</h1>
+                <hr style="border: 2px solid black">
+                <p style="font-size: 24px;"><b>TEMP:</b> ${latestStats.temp}</p>
+                <p style="font-size: 24px;"><b>SPEED:</b> ${latestStats.speed}</p>
+                <p style="font-size: 24px;"><b>MEM:</b> ${latestStats.memory}</p>
+                <p style="font-size: 20px;"><b>IP:</b> ${latestStats.ip}</p>
+                <p style="font-size: 14px; color: gray;">Updated: ${latestStats.lastUpdated}</p>
             </div>
         </body>
         </html>
     `);
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Bridge server running on port ${PORT}`);
+app.listen(3000, '0.0.0.0', () => {
+    console.log("Bridge Online. Listening on Port 3000...");
 });
