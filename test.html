@@ -1,52 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Live Data Source</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Telemetry Bridge</title>
     <style>
-        body { font-family: 'Courier New', monospace; background: #111; color: #0f0; padding: 40px; }
-        .status { border: 1px solid #0f0; padding: 20px; display: inline-block; }
-        .pulse { animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: white; display: flex; justify-content: center; gap: 20px; padding: 40px; }
+        .panel { border: 2px solid #333; border-radius: 12px; padding: 20px; width: 350px; background: #1e1e1e; }
+        .sender { border-color: #007bff; }
+        .receiver { border-color: #00ff88; }
+        h2 { margin-top: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-box { background: #2a2a2a; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+        .label { color: #888; font-size: 0.8rem; display: block; }
+        .value { font-family: 'Courier New', monospace; font-size: 1.5rem; color: #00ff88; }
+        .status { font-size: 0.7rem; color: #555; margin-top: 10px; }
+        .led { height: 10px; width: 10px; border-radius: 50%; display: inline-block; background: #555; margin-right: 5px; }
+        .active { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
     </style>
 </head>
 <body>
-    <div class="status">
-        <h2>[ SENSOR ACTIVE ]</h2>
-        <p>Sending data to Tailscale Node...</p>
-        <div id="out">Initializing...</div>
-        <p class="pulse">● LIVE PUSHING</p>
+
+    <div class="panel sender">
+        <h2>Data Source (Sender)</h2>
+        <div class="stat-box">
+            <span class="label">TRANSMITTING DATA...</span>
+            <div id="send-debug" style="font-size: 0.9rem; color: #007bff;">Connecting to pipe...</div>
+        </div>
+        <p style="font-size: 0.8rem; color: #666;">This side gathers stats and "screams" them into the WebSocket pipe instantly.</p>
+    </div>
+
+    <div class="panel receiver">
+        <h2>Live Display (Receiver)</h2>
+        
+        <div class="stat-box">
+            <span class="label">CPU TEMP</span>
+            <div id="v-temp" class="value">--°C</div>
+        </div>
+
+        <div class="stat-box">
+            <span class="label">CPU SPEED</span>
+            <div id="v-speed" class="value">-- GHz</div>
+        </div>
+
+        <div class="stat-box">
+            <span class="label">MEMORY USAGE</span>
+            <div id="v-mem" class="value">--%</div>
+        </div>
+
+        <div class="stat-box">
+            <span class="label">NETWORK IP</span>
+            <div id="v-ip" class="value">0.0.0.0</div>
+        </div>
+
+        <div class="status">
+            <div id="led" class="led"></div> SOCKET STATUS: <span id="socket-status">OFFLINE</span>
+        </div>
     </div>
 
     <script>
-        async function pushData() {
-            // Simulated "Live" Data - replace these with real scrapers later
-            const stats = {
-                temp: (Math.random() * (65 - 45) + 45).toFixed(1) + "°C",
-                speed: (Math.random() * (4.2 - 2.8) + 2.8).toFixed(1) + " GHz",
-                memory: Math.floor(Math.random() * 100) + "%",
-                ip: "100.10.20.30" // Your actual Tailscale IP
-            };
+        // Use a local relay (localhost) or a public test relay (demo)
+        // For your Tailscale setup, replace 'localhost' with your Tailscale IP
+        const socket = new WebSocket('ws://localhost:8080');
+        
+        const led = document.getElementById('led');
+        const statusText = document.getElementById('socket-status');
 
-            // TARGET: Change this to your Tailscale IP of the Receiver
-            const receiverUrl = "http://100.x.y.z:3000/update"; 
-
-            try {
-                const response = await fetch(receiverUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(stats)
-                });
+        // --- SENDER LOGIC ---
+        socket.onopen = () => {
+            led.classList.add('active');
+            statusText.innerText = "CONNECTED (LIVE)";
+            
+            // Start Pushing every 2 seconds
+            setInterval(() => {
+                const data = {
+                    temp: (Math.random() * 10 + 45).toFixed(1) + "°C",
+                    speed: (Math.random() * 0.5 + 3.2).toFixed(2) + " GHz",
+                    mem: Math.floor(Math.random() * 20 + 40) + "%",
+                    ip: "100.75.12.44" // Simulated Tailscale IP
+                };
                 
-                document.getElementById('out').innerText = 
-                    `Sent: ${stats.temp} | ${stats.speed} at ${new Date().toLocaleTimeString()}`;
-            } catch (err) {
-                document.getElementById('out').innerText = "CONNECTION ERROR: Check Tailscale.";
-            }
-        }
+                socket.send(JSON.stringify(data));
+                document.getElementById('send-debug').innerText = "Sent at: " + new Date().toLocaleTimeString();
+            }, 2000);
+        };
 
-        // SET THE HEARTBEAT: Push every 5 seconds
-        setInterval(pushData, 5000);
-        pushData(); // Initial call
+        // --- RECEIVER LOGIC ---
+        socket.onmessage = (event) => {
+            const incoming = JSON.parse(event.data);
+            
+            // Update the UI instantly
+            document.getElementById('v-temp').innerText = incoming.temp;
+            document.getElementById('v-speed').innerText = incoming.speed;
+            document.getElementById('v-mem').innerText = incoming.mem;
+            document.getElementById('v-ip').innerText = incoming.ip;
+
+            // Visual feedback on the receiver panel
+            document.querySelector('.receiver').style.borderColor = "#00ff88";
+            setTimeout(() => { 
+                document.querySelector('.receiver').style.borderColor = "#333"; 
+            }, 100);
+        };
+
+        socket.onclose = () => {
+            led.classList.remove('active');
+            statusText.innerText = "DISCONNECTED";
+            document.getElementById('send-debug').innerText = "Check relay.js status.";
+        };
     </script>
 </body>
 </html>
