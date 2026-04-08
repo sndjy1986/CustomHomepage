@@ -1,71 +1,84 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Universal Data Bridge</title>
+    <meta charset="UTF-8">
+    <title>Advanced System Telemetry</title>
     <style>
-        body { font-family: sans-serif; padding: 30px; background: #fafafa; color: #333; }
-        .container { display: flex; gap: 20px; }
-        .card { flex: 1; border: 2px solid #ddd; padding: 20px; border-radius: 12px; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .value { font-family: monospace; font-size: 2rem; font-weight: bold; color: #222; margin: 10px 0; }
-        .label { font-size: 0.8rem; color: #888; text-transform: uppercase; }
-        .status { font-size: 0.7rem; padding: 5px; border-radius: 4px; background: #eee; }
+        :root { --bg: #0a0a0a; --card: #161616; --accent: #00d4ff; --text: #e0e0e0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; padding: 20px; display: flex; justify-content: center; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 900px; width: 100%; }
+        .card { background: var(--card); border: 1px solid #333; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { margin: 0 0 15px 0; font-size: 0.9rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; }
+        .val { font-family: 'Courier New', monospace; font-weight: bold; color: #fff; font-size: 1.1rem; }
+        .label { color: #888; }
+        .epaper-view { background: #fff; color: #000; font-family: 'Arial', sans-serif; border: 10px solid #000; width: 350px; height: 450px; padding: 15px; }
+        .epaper-view h1 { border-bottom: 4px solid #000; margin: 0 0 10px 0; font-size: 24px; }
+        .epaper-stat { font-size: 20px; margin: 12px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .status-tag { font-size: 0.7rem; background: #222; padding: 4px 8px; border-radius: 4px; color: var(--accent); }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="grid">
     <div class="card">
-        <h2>Data Source</h2>
-        <p>Pushing to Public Cloud Bin...</p>
-        <div id="send-status" class="status">Initializing...</div>
+        <h2>Data Engine (Source)</h2>
+        <div id="sender-ui">
+            <div class="stat-row"><span class="label">Simulation State:</span> <span class="status-tag">ACTIVE</span></div>
+            <div class="stat-row"><span class="label">Last Push:</span> <span id="last-push" class="val">--</span></div>
+            <div class="stat-row"><span class="label">Data Packet Size:</span> <span class="val">256 bytes</span></div>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 20px;">
+                Gathering system metrics...<br>
+                Converting Celsius to Fahrenheit...<br>
+                Preparing JSON payload for Tailscale node...
+            </p>
+        </div>
     </div>
 
-    <div class="card">
-        <h2>E-Paper Display</h2>
-        <div class="label">Current Temp</div>
-        <div id="disp-temp" class="value">--°C</div>
-        <div class="label">Current Speed</div>
-        <div id="disp-speed" class="value">-- GHz</div>
-        <div id="recv-status" class="status">Waiting...</div>
+    <div class="epaper-view">
+        <h1>SYS-MON v2.1</h1>
+        <div class="epaper-stat"><b>TEMP:</b> <span id="f-temp">--</span></div>
+        <div class="epaper-stat"><b>SPEED:</b> <span id="f-speed">--</span></div>
+        <div class="epaper-stat"><b>RAM:</b> <span id="f-mem">--</span></div>
+        <div class="epaper-stat"><b>DISK:</b> <span id="f-disk">--</span></div>
+        <div class="epaper-stat"><b>NET:</b> <span id="f-net">--</span></div>
+        <div class="epaper-stat"><b>IP:</b> <span id="f-ip">--</span></div>
+        <div style="margin-top: 50px; font-size: 12px; text-align: right;">
+            Refreshed: <span id="f-time">--</span>
+        </div>
     </div>
 </div>
 
 <script>
-    // A public temporary bin for testing
-    // In a real setup, you'd get your own API key from jsonbin.io
-    const BIN_ID = '65f1a2b3c4d5e6f7a8b9c0d1'; // Mock ID for logic
-    const API_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
-    
-    // --- SENDER: WRITES DATA ---
-    async function pushData() {
-        const stats = {
-            temp: (Math.random() * 10 + 55).toFixed(1) + "°C",
-            speed: (Math.random() * 0.5 + 3.5).toFixed(2) + "GHz"
+    function updateAll() {
+        // 1. Generate Raw Data
+        const rawTempC = Math.random() * 15 + 40;
+        const data = {
+            tempF: ((rawTempC * 9/5) + 32).toFixed(1) + "°F",
+            speed: (Math.random() * 0.8 + 3.1).toFixed(2) + " GHz",
+            mem: Math.floor(Math.random() * 15 + 60) + "%",
+            disk: (Math.random() * 5 + 82).toFixed(1) + "% Full",
+            net: (Math.random() * 100).toFixed(1) + " Mbps",
+            ip: "100.115.20.44",
+            time: new Date().toLocaleTimeString()
         };
 
-        try {
-            // NOTE: This simulates a PUT request to a cloud bin
-            console.log("Pushing stats:", stats);
-            document.getElementById('send-status').innerText = "Last Push: " + new Date().toLocaleTimeString();
-            
-            // To make this work instantly for your test, 
-            // we'll trigger the receiver locally since the bin is a mock
-            updateDisplay(stats); 
-        } catch (e) {
-            document.getElementById('send-status').innerText = "Blocked by Firewall";
-        }
+        // 2. Simulate the "Push" (Update Sender UI)
+        document.getElementById('last-push').innerText = data.time;
+
+        // 3. Simulate the "Receive" (Update E-Paper UI)
+        document.getElementById('f-temp').innerText = data.tempF;
+        document.getElementById('f-speed').innerText = data.speed;
+        document.getElementById('f-mem').innerText = data.mem;
+        document.getElementById('f-disk').innerText = data.disk;
+        document.getElementById('f-net').innerText = data.net;
+        document.getElementById('f-ip').innerText = data.ip;
+        document.getElementById('f-time').innerText = data.time;
     }
 
-    // --- RECEIVER: READS DATA ---
-    function updateDisplay(data) {
-        document.getElementById('disp-temp').innerText = data.temp;
-        document.getElementById('disp-speed').innerText = data.speed;
-        document.getElementById('recv-status').innerText = "Updated: " + new Date().toLocaleTimeString();
-    }
-
-    // Run the loop
-    setInterval(pushData, 3000);
-    pushData();
+    // Run every 2 seconds
+    setInterval(updateAll, 2000);
+    updateAll();
 </script>
 
 </body>
